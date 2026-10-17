@@ -23,6 +23,9 @@ const SOURCES = {
     // Unticked: in two live runs (2026-10-17, Burlington ON) the actor exited cleanly with an empty dataset, so it has never returned a hotel
     apifyhotelscom: { label: "Hotels.com (Apify)", detail: "not working: returned nothing in 2 test runs", module: "./apify-hotelscom", env: ["APIFY_KEY"], defaultOn: false,
         cost: { kind: "tier", label: "Apify usage", note: "Free actor, you pay Apify platform usage only (listing says about $5 per 1,000 results). Two test runs cost a few cents and returned no hotels." } },
+    // Unticked: it only reads the prices of the hotels in one Hotel Center account (no city search, no phones), and needs a partner account
+    travelpartner: { label: "Google Hotel Center", detail: "your own Hotel Center hotels only, not a market search", module: "./google-travelpartner", env: ["GOOGLE_APPLICATION_CREDENTIALS", "TRAVELPARTNER_ACCOUNT_ID"], defaultOn: false,
+        cost: { kind: "free", label: "Free", note: "No charge was found in Google's docs, but it needs a Hotel Center partner account and a service account the account has invited. Not tested live." } },
     // Drives a real browser against Expedia's site. Slow, and Expedia's bot check needs a human in a visible
     // window (HEADLESS=false); headless it reports an error and the other sources still run.
     expedia: { label: "Expedia", detail: "opens a browser window (set HEADLESS=false)", module: "./expedia", env: [],

@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Add the Google Travel Partner API as a source, knowing it is not a market search
+tags: decision, search, google, architecture
+- Decision: Added `hotel_search/google-travelpartner.js` (unticked by default) on the user's call, after research showed the API is for lodging partners: `hotelViews` lists the hotels of one Hotel Center account, `priceViews` returns the prices that account submitted, and neither has a city filter, phone or address.
+- Why: The user wants it wired in. Auth is a service account JSON key (scope `travelpartner`) that Hotel Center must invite by email (about 24h), plus the partner id from a Technical Account Manager.
+- Alternatives: Keep only SearchApi and Apify for Google Hotels prices (real market data, already wired in) - still the way to find the cheapest hotel in a city.
+
 ## 2026-10-17 — Each source normalizes its own output into one shared shape
 tags: decision, search, architecture
 - Decision: Every source script owns a `normalize(rawItem)` built on the shared `normalizeHotel()`, instead of each building its hotel object inline. The rest of the suite (merge, Places, report, UI) only knows the one shape.

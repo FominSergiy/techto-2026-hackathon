@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Google Hotel Center (Travel Partner API) source
+tags: feature, search, google
+- Feature: `travelpartner` source: signs a service account JWT, lists `accounts/{id}/hotelViews`, calls `priceViews` per hotel and keeps the itinerary that matches the check-in date and nights (price + taxes + fees). Unticked in the UI; needs `GOOGLE_APPLICATION_CREDENTIALS` and `TRAVELPARTNER_ACCOUNT_ID`.
+- Status: wip - code and offline tests done, never run live: no Hotel Center partner account or invited service account exists yet.
+- Notes: Only returns the account's own hotels, so it will not surface a city's cheapest hotel; city and phone stay null until Google Places fills them. The per-call request/response shapes come from the REST reference, not a live response: check a real `priceViews` body first (the docs do not say whether `price` includes taxes, so the total adds `taxes` and `fees`).
+
 ## 2026-10-17 — Prompt review step switched off (REVIEW_STEP flag)
 tags: feature, ui, prompt
 - Feature: The page's "Review prompt" step (`/api/refine`) is off: `const REVIEW_STEP = false` in `public/index.html`. The buttons ("Run search", "Ask Backboard") send the typed text straight to the server, which parses it with `parsePrompt` (LLM, else regex) and runs it. The region stays Ontario, CA (`pinRegion` in `prompt.js` drops a region/country the parser guessed, unless the text has `--region=` / `--country-code=`). Typed `--flags` still win over parsed values. Set the flag to `true` to get the review step back; `/api/refine` and `prompt_refine.js` are untouched.
