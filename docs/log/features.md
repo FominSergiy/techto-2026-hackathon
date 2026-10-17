@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — ScrapingBee source (Expedia via proxy)
+tags: feature, search, scrapingbee, expedia
+- Feature: Expedia prices without a local browser. `scrapingbee.js` calls ScrapingBee with `render_js`, `premium_proxy`, `wait_for` the card selector and `extract_rules` returning each card's HTML, then reuses `parseCardText` from `expedia.js`. Wired into `sources.js` (on by default, disabled in the UI until `SCRAPING_BEE_API_KEY` is set) and `settings.sources`.
+- Status: wip. Parsing is tested offline (`node hotel_search/test/scrapingbee-parse.js`, on the synthetic Expedia fixture). Never run against the live API, so the request parameters, the card selector, the `sort`/`currency` URL parameters and the credit cost (about 25 per search, from memory) are unverified.
+- Notes: A bot check or a stale selector shows up as "returned no cards". Only page 1 is read (no "Show more" click). Each run spends credits, so test with one search.
+
 ## 2026-10-17 — Xotelo diagnosed live: big cities time out, rates come back empty
 tags: feature, search, xotelo, learnings
 - Feature: Tested against the real Xotelo API (no key needed). `/list` answers HTTP 200 with `{"error":{"status_code":500,...}}` in the body after ~10.8s for every city with many hotels (Toronto, Montreal, Hamilton: 13 calls, any `limit` from 10 to 100, any `sort`), while Aurora (5 hotels) answers in 0.9s every time. So it is not intermittent for big cities: Xotelo's server gives up at ~11s. `xotelo.js` now fails at once on a slow failure with a message saying so (it used to retry 5 times, ~1 minute of waiting), still retries quick failures with backoff, and `getJson` now backs off on a 500 reported inside an HTTP 200 body, which is how Xotelo reports errors.

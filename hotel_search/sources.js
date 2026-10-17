@@ -21,7 +21,10 @@ const SOURCES = {
     // Drives a real browser against Expedia's site. Slow, and Expedia's bot check needs a human in a visible
     // window (HEADLESS=false); headless it reports an error and the other sources still run.
     expedia: { label: "Expedia", detail: "opens a browser window (set HEADLESS=false)", module: "./expedia", env: [],
-        cost: { kind: "free", label: "Free", note: "No API: it drives a browser, so there is no per-request charge." } }
+        cost: { kind: "free", label: "Free", note: "No API: it drives a browser, so there is no per-request charge." } },
+    // Same Expedia page and parser as `expedia`, but rendered by ScrapingBee's servers (no local browser, no human)
+    scrapingbee: { label: "ScrapingBee", detail: "Expedia via proxy", module: "./scrapingbee", env: ["SCRAPING_BEE_API_KEY"],
+        cost: { kind: "tier", label: "Credits per search", note: "Paid per request in credits. JS rendering with a premium proxy is believed to cost about 25 credits per search (one request per search); check scrapingbee.com/pricing for your plan's credits." } }
 };
 
 // Google Places isn't a price source: it adds phones and addresses, and checks each hotel's city

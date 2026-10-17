@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — ScrapingBee added as a source (reverses the earlier rejection)
+tags: decision, search, data-source
+- Decision: `hotel_search/scrapingbee.js` is a source (UI checkbox `scrapingbee`, key `SCRAPING_BEE_API_KEY`). ScrapingBee renders the same Expedia search page behind its proxies and returns each card's HTML; `expedia.js`'s parser reads the cards. One request per search, first page only.
+- Why: The user asked for it and holds the key. Expedia's bot check stops a headless run and needs a human at a visible window; ScrapingBee needs neither. Competition rules are the user's call, so the earlier "rejected: evasion" in the Expedia entry below no longer stands for ScrapingBee.
+- Alternatives: Parsing with a new HTML library (not needed: ScrapingBee's `extract_rules` cuts out the cards). Booking.com through ScrapingBee (Apify already covers it).
+
 ## 2026-10-17 — Prompt rewriting uses a cheap LLM: Haiku, else Backboard gpt-4o-mini, else regex
 tags: decision, prompt, llm, cost
 - Decision: `parsePrompt` tries Claude Haiku (`ANTHROPIC_API_KEY`), then Backboard's `gpt-4o-mini` (`BACKBOARD_API_KEY`, no web search, no memory), then the regex parser. The LLM only extracts settings as JSON (fixes typos, resolves "today"/"tomorrow"); the review prompt and `--flags` are still built by code. When regex was used the review panel shows a warning with the reason.

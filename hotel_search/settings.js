@@ -30,8 +30,8 @@ const defaults = {
     minRating: 4.0,     // out of 5 - 10-point sources (Booking, LiteAPI) are halved before comparing
     minReviews: 50,
 
-    // Sources search.js runs: xotelo, searchapi, liteapi, hotelbeds, booking
-    sources: ["xotelo", "searchapi", "liteapi", "hotelbeds", "booking", "expedia"]
+    // Sources search.js runs: xotelo, searchapi, liteapi, hotelbeds, booking, expedia, scrapingbee
+    sources: ["xotelo", "searchapi", "liteapi", "hotelbeds", "booking", "expedia", "scrapingbee"]
 };
 
 function parseValue(raw, current) {
