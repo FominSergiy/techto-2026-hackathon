@@ -26,6 +26,13 @@ The agent must:
 - The agent **must make a phone call**.
 - The agent **must deliver a receipt to the provided email address**.
 
+## Booking Goal (No Payment)
+
+- There is **no payment**. The agent never collects, asks for or gives card or payment details.
+- The agent's final goal is to **make a booking**: get a verbal confirmation from the hotel, a reservation ID, or both.
+- If the hotel asks for a card to hold the room, the agent should ask to book without one (for example, pay at the hotel).
+- If the hotel refuses to book without payment, the agent gets a **verbal confirmation that the room is available for the requested date at the quoted price**. We treat that as the confirmation.
+
 ## Required Output (to count at all)
 
 The confirmation email must contain all four:
@@ -52,7 +59,7 @@ Pipeline the agent has to run end to end:
 2. **Rank**: order candidates by price, with phone numbers attached.
 3. **Call**: place an outbound phone call to the hotel.
 4. **Converse**: get through IVR menus and holds, speak naturally with reception, and fall back to the next hotel if needed.
-5. **Capture**: get the confirmation number, price, date and address from the call.
+5. **Capture**: get the booking confirmed (verbal and/or reservation ID) plus price, date and address from the call. No payment step.
 6. **Email**: send a confirmation containing all four required fields to the provided address.
 
 Cross-cutting:
@@ -70,3 +77,4 @@ Cross-cutting:
 - Hotel data source (price + phone number)
 - What "cost" means: room price, agent run cost (tokens/telephony), or both?
 - Whether hotels are real or simulated by organizers
+- Verbal-only confirmation: Required Output asks for a confirmation number. If the hotel gives no reservation ID (including when it refuses to book without payment and only confirms availability), what goes in that field? (Proposed: always ask for an ID; if none is given, state "verbal confirmation" with the receptionist's name and call time.)
