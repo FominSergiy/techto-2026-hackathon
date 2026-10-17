@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hotel Search</title>
+<style>
+    :root {
+        --bg: #f6f7f9; --card: #fff; --text: #1c2430; --muted: #6b7686; --border: #dfe3ea;
+        --accent: #2457d6; --accent-text: #fff; --error: #b3261e; --row: #f0f3f9;
+    }
+    @media (prefers-color-scheme: dark) {
+        :root { --bg: #14171c; --card: #1c2027; --text: #e7eaf0; --muted: #8f9aab; --border: #2f3641; --accent: #6b93ff; --accent-text: #0b1020; --error: #ff8a80; --row: #232833; }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px 16px; background: var(--bg); color: var(--text); font: 15px/1.45 system-ui, sans-serif; }
+    main { max-width: 1200px; margin: 0 auto; }
+    h1 { margin: 0 0 16px; font-size: 22px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+    textarea { width: 100%; min-height: 90px; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: inherit; font: inherit; resize: vertical; }
+    .bar { display: flex; gap: 12px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+    button { padding: 9px 18px; border: 0; border-radius: 8px; background: var(--accent); color: var(--accent-text); font: inherit; font-weight: 600; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: wait; }
+    .muted { color: var(--muted); font-size: 13px; }
+    .error { color: var(--error); }
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .chip { background: var(--row); border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; font-size: 12px; }
+    .scroll { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; font-size: 14px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); white-space: nowrap; }
+    tbody tr:hover { background: var(--row); }
+    td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    a { color: var(--accent); }
+    details { margin-top: 12px; }
+    pre { margin: 8px 0 0; padding: 10px; background: var(--bg); border-radius: 8px; overflow-x: auto; font-size: 12px; }
+</style>
+</head>
+<body>
+<main>
+    <h1>Hotel Search</h1>
+
+    <div class="card">
+        <textarea id="prompt" placeholder="e.g. Cheapest hotels in Toronto, CA from 2026-11-20 to 2026-11-22 for 2 adults under 250 CAD"></textarea>
+        <div class="bar">
+            <button id="run">Search</button>
+            <span id="status" class="muted">Ctrl/Cmd+Enter to run. Raw flags work too: --sources=xotelo --max-nightly-price=200</span>
+        </div>
+    </div>
+
+    <div id="output"></div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const COLUMNS = [
+    ["Hotel", h => h.name],
+    ["City", h => h.city],
+    ["Address", h => h.address],
+    ["Phone", h => h.phone && `<a href="tel:${h.phone.replace(/[^+\d]/g, "")}">${esc(h.phone)}</a>`, true],
+    ["Price / night", h => `${h.nightlyPrice} ${h.currency}`, "num"],
+    ["Total", h => h.totalPrice != null ? `${h.totalPrice} ${h.currency}` : "", "num"],
+    ["Rating", h => h.rating != null ? `${h.rating} (${h.reviews ?? "?"})` : "", "num"],
+    ["Source", h => h.source],
+    ["Other offers", h => h.otherOffers],
+    ["Link", h => h.url && `<a href="${esc(h.url)}" target="_blank" rel="noopener">open</a>`, true]
+];
+
+function esc(value) {
+    return String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function renderTable(hotels) {
+    const head = COLUMNS.map(([label]) => `<th>${label}</th>`).join("");
+    // Columns flagged true return ready-made (already escaped) HTML
+    const rows = hotels.map(hotel => "<tr>" + COLUMNS.map(([, get, kind]) => {
+        const value = get(hotel);
+        return `<td${kind === "num" ? ' class="num"' : ""}>${kind === true ? value || "" : esc(value)}</td>`;
+    }).join("") + "</tr>").join("");
+    return `<div class="scroll"><table><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function render(result) {
+    const usage = result.usage ? ` · ${result.usage.input_tokens + result.usage.output_tokens} prompt-parsing tokens` : "";
+    const chips = result.args.map(arg => `<span class="chip">${esc(arg)}</span>`).join("");
+    $("output").innerHTML = `
+        <div class="card">
+            <div class="chips">${chips || '<span class="chip">default settings</span>'}</div>
+            ${result.hotels.length ? renderTable(result.hotels) : "<p>No hotels matched. Try loosening the filters.</p>"}
+            <p class="muted">${result.hotels.length} hotels in ${result.seconds.toFixed(1)}s · prompt parsed by ${esc(result.parser)}${usage}</p>
+            <details><summary class="muted">Run log</summary><pre>${esc(result.log)}</pre></details>
+        </div>`;
+}
+
+async function run() {
+    const button = $("run");
+    const started = Date.now();
+    button.disabled = true;
+    $("output").innerHTML = "";
+    const timer = setInterval(() => $("status").textContent = `Searching… ${Math.round((Date.now() - started) / 1000)}s (sources run in parallel, can take a minute)`, 500);
+
+    try {
+        const response = await fetch("/api/search", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt: $("prompt").value })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error);
+        render(data);
+        $("status").textContent = "Done";
+    } catch (error) {
+        $("status").innerHTML = `<span class="error">${esc(error.message)}</span>`;
+    } finally {
+        clearInterval(timer);
+        button.disabled = false;
+    }
+}
+
+$("run").addEventListener("click", run);
+$("prompt").addEventListener("keydown", event => {
+    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) run();
+});
+</script>
+</body>
+</html>

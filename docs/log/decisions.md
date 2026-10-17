@@ -19,6 +19,19 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — UI backend spawns a child process per search
+tags: decision, ui, backend
+- Decision: `server.js` (plain `node:http`, no framework) runs each search as `node search-json.js <args>` and reads JSON from stdout. The prompt is turned into settings args by Claude Haiku when `ANTHROPIC_API_KEY` is set, otherwise a regex parser.
+- Why: `settings.js` parses `process.argv` once at load, so one shared server process can't take per-request settings (and concurrent searches would clobber each other). A child process reuses every script unchanged. Zero new dependencies.
+- Alternatives: mutating the `settings` singleton under a lock (fragile); Express (extra dependency for two routes).
+
+## 2026-10-17 — Hotel search via APIs, one script per source
+tags: decision, search, data-source
+- Decision: Search hotels through APIs only: SearchApi.io (Google Hotels), Xotelo, LiteAPI, Hotelbeds and Apify Booking, each in its own script. City, dates and filters live in `settings.js`.
+- Why: The spec bans browser automation. Expedia's site also blocks headless browsers with a "Bot or Not?" 429 challenge. City X is revealed at competition time, so it is a single setting.
+- Alternatives: Playwright scraper for Expedia (`expedia.js`, against the rules, reference only). Partner APIs like Expedia Rapid and Booking Demand (approval takes weeks). Amadeus self-service (shut down July 2026).
+
+
 ## 2026-10-17 — Docs live in docs/, AGENTS.md is the canonical agent guide
 tags: decision, docs, process
 - Decision: All project docs go under `docs/` with YAML frontmatter. `AGENTS.md` is the single agent guide, and `CLAUDE.md` just imports it.
