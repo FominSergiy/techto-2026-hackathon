@@ -16,6 +16,7 @@
     body { margin: 0; padding: 24px 16px; background: var(--bg); color: var(--text); font: 15px/1.45 system-ui, sans-serif; }
     main { max-width: 1200px; margin: 0 auto; }
     h1 { margin: 0 0 16px; font-size: 22px; }
+    h2 { margin: 0 0 10px; font-size: 16px; }
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
     textarea { width: 100%; min-height: 90px; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: inherit; font: inherit; resize: vertical; }
     .bar { display: flex; gap: 12px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
@@ -49,6 +50,17 @@
     </div>
 
     <div id="output"></div>
+
+    <div class="card">
+        <h2>Backboard (web search)</h2>
+        <textarea id="bbPrompt" placeholder="e.g. Cheapest hotels in Aurora, Ontario for Saturday night, 2 adults, with phone numbers"></textarea>
+        <div class="bar">
+            <button id="bbRun">Ask Backboard</button>
+            <span id="bbStatus" class="muted">Separate from the search above: a web-search model answers directly. Prices are hints, not API rates. Ctrl/Cmd+Enter to run.</span>
+        </div>
+    </div>
+
+    <div id="bbOutput"></div>
 </main>
 
 <script>
@@ -117,7 +129,41 @@ async function run() {
     }
 }
 
+async function runBackboard() {
+    const button = $("bbRun");
+    const started = Date.now();
+    button.disabled = true;
+    $("bbOutput").innerHTML = "";
+    const timer = setInterval(() => $("bbStatus").textContent = `Asking Backboard… ${Math.round((Date.now() - started) / 1000)}s (web search, can take a minute)`, 500);
+
+    try {
+        const response = await fetch("/api/backboard", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt: $("bbPrompt").value })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error);
+        const { run } = data;
+        $("bbOutput").innerHTML = `
+            <div class="card">
+                ${data.hotels.length ? renderTable(data.hotels) : "<p>Backboard found no hotels with a price.</p>"}
+                <p class="muted">${data.hotels.length} hotels in ${data.seconds.toFixed(1)}s · ${esc(run.model)} · ${run.inputTokens ?? "?"} in / ${run.outputTokens ?? "?"} out tokens</p>
+            </div>`;
+        $("bbStatus").textContent = "Done";
+    } catch (error) {
+        $("bbStatus").innerHTML = `<span class="error">${esc(error.message)}</span>`;
+    } finally {
+        clearInterval(timer);
+        button.disabled = false;
+    }
+}
+
 $("run").addEventListener("click", run);
+$("bbRun").addEventListener("click", runBackboard);
+$("bbPrompt").addEventListener("keydown", event => {
+    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) runBackboard();
+});
 $("prompt").addEventListener("keydown", event => {
     if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) run();
 });

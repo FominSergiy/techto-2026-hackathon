@@ -54,14 +54,22 @@ function buildRequest(settings) {
     const where = [settings.city, settings.region, settings.countryCode].filter(Boolean).join(", ");
     const limit = settings.maxNightlyPrice != null ? ` Only include hotels at or under ${settings.maxNightlyPrice} ${settings.currency} per night.` : "";
 
+    // `prompt` is the UI's free-text mode: the user's own words define city, dates, guests and currency
+    const content = settings.prompt
+        || `Find the ${settings.count} cheapest hotels located in ${where} for check-in ${settings.checkIn}, check-out ${settings.checkOut} (${settings.nights} night${settings.nights === 1 ? "" : "s"}), ${settings.adults} adults.${limit}`;
+    const context = settings.prompt
+        ? `Today is ${isoDate(Date.now())}. The request names the city, dates and guests; if it gives no dates use the next Saturday for one night.`
+        : "";
+
     return {
-        content: `Find the ${settings.count} cheapest hotels located in ${where} for check-in ${settings.checkIn}, check-out ${settings.checkOut} (${settings.nights} night${settings.nights === 1 ? "" : "s"}), ${settings.adults} adults.${limit}`,
+        content,
         system_prompt: [
             "You are a hotel price researcher. Use web search to find current room rates and phone numbers.",
+            context,
             "Reply with ONLY a JSON array, no prose and no code fences. Each element:",
-            `{"name": string, "address": string|null, "phone": string|null (international format), "nightlyPrice": number (${settings.currency}, per night, taxes excluded unless only the taxed price is shown), "totalPrice": number|null, "rating": number|null (out of 5), "url": string|null (page where you saw the price)}.`,
+            `{"name": string, "address": string|null, "phone": string|null (international format), "nightlyPrice": number (per night, taxes excluded unless only the taxed price is shown), "totalPrice": number|null, "currency": string (ISO code of the prices; ${settings.currency} unless the request asks for another), "rating": number|null (out of 5), "url": string|null (page where you saw the price)}.`,
             "Sort by nightlyPrice ascending. Only hotels inside the named city. If you cannot find a real price, omit the hotel. Never invent prices or phone numbers; use null when unknown."
-        ].join("\n"),
+        ].filter(Boolean).join("\n"),
         llm_provider: settings.provider,
         model_name: settings.model,
         web_search: "Auto",
@@ -90,8 +98,11 @@ function toHotel(raw, settings) {
         name: String(raw.name).trim(),
         city: settings.city,
         nightlyPrice: Math.round(nightlyPrice),
-        totalPrice: Number.isFinite(Number(raw.totalPrice)) && raw.totalPrice != null ? Math.round(Number(raw.totalPrice)) : Math.round(nightlyPrice * settings.nights),
-        currency: settings.currency,
+        // Free-text mode has no known night count, so only trust a total the model actually found
+        totalPrice: raw.totalPrice != null && Number.isFinite(Number(raw.totalPrice))
+            ? Math.round(Number(raw.totalPrice))
+            : settings.prompt ? null : Math.round(nightlyPrice * settings.nights),
+        currency: raw.currency || settings.currency,
         rating: raw.rating ?? null,
         reviews: null,
         address: raw.address || null,

@@ -20,4 +20,12 @@ assert.strictEqual(hotels.length, 1);
 assert.deepStrictEqual([hotels[0].name, hotels[0].nightlyPrice, hotels[0].totalPrice, hotels[0].phone], ["Hotel A", 112, 225,"+1 905-555-0100"]);
 
 assert.throws(() => parseHotels("Sorry, no hotels found."), /no JSON array/);
+// Free-text mode (the UI's Backboard box): the user's words go through untouched, no assumed nights or currency
+const free = resolve({ prompt: "cheapest hotel in Paris tonight in EUR" });
+const freeRequest = buildRequest(free);
+assert.strictEqual(freeRequest.content, "cheapest hotel in Paris tonight in EUR");
+assert.match(freeRequest.system_prompt, /Today is \d{4}-\d{2}-\d{2}/);
+const freeHotel = toHotel({ name: "Hotel C", nightlyPrice: 150, currency: "EUR" }, free);
+assert.deepStrictEqual([freeHotel.currency, freeHotel.totalPrice], ["EUR", null]);
+
 console.log("backboard_search: all tests passed");

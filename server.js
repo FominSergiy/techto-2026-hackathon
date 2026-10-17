@@ -5,6 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { spawn } = require("node:child_process");
 const { parsePrompt } = require("./prompt");
+const backboard = require("./backboard_search/backboard");
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -63,6 +64,22 @@ async function handleSearch(request, response) {
     }
 }
 
+// Backboard-only search: the textarea text goes straight to a web-search model, no price APIs involved
+async function handleBackboard(request, response) {
+    try {
+        const { prompt } = JSON.parse(await readBody(request));
+        if (!prompt?.trim()) {
+            return sendJson(response, 400, { error: "Enter a prompt first" });
+        }
+
+        const started = Date.now();
+        const hotels = (await backboard.search({ prompt: prompt.trim() })).map(hotel => ({ ...hotel, source: "backboard" }));
+        sendJson(response, 200, { hotels, run: backboard.search.lastRun, seconds: (Date.now() - started) / 1000 });
+    } catch (error) {
+        sendJson(response, 500, { error: error.message });
+    }
+}
+
 function serveStatic(request, response) {
     const name = request.url === "/" ? "index.html" : path.basename(request.url.split("?")[0]);
     const file = path.join(PUBLIC_DIR, name);
@@ -80,6 +97,9 @@ function serveStatic(request, response) {
 http.createServer((request, response) => {
     if (request.method === "POST" && request.url === "/api/search") {
         return handleSearch(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/backboard") {
+        return handleBackboard(request, response);
     }
     serveStatic(request, response);
 }).listen(PORT, () => console.log(`Hotel search UI on http://localhost:${PORT}`));
