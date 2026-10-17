@@ -22,10 +22,13 @@ ElevenLabs targets:
 
 | Target | ID | Config | Live traffic |
 |---|---|---|---|
-| Alex · `Main` branch | `agtbrch_7801m552vbmxf77ankk22ex5hy1v` | Davide's original | 100% |
-| Alex · `repo-sync` branch | `agtbrch_6701m55bzx57f3d97smmefs2tv86` | This repo | 0% |
+| Alex · `Main` branch | `agtbrch_7801m552vbmxf77ankk22ex5hy1v` | This repo as of PR #4 (version `agtvrsn_5001m55ckw38fsgvgsds10nr3nq0`) | 100% |
+| Alex · `repo-sync` branch | `agtbrch_6701m55bzx57f3d97smmefs2tv86` | This repo, newest; may be ahead of Main | 0% |
+| Alex · `main-backup-2026-10-17` branch | `agtbrch_1301m55ck5zaf1dsh4yen1wxy07j` | Davide's original Main, from before the sync (same as git `e324d67`) | 0% |
 | Alex · `Alex - Experiment` branch | `agtbrch_6601m552vbzye7fayn8rqbx9nm7a` | Davide's | 0% |
-| Agent **Alex (repo config)** (a copy) | `agent_3301m55c1j1xfap8y08jjvcj3g23` | This repo | Its own agent; no phone number assigned |
+| Agent **Alex (repo config)** (a copy) | `agent_3301m55c1j1xfap8y08jjvcj3g23` | This repo as of PR #4 | Its own agent; no phone number assigned |
+
+**Rollback:** merge `main-backup-2026-10-17` into Main, or push `git show e324d67:agent_configs/Alex.json` to Main.
 
 `agents.json` points at the `repo-sync` branch, so a plain `elevenlabs agents push` goes there, not to Main.
 
