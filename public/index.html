@@ -109,6 +109,55 @@ function failuresIn(log) {
     return (log || "").split("\n").filter(line => /^\w+ failed: /.test(line));
 }
 
+// What every API returned (before any filter), how many passed the price / rating filters, and where its raw JSON was saved
+function renderSources(report) {
+    if (!report) return "";
+    const rows = report.sources.map(source => `<tr>
+        <td>${esc(source.label)}</td>
+        <td>${source.ok ? "ok" : `<span class="error">${esc(source.error)}</span>`}</td>
+        <td class="num">${source.fetched ?? "?"}</td>
+        <td class="num">${source.ok ? source.kept : ""}</td>
+        <td>${esc(source.file || "")}</td>
+    </tr>`).join("");
+    return `<details open><summary class="muted">What each API returned</summary><div class="scroll"><table>
+        <thead><tr><th>Source</th><th>Result</th><th>Hotels returned</th><th>Passed price / rating filters</th><th>Raw response saved to</th></tr></thead>
+        <tbody>${rows}</tbody></table></div></details>`;
+}
+
+// What the city check did: kept / dropped, and which hotels, so nothing disappears without a trace
+function renderCityCheck(report) {
+    const city = report?.city;
+    if (!city) return "";
+    const names = list => list.map(item => esc(typeof item === "string" ? item : `${item.name} (${item.city})`)).join(", ");
+    return `<p class="muted">City check for "${esc(city.searched)}" using ${esc(city.mode)}: kept ${city.kept}, dropped ${city.dropped.length} placed in other cities, ${city.unverified.length} with no city found${city.unverifiedDropped ? " (dropped too)" : " (kept)"}.</p>
+        ${city.dropped.length ? `<details><summary class="muted">Dropped by the city check (${city.dropped.length})</summary><p>${names(city.dropped)}</p></details>` : ""}
+        ${city.unverified.length ? `<details><summary class="muted">No city found (${city.unverified.length})</summary><p>${names(city.unverified)}</p></details>` : ""}`;
+}
+
+// Why the table is empty, from what the APIs actually returned
+function emptyMessage(result, failures) {
+    const report = result.report;
+    if (!report) {
+        return failures.length ? "<p>No hotels came back because the source(s) above failed.</p>" : "<p>No hotels matched. Try loosening the filters.</p>";
+    }
+    const returned = report.sources.reduce((sum, source) => sum + (source.fetched || 0), 0);
+    const passed = report.sources.reduce((sum, source) => sum + source.kept, 0);
+    const failed = report.sources.filter(source => !source.ok).length;
+    let why = "No hotels matched.";
+    if (!returned) {
+        why = `No API returned any hotels (${failed} of ${report.sources.length} sources failed, see the table above).`;
+    } else if (!passed) {
+        why = `The APIs returned ${returned} hotels, but none passed the price / rating filters.`;
+    } else if (report.city && report.city.kept === 0) {
+        const cities = report.city.dropped.map(hotel => hotel.city).filter(Boolean);
+        const top = [...new Set(cities)].sort((a, b) => cities.filter(c => c === b).length - cities.filter(c => c === a).length)[0];
+        const where = top ? `in ${top}, not "${report.searched}"` : "in other cities";
+        why = `The APIs returned ${returned} hotels and ${passed} passed the filters, but the city check removed all of them: ${report.city.dropped.length} are ${where}`
+            + `${report.city.unverified.length && report.city.unverifiedDropped ? ` and ${report.city.unverified.length} could not be placed in any city` : ""}. See the list below; try searching ${top ? `"${top}"` : "a city"}.`;
+    }
+    return `<p class="error">${esc(why)}</p>`;
+}
+
 function render(result) {
     const failures = failuresIn(result.log);
     const usage = result.usage ? ` · ${result.usage.input_tokens + result.usage.output_tokens} prompt-parsing tokens` : "";
@@ -118,9 +167,9 @@ function render(result) {
             <div class="chips">${chips || '<span class="chip">default settings</span>'}</div>
             ${failures.map(line => `<p class="error">${esc(line)}</p>`).join("")}
             ${result.args.includes("--enrich-phones=false") ? '<p class="error">Google Places was off for this run, so there are no phone numbers, addresses or city check. Tick "Google Places" and run again.</p>' : ""}
-            ${result.hotels.length ? renderTable(result.hotels)
-                : failures.length ? "<p>No hotels came back because the source(s) above failed.</p>"
-                : "<p>No hotels matched. Try loosening the filters.</p>"}
+            ${renderSources(result.report)}
+            ${result.hotels.length ? renderTable(result.hotels) : emptyMessage(result, failures)}
+            ${renderCityCheck(result.report)}
             <p class="muted">${result.hotels.length} hotels in ${result.seconds.toFixed(1)}s · prompt parsed by ${esc(result.parser)}${usage}</p>
             <details><summary class="muted">Run log</summary><pre>${esc(result.log)}</pre></details>
         </div>`;

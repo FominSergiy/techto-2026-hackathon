@@ -7,10 +7,12 @@ const { search } = require("./hotel_search");
 const { toRecord, printReport, writeReport } = require("./hotel_search/report");
 
 const RESULT_MARKER = "@@RESULT@@";   // server.js looks for this prefix on the JSON line
+const REPORT_MARKER = "@@REPORT@@";   // ...and this one for what every API returned and what the city check dropped
 
 search()
     .then(hotels => {
         if (process.argv.includes("--json")) {
+            console.log(`${REPORT_MARKER}${JSON.stringify(search.lastReport)}`);
             console.log(`${RESULT_MARKER}${JSON.stringify(hotels.map(toRecord))}`);
             return;
         }

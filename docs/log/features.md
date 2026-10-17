@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Page shows what every API returned and what the city check dropped
+tags: feature, ui, search, learnings
+- Feature: A search used to say "No hotels came back because the source(s) above failed" when the real story was different. Now `search.js --json` also prints a report (`@@REPORT@@`, built in `hotel_search/index.js` as `search.lastReport`), `server.js` passes it on, and the page shows: a table per source (ok or the error, hotels returned before any filter, how many passed the price/rating filters, the saved raw file), the city check's kept / dropped counts with the dropped hotels and the city each is really in, and an empty-result message that says which step removed everything. The city check itself is unchanged.
+- Status: done, offline test replays the real run (`test/run-report.js`).
+- Notes: Found in the saved responses of a "Humber Bay" run: SearchApi returned 17 Toronto hotels, Google Places put all of them in "Toronto" (Humber Bay is a neighbourhood, not a city), so the check dropped everything. Also in that run: the Apify Google actor returned no hotels but a notice, "free_tier_limit_reached" (free accounts get $1.00 of usage per actor per month, resets 2026-11-01 UTC; our test runs plus the browser runs used it up). The code treated that as an empty search; `apify-google-hotels.js` now raises it as an error that shows on the page. LiteAPI answered `data: []` for "Humber Bay", Booking `[]`, Backboard `[]`, Xotelo and Hotelbeds found no place with that name. Search a real city name (Toronto), not a neighbourhood.
+
 ## 2026-10-17 — Prompt review step switched off (REVIEW_STEP flag)
 tags: feature, ui, prompt
 - Feature: The page's "Review prompt" step (`/api/refine`) is off: `const REVIEW_STEP = false` in `public/index.html`. The buttons ("Run search", "Ask Backboard") send the typed text straight to the server, which parses it with `parsePrompt` (LLM, else regex) and runs it. The region stays Ontario, CA (`pinRegion` in `prompt.js` drops a region/country the parser guessed, unless the text has `--region=` / `--country-code=`). Typed `--flags` still win over parsed values. Set the flag to `true` to get the review step back; `/api/refine` and `prompt_refine.js` are untouched.

@@ -1,7 +1,7 @@
 // Hotels.com prices via the Apify Hotels.com Scraper - https://apify.com/jeremy_frost/hotels-com-scraper
 // The actor drives a browser on Apify's servers - check this against the "no browser automation" rule.
 const settings = require("./settings");
-const { runApifyActor, normalizeHotel, countryName, passesFilters, cheapest, runIfMain } = require("./hotel-utils");
+const { runApifyActor, normalizeHotel, addFetched, countryName, passesFilters, cheapest, runIfMain } = require("./hotel-utils");
 
 const ACTOR = "jeremy_frost~hotels-com-scraper";
 
@@ -35,6 +35,7 @@ const toHotels = items => items.map(normalize);
 async function search() {
     const items = await runApifyActor(ACTOR, buildInput());
     const hotels = toHotels(items);
+    addFetched(hotels.length);
     console.log(`Apify Hotels.com: ${hotels.length} hotels`);
     return cheapest(hotels.filter(passesFilters));
 }

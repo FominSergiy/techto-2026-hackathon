@@ -1,7 +1,7 @@
 // Google Hotels prices via the Apify "Google Hotels Search Scraper" - https://apify.com/johnvc/google-hotels-search-scraper
 // Costs $0.02 per run plus $0.02 per results page.
 const settings = require("./settings");
-const { runApifyActor, normalizeHotel, countryName, perNight, passesFilters, cheapest, runIfMain } = require("./hotel-utils");
+const { runApifyActor, normalizeHotel, addFetched, countryName, perNight, passesFilters, cheapest, runIfMain } = require("./hotel-utils");
 
 const ACTOR = "johnvc~google-hotels-search-scraper";
 
@@ -53,7 +53,16 @@ const toHotels = items => items.flatMap(propertiesOf).map(normalize);
 
 async function search() {
     const items = await runApifyActor(ACTOR, buildInput());
+
+    // Out of free credit the actor answers HTTP 200 with a notice instead of hotels (seen live: "free_tier_limit_reached").
+    // That is a failure the user has to see, not an empty search.
+    const notice = items.find(item => item.notice || item.free_tier_notice);
+    if (notice) {
+        throw new Error(`Apify Google Hotels returned no hotels - ${notice.message || notice.notice}`);
+    }
+
     const hotels = toHotels(items);
+    addFetched(hotels.length);
     console.log(`Apify Google Hotels: ${items.length} dataset items, ${hotels.length} hotels, ${hotels.filter(hotel => hotel.phone).length} with a phone`);
     return cheapest(hotels.filter(passesFilters));
 }

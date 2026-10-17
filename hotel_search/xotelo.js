@@ -2,7 +2,7 @@
 // The whole flow lives here, through Xotelo's RapidAPI listing (/search is only offered there; needs RAPID_API_KEY):
 //   /search finds the city's location key, /list pages through its hotels, /rates gives each hotel's live price.
 const settings = require("./settings");
-const { sleep, getJson, requireEnv, normalizeName, normalizeHotel, passesFilters, cheapest, runIfMain } = require("./hotel-utils");
+const { sleep, getJson, requireEnv, normalizeName, normalizeHotel, addFetched, passesFilters, cheapest, runIfMain } = require("./hotel-utils");
 const { cached } = require("./locations");
 
 // RapidAPI hosts are "<api-slug>.p.rapidapi.com"; this one is a guess from the listing's slug, override it if the
@@ -126,6 +126,7 @@ async function search() {
             break;
         }
         listed.push(...result.list);
+        addFetched(result.list.length);
         console.log(`Xotelo list page ${page}: ${listed.length} of ${result.total_count} hotels`);
         if (listed.length >= result.total_count) break;
     }

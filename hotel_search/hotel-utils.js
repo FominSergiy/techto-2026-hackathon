@@ -7,17 +7,26 @@ const path = require("node:path");
 const { AsyncLocalStorage } = require("node:async_hooks");
 const settings = require("./settings");
 
-// Collects the JSON bodies getJson receives inside withRawCapture. Sources run in parallel, so each gets its own scope.
+// Collects the JSON bodies getJson receives inside withRawCapture, and counts of what the API returned (`stats`).
+// Sources run in parallel, so each gets its own scope.
 const rawCapture = new AsyncLocalStorage();
+
+// Counts hotels an API returned, before any filtering (shown on the page as "returned")
+function addFetched(count) {
+    const stats = rawCapture.getStore()?.stats;
+    if (stats) stats.fetched = (stats.fetched || 0) + count;
+}
 
 // Runs fn and saves every raw JSON response it received (retries and error bodies included, unchanged) as
 // <outputDir>/raw/<folder>/<timestamp>-<city>.json: an array with one entry per response.
 // Nothing is written when there were no responses or outputDir is null, and a failed save never fails the search.
-async function withRawCapture(folder, fn) {
+// The caller's `stats` object gets `fetched` (hotels returned), `responses` and `file` (where they were saved).
+async function withRawCapture(folder, fn, stats = {}) {
     const responses = [];
     try {
-        return await rawCapture.run(responses, fn);
+        return await rawCapture.run({ responses, stats }, fn);
     } finally {
+        stats.responses = responses.length;
         if (responses.length && settings.outputDir) {
             try {
                 const dir = path.join(settings.outputDir, "raw", folder);
@@ -26,6 +35,7 @@ async function withRawCapture(folder, fn) {
                 const file = path.join(dir, `${stamp}${city}.json`);
                 fs.mkdirSync(dir, { recursive: true });
                 fs.writeFileSync(file, JSON.stringify(responses, null, 2));
+                stats.file = file;
                 console.log(`Saved ${responses.length} raw ${folder} response${responses.length === 1 ? "" : "s"} to ${file}`);
             } catch (error) {
                 console.warn(`Could not save raw ${folder} responses: ${error.message}`);
@@ -61,7 +71,7 @@ async function getJson(url, options = {}, retries = 0, attempt = 0) {
         isJson = false;
         return {};
     });
-    if (isJson) rawCapture.getStore()?.push(data);
+    if (isJson) rawCapture.getStore()?.responses.push(data);
 
     if (!response.ok || data.error) {
         if (retries > 0) {
@@ -199,6 +209,7 @@ async function collectPages(label, fetchPage) {
         }
 
         const { hotels, next } = result;
+        addFetched(hotels.length);
         matches.push(...hotels.filter(passesFilters));
         console.log(`${label} page ${page}: ${hotels.length} hotels, ${matches.length} match filters`);
 
@@ -227,4 +238,4 @@ function runIfMain(mod, label, search) {
         });
 }
 
-module.exports = { sleep, requireEnv, getJson, withRawCapture, HOTEL_FIELDS, normalizeHotel, countryName, runApifyActor, hotelbedsHeaders, normalizeName, perNight, passesFilters, cheapest, collectPages, printHotels, runIfMain };
+module.exports = { sleep, requireEnv, getJson, withRawCapture, addFetched, HOTEL_FIELDS, normalizeHotel, countryName, runApifyActor, hotelbedsHeaders, normalizeName, perNight, passesFilters, cheapest, collectPages, printHotels, runIfMain };

@@ -12,6 +12,7 @@ const backboard = require("./backboard_search/backboard");
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, "public");
 const RESULT_MARKER = "@@RESULT@@";
+const REPORT_MARKER = "@@REPORT@@";
 
 // Runs `search.js --json` with the given settings args, resolves { hotels, log }
 function runSearch(args) {
@@ -24,14 +25,19 @@ function runSearch(args) {
         child.on("close", code => {
             const lines = stdout.split("\n");
             const resultLine = lines.find(line => line.startsWith(RESULT_MARKER));
-            const log = [...lines.filter(line => line && !line.startsWith(RESULT_MARKER)), ...stderr.split("\n")]
+            const reportLine = lines.find(line => line.startsWith(REPORT_MARKER));
+            const log = [...lines.filter(line => line && !line.startsWith(RESULT_MARKER) && !line.startsWith(REPORT_MARKER)), ...stderr.split("\n")]
                 .filter(Boolean)
                 .join("\n");
 
             if (code !== 0 || !resultLine) {
                 return reject(new Error(stderr.trim().split("\n").pop() || `search exited with code ${code}`));
             }
-            resolve({ hotels: JSON.parse(resultLine.slice(RESULT_MARKER.length)), log });
+            resolve({
+                hotels: JSON.parse(resultLine.slice(RESULT_MARKER.length)),
+                report: reportLine ? JSON.parse(reportLine.slice(REPORT_MARKER.length)) : null,
+                log
+            });
         });
     });
 }
@@ -101,8 +107,8 @@ async function handleSearch(request, response) {
             return sendJson(response, 400, { error: 'No city found in your prompt, so nothing was searched. Name one, e.g. "cheapest hotel in Hamilton, 1 person, 2026-11-04 to 2026-11-05" (or add --city=Hamilton).' });
         }
         const args = [...parsedArgs.filter(arg => !/^--(sources|enrich-phones)=/.test(arg)), ...picked];
-        const { hotels, log } = await runSearch(args);
-        sendJson(response, 200, { hotels, log, args, parser: parsed.parser, usage: parsed.usage, seconds: (Date.now() - started) / 1000 });
+        const { hotels, report, log } = await runSearch(args);
+        sendJson(response, 200, { hotels, report, log, args, parser: parsed.parser, usage: parsed.usage, seconds: (Date.now() - started) / 1000 });
     } catch (error) {
         sendJson(response, 500, { error: error.message });
     }
