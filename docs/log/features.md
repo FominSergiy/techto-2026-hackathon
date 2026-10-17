@@ -26,7 +26,8 @@ tags: feature, elevenlabs, call-handling
   - **Dates:** they arrive as ISO and are spoken as "October 17th". The opener no longer contains dates.
   - **Quote or exit:** if there's still no price after asking twice, Alex ends the call. Max call length is now 480 s (was 900).
   - **Voice:** Luke (a library voice, added to both workspaces), stability 0.3, speed 1.05, with occasional "um"/"so" fillers and varied soft-timeout fillers.
-- Status: live on Main, `repo-sync` and Sergiy's copy. No test call yet.
+- Status: live on Main, `repo-sync` and Sergiy's copy. Test call 1 (`conv_1301m55mgr15e7za05bm2gba353m`, 77 s) passed for dates ("October 17th, checking out October 18th", no year), fillers, and a polite exit when the hotel refused. LLM time to first byte averaged 110 ms. The callback and refuse-to-quote cases are not tested yet.
+  - Seen: Alex never said "I'll take it" before collecting details, and asked about taxes twice when the answer only covered currency.
 - Notes:
   - **The opener is spoken word for word.** `first_message` doesn't go through the LLM, so a prompt rule can't reformat `{{check_in_date}}` there. Keep variables that need formatting out of `first_message`.
   - **Natural voice:** lower stability (0.3) plus disfluencies written into the text ("um", "uh") sounded far more human on `eleven_v3_conversational` than any voice swap alone. Compare voices with the same script.
