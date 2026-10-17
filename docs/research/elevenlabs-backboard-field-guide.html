@@ -1,0 +1,848 @@
+<!--
+---
+title: ElevenLabs + Backboard Field Guide
+tags: [research, telephony, elevenlabs, backboard, mcp, architecture, tokens, judging]
+status: draft
+updated: 2026-10-17
+artifact: https://claude.ai/artifact/LNTQDh9RvPumpS1tPmusPp
+---
+-->
+<title>Hotel Caller Field Guide</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: field-guide document. Sticky section index on the left (desktop), one reading column, tables and code scroll in place. */
+:root {
+  --bg: #f5f7f8;
+  --surface: #ffffff;
+  --ink: #15212b;
+  --muted: #55636f;
+  --rule: #d7dee3;
+  --accent: #0b6e74;
+  --accent-soft: #e0f0f0;
+  --warn: #9a5b00;
+  --warn-soft: #fbefdc;
+  --bad: #a3312b;
+  --bad-soft: #f8e3e1;
+  --good: #22703c;
+  --good-soft: #e1f2e6;
+  --code-bg: #eef2f4;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f171d; --surface: #16212a; --ink: #e3eaee; --muted: #9aa9b4; --rule: #2a3843;
+    --accent: #5cc4c9; --accent-soft: #143338; --warn: #e3a64a; --warn-soft: #33281a;
+    --bad: #ef8a83; --bad-soft: #3a2220; --good: #74c98f; --good-soft: #1a3324; --code-bg: #1c2a34;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f171d; --surface: #16212a; --ink: #e3eaee; --muted: #9aa9b4; --rule: #2a3843;
+  --accent: #5cc4c9; --accent-soft: #143338; --warn: #e3a64a; --warn-soft: #33281a;
+  --bad: #ef8a83; --bad-soft: #3a2220; --good: #74c98f; --good-soft: #1a3324; --code-bg: #1c2a34;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 48px; }
+nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; font-size: 14px; }
+nav.toc .label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; counter-reset: s; }
+nav.toc a { color: var(--muted); text-decoration: none; display: block; padding: 4px 8px; border-radius: 4px; }
+nav.toc a:hover, nav.toc a:focus-visible { color: var(--ink); background: var(--accent-soft); outline: none; }
+main { min-width: 0; max-width: 760px; }
+header.top { display: grid; gap: 12px; padding-bottom: 24px; border-bottom: 1px solid var(--rule); margin-bottom: 8px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 42px); font-weight: 700; letter-spacing: -.01em; }
+h2 { font-size: 26px; font-weight: 700; }
+h3 { font-size: 18px; font-weight: 600; margin-top: 8px; }
+.lede { color: var(--muted); font-size: 17px; max-width: 64ch; margin: 0; }
+.meta { font-size: 13px; color: var(--muted); font-family: var(--font-mono); }
+section { padding-top: 40px; display: grid; gap: 16px; scroll-margin-top: 16px; }
+section > p, section > ul, section > ol { margin: 0; max-width: 68ch; }
+ul, ol { padding-left: 22px; }
+li + li { margin-top: 4px; }
+a { color: var(--accent); }
+code { font-family: var(--font-mono); font-size: .88em; background: var(--code-bg); padding: 1px 5px; border-radius: 3px; overflow-wrap: anywhere; }
+pre { margin: 0; background: var(--code-bg); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px; overflow-x: auto; font-family: var(--font-mono); font-size: 13px; line-height: 1.55; }
+pre code { background: none; padding: 0; font-size: inherit; overflow-wrap: normal; }
+.codehead { font-family: var(--font-mono); font-size: 12px; color: var(--muted); margin-bottom: -10px; }
+.table-scroll { overflow-x: auto; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--rule); }
+th { font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); font-weight: 600; background: var(--bg); }
+tr:last-child td { border-bottom: none; }
+td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pill { display: inline-block; font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.pill.yes { background: var(--good-soft); color: var(--good); }
+.pill.partial { background: var(--warn-soft); color: var(--warn); }
+.pill.no { background: var(--bad-soft); color: var(--bad); }
+.pill.info { background: var(--accent-soft); color: var(--accent); }
+.answers { display: grid; gap: 0; border: 1px solid var(--rule); border-radius: 8px; background: var(--surface); }
+.answer { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--rule); }
+.answer:last-child { border-bottom: none; }
+.answer .q { font-family: var(--font-mono); font-size: 13px; color: var(--accent); padding-top: 2px; }
+.answer strong { display: block; }
+.answer p { margin: 2px 0 0; color: var(--muted); font-size: 15px; }
+.note { border-left: 3px solid var(--warn); background: var(--warn-soft); padding: 12px 14px; border-radius: 0 6px 6px 0; font-size: 15px; max-width: 68ch; }
+.note.info { border-color: var(--accent); background: var(--accent-soft); }
+.note p { margin: 0; }
+.note p + p { margin-top: 6px; }
+.split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.panel h3 { margin: 0; }
+.panel ul { margin: 0; font-size: 15px; }
+.panel .tag { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.steps { counter-reset: step; list-style: none; padding: 0; display: grid; gap: 10px; max-width: 68ch; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; margin: 0; }
+.steps li::before { content: counter(step); font-family: var(--font-mono); font-size: 13px; color: var(--accent); border: 1px solid var(--accent); border-radius: 50%; width: 24px; height: 24px; display: grid; place-items: center; }
+pre.mermaid { background: var(--surface); text-align: center; }
+.sources { font-size: 14px; columns: 2; column-gap: 32px; }
+.sources li { break-inside: avoid; }
+@media (max-width: 860px) {
+  .wrap { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  nav.toc { position: static; }
+  nav.toc ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .split { grid-template-columns: minmax(0, 1fr); }
+  .sources { columns: 1; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+
+/* Commenting */
+.comment-hint { display: flex; gap: 8px; align-items: baseline; font-size: 14px; color: var(--muted); background: var(--accent-soft); border-radius: 6px; padding: 8px 12px; max-width: 68ch; }
+.comment-hint b { color: var(--accent); font-weight: 600; white-space: nowrap; }
+.h-comment { font: 500 12px var(--font-body); color: var(--muted); background: transparent; border: 1px solid var(--rule); border-radius: 999px; padding: 2px 10px; margin-left: 10px; vertical-align: middle; cursor: pointer; white-space: nowrap; }
+.h-comment:hover, .h-comment:focus-visible { color: var(--accent); border-color: var(--accent); outline: none; }
+.sel-btn { position: absolute; z-index: 60; font: 600 13px var(--font-body); color: var(--bg); background: var(--ink); border: 0; border-radius: 6px; padding: 7px 12px; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.18); }
+.sel-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.note-pop { position: absolute; z-index: 61; width: min(360px, calc(100vw - 32px)); background: var(--surface); color: var(--ink); border: 1px solid var(--rule); border-radius: 8px; padding: 12px; display: grid; gap: 8px; box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+.note-pop .quote, .notes-panel .quote { font-size: 13px; color: var(--muted); border-left: 2px solid var(--accent); padding-left: 8px; font-style: italic; overflow-wrap: anywhere; }
+.note-pop textarea { width: 100%; min-height: 84px; resize: vertical; font: 14px/1.5 var(--font-body); color: var(--ink); background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; padding: 8px; }
+.note-pop textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; }
+.row { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.btn { font: 500 13px var(--font-body); border-radius: 6px; padding: 6px 12px; cursor: pointer; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.notes-tab { position: fixed; z-index: 55; right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); font: 600 13px var(--font-body); color: var(--surface); background: var(--accent); border: 0; border-radius: 999px; padding: 9px 16px; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.2); }
+.notes-panel { position: fixed; z-index: 56; right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(64px + env(safe-area-inset-bottom, 0px)); width: min(400px, calc(100vw - 32px)); max-height: 65vh; overflow-y: auto; background: var(--surface); color: var(--ink); border: 1px solid var(--rule); border-radius: 10px; padding: 14px; display: grid; gap: 12px; box-shadow: 0 12px 36px rgba(0,0,0,.22); }
+.notes-panel h3 { font-size: 16px; margin: 0; }
+.notes-panel .empty { font-size: 14px; color: var(--muted); margin: 0; }
+.notes-panel ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.notes-panel li { border-top: 1px solid var(--rule); padding-top: 10px; display: grid; gap: 4px; margin: 0; }
+.notes-panel .sec { font: 500 11px var(--font-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--accent); }
+.notes-panel .txt { font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.notes-panel .del { justify-self: start; font: 12px var(--font-body); color: var(--muted); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; }
+.notes-panel textarea.copy-fallback { width: 100%; min-height: 120px; font: 12px var(--font-mono); }
+.toast { position: fixed; z-index: 70; left: 50%; transform: translateX(-50%); bottom: calc(72px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); font-size: 14px; padding: 8px 14px; border-radius: 6px; max-width: calc(100vw - 32px); }
+</style>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Sections">
+    <div class="label">Sections</div>
+    <ol>
+      <li><a href="#answers">Short answers</a></li>
+      <li><a href="#mcp">MCP status</a></li>
+      <li><a href="#roles">Who does what</a></li>
+      <li><a href="#pipeline">Pipeline</a></li>
+      <li><a href="#calls">Call handling</a></li>
+      <li><a href="#coordination">Agents talking</a></li>
+      <li><a href="#testing">Test on our phones</a></li>
+      <li><a href="#limits">Limits and cost</a></li>
+      <li><a href="#tokens">Token tally</a></li>
+      <li><a href="#risks">Open questions</a></li>
+      <li><a href="#sources">Sources</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header class="top">
+      <div class="eyebrow">TechTO 2026 hackathon · research notes</div>
+      <h1>Hotel Caller Field Guide</h1>
+      <p class="lede">How ElevenLabs and Backboard fit our agent: find the 5 cheapest hotels, call all 5 at once, handle holds and phone menus, book one room, and email the receipt.</p>
+      <div class="meta">Docs pulled 2026-10-17 · MCP endpoints probed live the same day</div>
+      <div class="comment-hint" id="comment-hint" data-uncommentable><b>Comment</b><span id="comment-hint-text">Select any text and press Comment, or use the Comment button next to a section title.</span></div>
+    </header>
+
+    <section id="answers" aria-labelledby="h-answers">
+      <h2 id="h-answers">Short answers</h2>
+      <div class="answers">
+        <div class="answer"><div class="q">Q1</div><div><strong>ElevenLabs has a full MCP. Backboard only has a docs MCP.</strong><p>ElevenLabs has a hosted product MCP (OAuth) plus a docs MCP. Backboard's only MCP serves its docs. You use its product through the REST API or <code>backboard-sdk</code>. Note that backboard.ai is a parked domain. The product lives at backboard.io.</p></div></div>
+        <div class="answer"><div class="q">Q2</div><div><strong>ElevenLabs makes the calls. Backboard is the brain around them.</strong><p>ElevenLabs Agents + Twilio place the calls and handle the conversation. Backboard covers the LLM work around the calls: hotel search with web search, ranking, summarizing, cross-run memory and token accounting. Neither one sends email or supplies a phone line, so we need Twilio and an email API.</p></div></div>
+        <div class="answer"><div class="q">Q3</div><div><strong>Yes, the calls run in parallel. They coordinate through our server.</strong><p>The Creator plan allows 10 concurrent calls. Calls can't message each other directly. Each call uses webhook tools to read and write a shared "race board" on our coordinator. A booking lock there makes sure only one hotel gets booked. A custom-LLM proxy can push state into every turn if we want more.</p></div></div>
+        <div class="answer"><div class="q">Q4</div><div><strong>Test with one Twilio number and our own phones.</strong><p>Import a Twilio number into ElevenLabs. Trial accounts need each teammate's phone verified. Then fire 5 outbound-call requests at our own phones with fake hotel details. Each of us plays a receptionist with a different twist: a hold, a phone menu, a request for a card, a voicemail.</p></div></div>
+        <div class="answer"><div class="q">Tok</div><div><strong>Every LLM call writes one line to a ledger. A script sums it after the email goes out.</strong><p>Backboard returns token counts on every message. ElevenLabs reports per-model tokens and USD for each call once it finishes processing. Both go into one JSONL file per run, which <code>tally.py</code> turns into the final report.</p></div></div>
+        <div class="answer"><div class="q">Q5</div><div><strong>English only is the simple case.</strong><p>Set the agent language to <code>en</code>, pick a natural English voice, and add hotel names as ASR keywords so the agent hears them correctly.</p></div></div>
+      </div>
+    </section>
+
+    <section id="mcp" aria-labelledby="h-mcp">
+      <h2 id="h-mcp">1 · MCP status</h2>
+      <p>I probed each endpoint with an MCP <code>initialize</code> and <code>tools/list</code> on 2026-10-17.</p>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Server</th><th>Status</th><th>Endpoint</th><th>What it gives us</th></tr></thead>
+          <tbody>
+            <tr><td>ElevenLabs product MCP</td><td><span class="pill yes">Live</span></td><td><code>https://api.elevenlabs.io/v1/mcp</code></td><td>OAuth sign-in, no API key. You can create, update, duplicate and compare agents (prompt, voice, language, first message), read and search conversation transcripts, manage tools, knowledge base and tests, and estimate LLM cost. Unauthenticated probe returned 401, which means the server is up. The docs don't say whether phone-number or outbound-call tools are exposed.</td></tr>
+            <tr><td>ElevenLabs docs MCP</td><td><span class="pill yes">Live</span></td><td><code>https://elevenlabs.io/docs/_mcp/server</code></td><td>One tool, <code>searchDocs</code>. Useful while coding.</td></tr>
+            <tr><td>ElevenLabs local MCP (<code>uvx elevenlabs-mcp</code>)</td><td><span class="pill no">Deprecated</span></td><td>GitHub repo archived</td><td>It had <code>make_outbound_call</code>, but it no longer gets updates. Don't build on it.</td></tr>
+            <tr><td>Backboard docs MCP</td><td><span class="pill yes">Live</span></td><td><code>https://backboard-docs.docsalot.dev/api/mcp</code></td><td>Tools <code>list_pages</code>, <code>get_page</code> and <code>search_docs</code>.</td></tr>
+            <tr><td>Backboard product MCP</td><td><span class="pill no">None found</span></td><td>n/a</td><td>No MCP for assistants, threads or memory. Use REST (<code>https://app.backboard.io/api</code>, header <code>X-API-Key</code>) or the SDK. Their R-CLI is an MCP <em>client</em> (a coding agent), not a server.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>To add all three live servers to Claude Code for this repo:</p>
+<pre><code>claude mcp add --scope project --transport http elevenlabs https://api.elevenlabs.io/v1/mcp
+claude mcp add --scope project --transport http elevenlabs-docs https://elevenlabs.io/docs/_mcp/server
+claude mcp add --scope project --transport http backboard-docs https://backboard-docs.docsalot.dev/api/mcp</code></pre>
+      <div class="note info">
+        <p><strong>Use MCP while building, REST while racing.</strong> The MCPs help us set up agents and read transcripts while we develop. On competition day our own code should call the REST APIs directly. That is faster, it's under our control, and it keeps us clear of the "no ready-made agents" rule.</p>
+        <p>ElevenLabs agents can also <em>consume</em> MCP servers (SSE or streamable HTTP) as tools during a call. We can skip that. Webhook tools are simpler and have lower latency.</p>
+      </div>
+    </section>
+
+    <section id="roles" aria-labelledby="h-roles">
+      <h2 id="h-roles">2 · Who does what</h2>
+      <div class="split">
+        <div class="panel">
+          <h3>ElevenLabs Agents</h3>
+          <div class="tag">voice, telephony, live conversation</div>
+          <ul>
+            <li><strong>Outbound call API</strong>: <code>POST /v1/convai/twilio/outbound-call</code> with per-call dynamic variables. Returns <code>conversation_id</code> and <code>callSid</code>.</li>
+            <li><strong>System tools</strong>: <code>end_call</code>, <code>skip_turn</code> (stay quiet on hold), <code>play_keypad_touch_tone</code> (phone menus), <code>voicemail_detection</code>, <code>update_state</code>, transfer.</li>
+            <li><strong>Webhook tools</strong>: the agent calls our HTTP endpoints during the call.</li>
+            <li><strong>Data collection</strong>: pulls typed fields (confirmation number, price, date, address) out of the transcript after the call.</li>
+            <li><strong>Post-call webhooks</strong>: transcript, analysis, cost metadata and call-failure events. Signed with HMAC.</li>
+            <li><strong>Batch calling</strong> exists, but on our plan it is capped (see Limits). Individual parallel calls work better.</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>Backboard</h3>
+          <div class="tag">LLM brain, memory, token ledger</div>
+          <ul>
+            <li><strong>One API key for 17,000+ models.</strong> Switch models per message, for example a fast model for ranking and a strong one for messy search results.</li>
+            <li><strong>Web search</strong>: <code>web_search: "Auto"</code> on a message. Our hotel search can use it without any browser automation.</li>
+            <li><strong>Tool calling loop</strong>: the response comes back with <code>status: REQUIRES_ACTION</code>. You run the tool, submit its output, and repeat until <code>COMPLETED</code>.</li>
+            <li><strong>Memory</strong>: stored per assistant and shared across threads. Good for lessons across runs, such as "Hotel X menu: press 2 for reservations".</li>
+            <li><strong>Billing API</strong>: input and output tokens and cost per event, plus a summary. This feeds the Learnings score directly.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="note">
+        <p><strong>Gaps neither tool fills:</strong> (1) a phone line, since ElevenLabs needs a Twilio number or a SIP trunk and Twilio bills separately. (2) Email, so we pick Resend, SendGrid or Gmail SMTP. (3) A reliable source of hotel prices and phone numbers. Backboard web search can produce a list, but its prices may be stale.</p>
+        <p>Backboard has no OpenAI-compatible endpoint, so it can't be plugged in as the ElevenLabs agent's LLM directly. Inside the call, the agent uses an ElevenLabs-hosted model.</p>
+      </div>
+    </section>
+
+    <section id="pipeline" aria-labelledby="h-pipeline">
+      <h2 id="h-pipeline">3 · Pipeline</h2>
+      <p>We define one ElevenLabs agent and run 5 concurrent conversations with it, each with different dynamic variables. Each conversation runs its own LLM loop, so we get "5 agents" without maintaining 5 configs.</p>
+<pre class="mermaid">
+flowchart LR
+  A[City X, dates, email] --> B[Backboard search<br/>web_search Auto]
+  B --> C[Rank top 5<br/>price + E.164 phone]
+  C --> D{Fan out<br/>5 outbound calls}
+  D --> E1[Call 1]
+  D --> E2[Call 2]
+  D --> E3[Call 3..5]
+  E1 <--> R[(Coordinator<br/>race board + lock)]
+  E2 <--> R
+  E3 <--> R
+  R -->|winner confirms| M[Send email<br/>conf #, price, date, address]
+  R -->|others| X[Polite end_call<br/>or Twilio hang-up]
+  M --> L[Log timings + tokens<br/>Backboard billing, EL cost]
+</pre>
+      <h3>Stage 1: search and rank with Backboard</h3>
+<div class="codehead">python · REST, so we don't depend on SDK method names</div>
+<pre><code>r = httpx.post("https://app.backboard.io/api/threads/messages",
+    headers={"X-API-Key": BB_KEY},
+    json={
+        "content": f"List the 8 cheapest hotels in {city} for {check_in}, {nights} night(s), "
+                   "with nightly price, phone in E.164 and street address. Reply ONLY with a JSON array.",
+        "web_search": "Auto",
+        "llm_provider": "openai", "model_name": "gpt-4o",   # pick a fast model; switch per message
+        "stream": False,
+    }, timeout=60)
+hotels = json.loads(r.json()["content"])   # json_output is ignored when web search is on, so ask in the prompt</code></pre>
+      <p>Then dedupe, validate the phone numbers, sort by price and keep the top 5. If there's time, cross-check prices with a hotel API.</p>
+
+      <h3>Stage 2: fan out the calls</h3>
+<div class="codehead">python · asyncio, one request per hotel</div>
+<pre><code>async def place_call(h):
+    body = {
+      "agent_id": AGENT_ID,
+      "agent_phone_number_id": PHONE_ID,
+      "to_number": h["phone"],                       # E.164, e.g. +14165550101
+      "conversation_initiation_client_data": {
+        "dynamic_variables": {
+          "candidate_id": h["id"], "hotel_name": h["name"], "listed_price": str(h["price"]),
+          "check_in": CHECK_IN, "nights": str(NIGHTS), "guests": str(GUESTS),
+          "guest_name": GUEST_NAME, "guest_email": GUEST_EMAIL,
+        }
+      },
+      "telephony_call_config": {"ringing_timeout_secs": 25},   # default 60
+    }
+    r = await http.post("https://api.elevenlabs.io/v1/convai/twilio/outbound-call",
+                        headers={"xi-api-key": EL_KEY}, json=body)
+    return r.json()   # {success, message, conversation_id, callSid}
+
+results = await asyncio.gather(*(place_call(h) for h in top5))</code></pre>
+      <p>Use dynamic variables rather than overrides. Overrides (prompt, first message, voice) have to be enabled in the agent's security settings first, or the call fails.</p>
+
+      <h3>Stage 3: capture and email</h3>
+      <p>To save time, send the email as soon as the winning agent calls <code>report_confirmation</code> during the call. Don't wait for post-call analysis. Afterwards, use the post-call webhook's <code>data_collection_results</code> to double-check the values and to send a corrected email if needed.</p>
+    </section>
+
+    <section id="calls" aria-labelledby="h-calls">
+      <h2 id="h-calls">4 · Call handling: holds, phone menus, natural speech</h2>
+      <p>"Call Handling" is worth 10 points. These are the settings that matter, all documented.</p>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Situation</th><th>Setting or tool</th><th>Suggested value</th></tr></thead>
+          <tbody>
+            <tr><td>"Please hold"</td><td><code>skip_turn</code> system tool + prompt rule</td><td>On hold, say "Sure, I'll hold" once, then call <code>skip_turn</code> and stay silent until a person speaks.</td></tr>
+            <tr><td>Long silence or hold music</td><td><code>turn.turn_timeout</code> (1–30 s)</td><td class="num">20–30 s</td></tr>
+            <tr><td>Call length cap</td><td><code>conversation.max_duration_seconds</code> (60–7200, default 600)</td><td class="num">900 s</td></tr>
+            <tr><td>Phone menu ("press 2 for reservations")</td><td><code>play_keypad_touch_tone</code></td><td>Digits <code>0-9 * #</code>, pauses <code>w</code> = 0.5 s and <code>W</code> = 1 s. On Twilio the tones are sent in-band. Out-of-band tones need SIP.</td></tr>
+            <tr><td>Voicemail answers</td><td><code>voicemail_detection</code></td><td>End immediately, no message. Report "no answer" to the coordinator. Twilio AMD is an option but is billed separately.</td></tr>
+            <tr><td>Slow LLM turn</td><td>Soft timeout filler</td><td>"One sec…" so there is no dead air.</td></tr>
+            <tr><td>Receptionist talks over the agent</td><td>Interruptions enabled</td><td>On, which is the natural choice for a booking call.</td></tr>
+            <tr><td>Turn-taking speed</td><td><code>turn.turn_eagerness</code></td><td><code>normal</code>. Try <code>patient</code> if the agent cuts people off.</td></tr>
+            <tr><td>Agent busy calling our server</td><td>Tool call sounds</td><td>Soft ambient sound while webhook tools run.</td></tr>
+            <tr><td>Hotel names misheard</td><td>ASR <code>keywords</code> override</td><td>Hotel name and street name.</td></tr>
+            <tr><td>Done</td><td><code>end_call</code></td><td>After reading back the confirmation number and thanking the receptionist.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Prompt skeleton</h3>
+<pre><code>You are Sam, calling {{hotel_name}} to book a room for {{guest_name}}:
+check-in {{check_in}}, {{nights}} night(s), {{guests}} guest(s). Speak like a friendly, brief
+human caller. One question at a time. If asked, say you're an AI assistant booking for {{guest_name}}.
+
+Flow:
+1. Ask for the best available rate for those dates. Call report_quote(price, currency, available).
+2. Before agreeing to book, call claim_booking(price). Do what the result says:
+   BOOK -> confirm the booking. DECLINE -> thank them, say you'll call back, end_call.
+3. Get the confirmation number, total price, dates and the hotel's street address. Read the
+   confirmation number back digit by digit. Call report_confirmation(...). Then end_call.
+Phone menus: use play_keypad_touch_tone to reach reservations or the front desk.
+On hold: say "Sure, I'll hold" once, then skip_turn until a person speaks.
+Card requested: {{payment_policy}}</code></pre>
+      <h3>Data collection fields (backup extraction)</h3>
+      <p><code>booked</code> (boolean), <code>confirmation_number</code> (string), <code>total_price</code> (number), <code>currency</code> (string), <code>stay_dates</code> (string), <code>hotel_address</code> (string). The limit is 25 fields per agent on our plan.</p>
+    </section>
+
+    <section id="coordination" aria-labelledby="h-coord">
+      <h2 id="h-coord">5 · Can the 5 agents talk to each other mid-call?</h2>
+      <p>Not directly. ElevenLabs runs each phone conversation on its own servers. Over the Twilio integration, we don't hold the conversation socket, and the <code>contextual_update</code> event is sent through that socket. That last point is our reading of the docs, not something they state. So coordination goes through our coordinator, in three layers:</p>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Pattern</th><th>Direction</th><th>How</th><th>Verdict</th></tr></thead>
+          <tbody>
+            <tr><td><strong>A. Race board via webhook tools</strong></td><td>Agent pulls</td><td>Each call calls our endpoints <code>report_quote</code>, <code>claim_booking</code>, <code>report_confirmation</code> and <code>check_status</code>. It passes <code>{{system__conversation_id}}</code> and <code>{{candidate_id}}</code> so we know which call is which.</td><td><span class="pill yes">Build this</span></td></tr>
+            <tr><td><strong>B. Custom LLM proxy</strong></td><td>We push, every turn</td><td>Point the agent's LLM at our own OpenAI-compatible <code>/v1/chat/completions</code> (SSE). Each turn we prepend the latest board, e.g. "Hotel 3 is already booked, wrap up politely", then forward to a model. We also get exact token counts.</td><td><span class="pill partial">Stretch</span><br>adds latency and build time</td></tr>
+            <tr><td><strong>C. Hard hang-up</strong></td><td>We kill</td><td>Use the Twilio REST API: update the call by its <code>callSid</code> to <code>status=completed</code>.</td><td><span class="pill info">Fallback</span><br>if a loser won't end the call</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">
+        <p><strong>Don't use Backboard memory as the live lock.</strong> Memory writes are asynchronous: you get a <code>memory_operation_id</code> and have to poll it. A classifier also decides which facts get stored at all. Use it for lessons that last across runs. Keep the race state in our process: a dict plus an <code>asyncio.Lock</code>, or Redis.</p>
+      </div>
+      <h3>Booking policy: first claim wins, with a price guard</h3>
+<pre class="mermaid">
+sequenceDiagram
+  participant H1 as Call 1 (Hotel A)
+  participant C as Coordinator
+  participant H3 as Call 3 (Hotel C)
+  H1->>C: report_quote(129, available)
+  H3->>C: report_quote(119, available)
+  H3->>C: claim_booking(119)
+  C-->>H3: BOOK (lock taken)
+  H1->>C: claim_booking(129)
+  C-->>H1: DECLINE, wrap up politely
+  H3->>C: report_confirmation(ABC123, 119, dates, address)
+  C->>C: send email now, end other calls
+</pre>
+      <p>There is one knob to tune. <strong>Fastest</strong>: grant the first claim at or under the listed-price ceiling. <strong>Cheapest</strong>: hold claims for a few seconds while cheaper-ranked calls are still collecting quotes. The agent says "one moment" and calls <code>check_status</code>. Judges rank on both speed and cost, so we should pick one deliberately and log it in decisions.md.</p>
+<div class="codehead">python · coordinator sketch (FastAPI)</div>
+<pre><code>board = {"winner": None, "quotes": {}}
+lock = asyncio.Lock()
+
+@app.post("/tools/report_quote")
+async def report_quote(q: Quote):
+    board["quotes"][q.candidate_id] = q
+    return {"booking_open": board["winner"] is None,
+            "best_price_seen": min(x.price for x in board["quotes"].values())}
+
+@app.post("/tools/claim_booking")
+async def claim_booking(c: Claim):
+    async with lock:
+        if board["winner"] is None and c.price &lt;= PRICE_CEILING:
+            board["winner"] = c.candidate_id
+            return {"decision": "BOOK"}
+    return {"decision": "DECLINE", "say": "Thanks so much, we'll call back if plans change."}
+
+@app.post("/tools/report_confirmation")
+async def report_confirmation(r: Confirmation):
+    asyncio.create_task(send_receipt_email(r))   # all four required fields
+    asyncio.create_task(wind_down_other_calls(except_id=r.candidate_id))
+    return {"ok": True}</code></pre>
+    </section>
+
+    <section id="testing" aria-labelledby="h-testing">
+      <h2 id="h-testing">6 · Test it by calling our own phones</h2>
+      <ol class="steps">
+        <li><span>Redeem the ElevenLabs Creator coupon in the hackathon Discord (#coupon-codes channel, "Start Redemption"). We need it: the Free plan allows only 4 concurrent calls, which isn't enough for 5.</span></li>
+        <li><span>Create a Twilio account and buy one local number. A Toronto (+1 416/647) number makes sense if City X is local.</span></li>
+        <li><span>On a Twilio trial, add each teammate's mobile under <strong>Verified Caller IDs</strong>, since trial accounts can only dial verified numbers. Trial calls also play a Twilio notice before connecting. Upgrade before competition day so real hotels don't hear it.</span></li>
+        <li><span>In ElevenLabs, go to Phone Numbers → Import → Twilio (label, number, SID and token, preferably a scoped API key). Copy the <code>agent_phone_number_id</code>.</span></li>
+        <li><span>Create the agent with the prompt, system tools, webhook tools pointing at our coordinator (exposed with ngrok or cloudflared), data collection fields and the post-call webhook.</span></li>
+        <li><span>Run the fan-out script with <code>to_number</code> set to our 5 phones and fake hotel names and prices.</span></li>
+      </ol>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Phone</th><th>Plays</th><th>Checks</th></tr></thead>
+          <tbody>
+            <tr><td>Teammate 1</td><td>Easy receptionist, books right away</td><td>Happy path. All 4 fields reach the email.</td></tr>
+            <tr><td>Teammate 2</td><td>"Please hold" for 45 s with music from a laptop</td><td><code>skip_turn</code>, no talking over the hold, recovers when a person returns.</td></tr>
+            <tr><td>Teammate 3</td><td>Reads a menu: "press 1 for reservations"</td><td><code>play_keypad_touch_tone</code> sends the right digit.</td></tr>
+            <tr><td>Teammate 4</td><td>Asks for a credit card, then cheaper rate than #1</td><td>Payment policy line, price guard, DECLINE path.</td></tr>
+            <tr><td>Teammate 5</td><td>Lets it go to voicemail</td><td><code>voicemail_detection</code> ends the call and the board marks it no-answer.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>Optional automated harness:</strong> put a second ElevenLabs agent on a second Twilio number as a fake front desk, with persona variants we change through dynamic variables. Then we can rerun all 5 scenarios without anyone holding a phone. Every run uses agent minutes, though, so it doesn't replace testing with real people.</p>
+    </section>
+
+    <section id="limits" aria-labelledby="h-limits">
+      <h2 id="h-limits">7 · Limits and cost</h2>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Item</th><th>Value</th><th>Impact for us</th></tr></thead>
+          <tbody>
+            <tr><td>ElevenLabs Creator plan</td><td class="num">$22/mo (free via coupon)</td><td>275 agent minutes included</td></tr>
+            <tr><td>Concurrent calls</td><td class="num">Free 4 · Creator 10</td><td>5 parallel calls fit on Creator</td></tr>
+            <tr><td>Extra minutes</td><td class="num">$0.08/min</td><td>Burst above the cap costs $0.16/min, up to 3× concurrency</td></tr>
+            <tr><td>LLM inside calls</td><td>Billed separately in EL credits</td><td>Pick a fast, cheap model and log its usage</td></tr>
+            <tr><td>Batch calling concurrency</td><td>min(50% workspace, 70% agent) unless <code>target_concurrency_limit</code> is set</td><td>That's 5 on Creator, but individual calls give us per-call control</td></tr>
+            <tr><td>Telephony</td><td>Twilio bills its own per-minute and number fees</td><td>Not covered by sponsor credits</td></tr>
+            <tr><td>Backboard</td><td>$5 free credits for 30 days, plus hackathon credits</td><td>Use the billing usage API for the token report</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>For the Learnings pitch:</strong> timestamp every stage and keep a token ledger. Section 8 covers how.</p>
+    </section>
+
+    <section id="tokens" aria-labelledby="h-tokens">
+      <h2 id="h-tokens">8 · Token tally for the whole pipeline</h2>
+      <p>Every place that spends tokens appends one line to a per-run ledger (<code>runs/&lt;run_id&gt;/ledger.jsonl</code>). Timing events go in the same file. Once the receipt email is out, <code>tally.py</code> waits for the 5 calls to finish processing, collects their usage, and prints the final report. The race clock stops at "email sent", so the tally never slows the booking down.</p>
+
+      <h3>Where tokens are spent, and where we read them</h3>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Stage</th><th>Who spends</th><th>Where the numbers come from</th><th>When</th></tr></thead>
+          <tbody>
+            <tr><td>Search and rank</td><td>Backboard</td><td>Every message response: <code>input_tokens</code>, <code>output_tokens</code> and <code>total_tokens</code>, plus <code>model_name</code>. Streaming responses also carry <code>cached_input_tokens</code>, <code>cache_write_input_tokens</code> and <code>cost_usd</code> on <code>run_ended</code> and <code>tool_submit_required</code>.</td><td>Immediately, inline</td></tr>
+            <tr><td>Each of the 5 calls</td><td>ElevenLabs agent LLM</td><td><code>GET /v1/convai/conversations/{id}</code>, field <code>metadata.charging.llm_usage.initiated_generation.model_usage</code>. Per model it gives <code>input</code>, <code>input_cache_read</code>, <code>input_cache_write</code> and <code>output_total</code>, each with <code>tokens</code> and <code>price</code>.</td><td>After <code>status</code> becomes <code>done</code>, or when the post-call webhook arrives</td></tr>
+            <tr><td>Post-call data extraction</td><td>ElevenLabs analysis LLM</td><td><code>metadata.charging.analysis.total.price</code>. Cost only; the API doesn't return tokens for this step.</td><td>After analysis</td></tr>
+            <tr><td>Voice (not tokens)</td><td>ElevenLabs TTS and ASR</td><td><code>charging.tts_usage.total_characters</code>, <code>call_duration_secs</code>, <code>platform_price</code>, and <code>cost_fiat</code> (total USD for the conversation)</td><td>After <code>done</code></td></tr>
+            <tr><td>Phone line (not tokens)</td><td>Twilio</td><td>Call resource <code>price</code> and <code>duration</code>, looked up by the <code>callSid</code> from the outbound-call response. Price can be empty for a minute or two after hang-up.</td><td>After hang-up</td></tr>
+            <tr><td>Our own LLM calls, if any</td><td>e.g. a custom-LLM proxy</td><td>The provider's <code>usage</code> block, logged by our code</td><td>Inline</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note info">
+        <p><strong>Two cross-checks.</strong> (1) Backboard's <code>GET /billing/usage/recent?start=YYYY-MM-DD</code> lists every billed event with tokens and <code>amount_deducted_usd</code>, including memory writes and vector reads that a message response doesn't show. Filter it to the run's time window and compare with the ledger. The API is account-wide, so nobody else should use that Backboard key during the run. (2) For each call, the token <code>price</code> values should add up to <code>charging.llm_price</code>. We assume <code>price</code> is in USD; this check confirms it on the first test call.</p>
+        <p><strong>Tagging.</strong> Generate a <code>run_id</code> at start and pass it to every call as a dynamic variable, next to <code>candidate_id</code>. Webhooks and lookups can then be tied back to the right run and hotel. <code>initiated_generation</code> appears to include generations cut off by an interruption, and <code>irreversible_generation</code> only committed ones. That reading comes from the field names, so log both and bill from <code>initiated</code>.</p>
+      </div>
+
+      <h3>The ledger</h3>
+<div class="codehead">python · ledger.py</div>
+<pre><code>RUN_ID = time.strftime("%Y%m%d-%H%M%S")
+os.makedirs(f"runs/{RUN_ID}", exist_ok=True)
+_f = open(f"runs/{RUN_ID}/ledger.jsonl", "a")
+
+def log(kind, stage, **fields):              # kind: "tokens" | "cost" | "stage"
+    _f.write(json.dumps({"ts": time.time(), "run_id": RUN_ID, "kind": kind, "stage": stage, **fields}) + "\n")
+    _f.flush()
+
+@contextmanager
+def timed(stage):                            # with timed("search"): ...
+    t0 = time.time(); log("stage", stage, event="start")
+    try: yield
+    finally: log("stage", stage, event="end", wall_ms=round((time.time() - t0) * 1000))
+
+def log_backboard(stage, r):                 # call right after every Backboard response
+    log("tokens", stage, source="backboard", model=f'{r["model_provider"]}/{r["model_name"]}',
+        input=r.get("input_tokens", 0), cached_input=r.get("cached_input_tokens", 0),
+        cache_write=r.get("cache_write_input_tokens", 0), output=r.get("output_tokens", 0),
+        cost_usd=r.get("cost_usd"), ref=r.get("message_id"))</code></pre>
+
+<div class="codehead">python · collect usage for one call, after the race</div>
+<pre><code>async def collect_call(conv_id, candidate_id):
+    for _ in range(60):                                        # up to ~5 min for analysis to finish
+        c = (await http.get(f"https://api.elevenlabs.io/v1/convai/conversations/{conv_id}",
+                            headers={"xi-api-key": EL_KEY})).json()
+        if c["status"] in ("done", "failed"): break
+        await asyncio.sleep(5)
+    md = c["metadata"]; ch = md.get("charging") or {}
+    usage = ((ch.get("llm_usage") or {}).get("initiated_generation") or {}).get("model_usage") or {}
+    for model, u in usage.items():
+        part = lambda k: (u.get(k) or {})
+        log("tokens", "call", source="elevenlabs", call=candidate_id, model=model, ref=conv_id,
+            input=part("input").get("tokens", 0), cached_input=part("input_cache_read").get("tokens", 0),
+            cache_write=part("input_cache_write").get("tokens", 0), output=part("output_total").get("tokens", 0),
+            cost_usd=sum(part(k).get("price", 0) for k in ("input", "input_cache_read", "input_cache_write", "output_total")))
+    log("cost", "call", source="elevenlabs", call=candidate_id, ref=conv_id,
+        llm_usd=ch.get("llm_price"), platform_usd=ch.get("platform_price"),
+        analysis_usd=((ch.get("analysis") or {}).get("total") or {}).get("price"),
+        total_usd=md.get("cost_fiat"), duration_s=md.get("call_duration_secs"),
+        tts_chars=(ch.get("tts_usage") or {}).get("total_characters"))</code></pre>
+      <p>A call that never connected (a <code>call_initiation_failure</code> webhook, or an outbound request that failed) gets one <code>cost</code> line with zeros, so the report still shows all 5 rows.</p>
+
+      <h3>The final report</h3>
+      <p><code>tally.py</code> reads the ledger, groups it, and writes <code>runs/&lt;run_id&gt;/report.md</code> and <code>report.json</code>. It prints the same tables to the terminal for the demo. The receipt email stays clean, with only the four required fields; the report goes to us.</p>
+<div class="codehead">example output · made-up numbers to show the layout</div>
+<pre><code>RUN 20261024-101502   booked: Hotel C (#ABC123, $119)   race time: 4m 12s (start → email sent)
+
+STAGE        WALL     TOKENS IN   CACHED   TOKENS OUT    LLM $
+search        14.2s       6,840        0          910   0.0210
+rank           2.1s       1,220        0          340   0.0031
+calls (5)    3m 51s      48,300   31,900        2,450   0.0420
+analysis         —           —         —            —   0.0060
+TOTAL        4m 12s      56,360   31,900        3,700   0.0721
+
+CALL   HOTEL     OUTCOME     DURATION   TOKENS   LLM $    VOICE $   TWILIO $
+h1     Hotel A   declined       1m 40s   12,100   0.0105   0.133     0.010
+h3     Hotel C   BOOKED         3m 30s   21,700   0.0188   0.280     0.020
+...
+Tokens per booking: 60,060 · Tokens on calls that lost: 52% · All-in run cost: $1.12</code></pre>
+      <p>The last line feeds the Learnings pitch directly. It shows how much the parallel fan-out cost in tokens compared with calling one hotel at a time, and where a faster or cheaper run would cut, for example ending losing calls sooner or using a smaller in-call model.</p>
+    </section>
+
+    <section id="risks" aria-labelledby="h-risks">
+      <h2 id="h-risks">9 · Open questions and risks</h2>
+      <ul>
+        <li><strong>Card guarantee.</strong> Real hotels will ask for a card. The agent must never speak card numbers. Ask the organizers what to say: "pay at check-in", or a test card they provide.</li>
+        <li><strong>"No ready-made agents".</strong> We write the prompt, tools and orchestration ourselves, and ElevenLabs is a sponsor, so this should be fine. Confirm with the organizers anyway. Don't use Backboard's R-CLI in the pipeline, since it is a ready-made agent.</li>
+        <li><strong>Double-booking real hotels.</strong> The booking lock limits us to one booking. The other 4 calls must end without committing to anything.</li>
+        <li><strong>AI disclosure.</strong> The agent answers truthfully if asked whether it's an AI. That's better for judging and for compliance.</li>
+        <li><strong>Real or simulated hotels?</strong> If the organizers run the "hotels", their front desks may test phone menus and holds on purpose. Plan for both.</li>
+        <li><strong>Email provider</strong> and <strong>hotel data source</strong> are still undecided. Both go in decisions.md.</li>
+        <li><strong>Pre-build everything.</strong> Agent, phone import and webhooks get created before the start. The live run should only search, dial and email.</li>
+      </ul>
+    </section>
+
+    <section id="sources" aria-labelledby="h-sources">
+      <h2 id="h-sources">Sources</h2>
+      <ul class="sources">
+        <li><a href="https://elevenlabs.io/docs/eleven-agents/operate/hosted-mcp">ElevenLabs hosted MCP</a></li>
+        <li><a href="https://github.com/elevenlabs/elevenlabs-mcp">elevenlabs-mcp (archived)</a></li>
+        <li><a href="https://elevenlabs.io/docs/eleven-agents/api-reference/twilio/outbound-call">Twilio outbound call API</a></li>
+        <li><a href="https://elevenlabs.io/docs/eleven-agents/phone-numbers/twilio-integration/native-integration">Twilio native integration</a></li>
+        <li><a href="https://elevenlabs.io/docs/eleven-agents/phone-numbers/batch-calls">Batch calling</a></li>
+        <li><a href="https://elevenlabs.io/docs/eleven-agents/customization/conversation-flow">Conversation flow</a></li>
+        <li><a href="https://elevenlabs.io/docs/eleven-agents/customization/tools/system-tools/skip-turn">Skip turn</a></li>
+        <li><a href="https://elevenlabs.io/docs/eleven-agents/customization/tools/system-tools/play-keypad-touch-tone">Keypad touch tone</a></li>
+        <li><a href="https://elevenlabs.io/docs/eleven-agents/customization/tools/system-tools/voicemail-detection">Voicemail detection</a></li>
+        <li><a href="https://elevenlabs.io/docs/eleven-agents/customization/tools/webhook-tools">Webhook tools</a></li>
+        <li><a href="https://elevenlabs.io/docs/eleven-agents/customization/personalization/dynamic-variables">Dynamic variables</a></li>
+        <li><a href="https://elevenlabs.io/docs/eleven-agents/customization/events/client-to-server-events">Client-to-server events</a></li>
+        <li><a href="https://elevenlabs.io/docs/eleven-agents/customization/llm/custom-llm">Custom LLM</a></li>
+        <li><a href="https://elevenlabs.io/docs/eleven-agents/customization/agent-analysis/data-collection">Data collection</a></li>
+        <li><a href="https://elevenlabs.io/docs/eleven-agents/workflows/post-call-webhooks">Post-call webhooks</a></li>
+        <li><a href="https://elevenlabs.io/docs/eleven-agents/guides/burst-pricing">Burst pricing</a></li>
+        <li><a href="https://elevenlabs.io/pricing/agents">ElevenAgents pricing</a></li>
+        <li><a href="https://elevenlabs.io/docs/eleven-agents/api-reference/conversations/get">Get conversation details</a></li>
+        <li><a href="https://docs.backboard.io">Backboard docs</a></li>
+        <li><a href="https://backboard-docs.docsalot.dev/concepts/architecture">Backboard architecture</a></li>
+        <li><a href="https://backboard-docs.docsalot.dev/concepts/memory">Backboard memory</a></li>
+        <li><a href="https://backboard-docs.docsalot.dev/concepts/web-search">Backboard web search</a></li>
+        <li><a href="https://backboard-docs.docsalot.dev/concepts/messages">Backboard send message</a></li>
+        <li><a href="https://backboard-docs.docsalot.dev/concepts/billing">Backboard billing &amp; usage</a></li>
+        <li><a href="https://backboard-docs.docsalot.dev/cli/mcp">Backboard R-CLI MCP</a></li>
+        <li><a href="https://backboard-docs.docsalot.dev/faq">Backboard FAQ</a></li>
+      </ul>
+    </section>
+  </main>
+</div>
+
+<script>
+(function () {
+  var NOTES_KEY = "hotel-caller-guide-notes-v1";
+  var main = document.querySelector("main");
+  var comments = null;
+  var mode = "pending";
+  var notes = loadNotes();
+  var savedRange = null;
+  var selBtn, pop, tab, panel, toastEl, toastTimer;
+
+  var ready = (async function () {
+    try {
+      if (window.claude && typeof window.claude.use === "function") {
+        comments = await window.claude.use("comments");
+      }
+    } catch (e) { comments = null; }
+    setMode(comments ? "shell" : "local");
+  })();
+
+  function setMode(m) {
+    mode = m;
+    var t = document.getElementById("comment-hint-text");
+    if (m === "shell") {
+      t.textContent = "Select any text and press Comment, or use the Comment button next to a section title. Threads appear in the claude.ai comment panel for everyone with access.";
+      if (tab) tab.hidden = true;
+      if (panel) panel.hidden = true;
+    } else {
+      t.textContent = "Select any text and press Comment to add a note. Notes are saved in this browser only, so use Copy all to send them to Claude. For shared comments, open this page from its claude.ai link.";
+      ensureTab();
+    }
+  }
+
+  function loadNotes() {
+    try { var raw = localStorage.getItem(NOTES_KEY); var v = raw ? JSON.parse(raw) : []; return Array.isArray(v) ? v : []; }
+    catch (e) { return []; }
+  }
+  function saveNotes() {
+    try { localStorage.setItem(NOTES_KEY, JSON.stringify(notes)); } catch (e) { /* storage blocked: notes last until reload */ }
+  }
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    n.setAttribute("data-uncommentable", "");
+    return n;
+  }
+
+  function toast(msg) {
+    if (!toastEl) { toastEl = el("div", "toast"); toastEl.setAttribute("role", "status"); document.body.appendChild(toastEl); }
+    toastEl.textContent = msg;
+    toastEl.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.hidden = true; }, 2600);
+  }
+
+  function sectionLabel(node) {
+    var n = node && node.nodeType === 1 ? node : node && node.parentElement;
+    var sec = n && n.closest("section");
+    if (!sec) return "Header";
+    var h = sec.querySelector("h2");
+    return (h && h.dataset.label) || "Section";
+  }
+
+  function trimQuote(s) {
+    s = s.replace(/\s+/g, " ").trim();
+    return s.length > 280 ? s.slice(0, 277) + "…" : s;
+  }
+
+  /* ---------- floating button on text selection ---------- */
+  function hideSelBtn() { if (selBtn) selBtn.hidden = true; }
+
+  function placeAt(node, rect, below) {
+    var docW = document.documentElement.clientWidth;
+    var w = node.offsetWidth || 120;
+    var left = Math.min(Math.max(rect.left + window.scrollX, 16), window.scrollX + docW - w - 16);
+    node.style.left = left + "px";
+    node.style.top = (rect.bottom + window.scrollY + (below || 8)) + "px";
+  }
+
+  function onSelection() {
+    var sel = document.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) { hideSelBtn(); return; }
+    var r = sel.getRangeAt(0);
+    if (!main.contains(r.commonAncestorContainer) || !sel.toString().trim()) { hideSelBtn(); return; }
+    savedRange = r.cloneRange();
+    if (!selBtn) {
+      selBtn = el("button", "sel-btn", "Comment");
+      selBtn.type = "button";
+      selBtn.addEventListener("pointerdown", function (e) { e.preventDefault(); });
+      selBtn.addEventListener("mousedown", function (e) { e.preventDefault(); });
+      selBtn.addEventListener("click", function () {
+        if (!savedRange) return;
+        var range = savedRange;
+        startComment({ range: range }, trimQuote(range.toString()), sectionLabel(range.commonAncestorContainer), range.getBoundingClientRect());
+      });
+      document.body.appendChild(selBtn);
+    }
+    selBtn.hidden = false;
+    placeAt(selBtn, r.getBoundingClientRect(), 10);
+  }
+
+  var selTimer;
+  document.addEventListener("selectionchange", function () { clearTimeout(selTimer); selTimer = setTimeout(onSelection, 180); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { hideSelBtn(); closePop(); } });
+
+  /* ---------- per-section buttons ---------- */
+  document.querySelectorAll("main section h2").forEach(function (h) {
+    h.dataset.label = h.textContent.trim();
+    var b = el("button", "h-comment", "Comment");
+    b.type = "button";
+    b.setAttribute("aria-label", "Comment on section " + h.dataset.label);
+    b.addEventListener("click", function () {
+      var sec = h.closest("section");
+      startComment({ element: sec }, "", h.dataset.label, b.getBoundingClientRect());
+    });
+    h.appendChild(b);
+  });
+
+  /* ---------- route: claude.ai composer or local note ---------- */
+  async function startComment(target, quote, label, rect) {
+    if (mode === "pending") await ready;
+    if (comments) {
+      try {
+        var res = await comments.openComposer(target);
+        hideSelBtn();
+        if (!res || !res.opened) toast("The comment box didn't open. Close any comment you're writing, click the page, and try again.");
+        return;
+      } catch (e) {
+        var code = e && e.code;
+        if (code === "rate_limited") { toast("Too many comment boxes at once. Wait a moment and try again."); return; }
+        if (code === "unavailable" || code === "not_granted" || code === "capability_disabled" || code === "capability_removed" || code === "forbidden") {
+          comments = null;
+          setMode("local");
+          toast("Shared comments aren't available in this view, so this is saved as a local note.");
+        } else {
+          toast("The comment box couldn't open. Try again in a moment.");
+          return;
+        }
+      }
+    }
+    openNotePop(quote, label, rect);
+  }
+
+  /* ---------- local note popover ---------- */
+  function closePop() { if (pop) { pop.remove(); pop = null; } }
+
+  function openNotePop(quote, label, rect) {
+    closePop();
+    hideSelBtn();
+    pop = el("div", "note-pop");
+    pop.setAttribute("role", "dialog");
+    pop.setAttribute("aria-label", "Add a note");
+    pop.appendChild(el("div", "sec", label)).style.cssText = "font:500 11px var(--font-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--accent)";
+    if (quote) pop.appendChild(el("div", "quote", "“" + quote + "”"));
+    var ta = el("textarea");
+    ta.id = "note-input";
+    ta.maxLength = 4000;
+    ta.placeholder = "Your note";
+    pop.appendChild(ta);
+    var row = el("div", "row");
+    var cancel = el("button", "btn", "Cancel"); cancel.type = "button";
+    var save = el("button", "btn primary", "Save note"); save.type = "button";
+    cancel.addEventListener("click", closePop);
+    save.addEventListener("click", function () {
+      var text = ta.value.trim();
+      if (!text) { ta.focus(); toast("Write a note first."); return; }
+      notes.push({ id: Date.now().toString(36), section: label, quote: quote, text: text, at: new Date().toISOString() });
+      saveNotes();
+      closePop();
+      renderPanel();
+      ensureTab();
+      toast("Note saved. Open Your notes to copy them.");
+      var s = document.getSelection(); if (s) s.removeAllRanges();
+    });
+    ta.addEventListener("keydown", function (e) { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") save.click(); });
+    row.appendChild(cancel); row.appendChild(save);
+    pop.appendChild(row);
+    document.body.appendChild(pop);
+    placeAt(pop, rect, 10);
+    ta.focus({ preventScroll: true });
+  }
+
+  /* ---------- local notes panel ---------- */
+  function ensureTab() {
+    if (mode !== "local") return;
+    if (!tab) {
+      tab = el("button", "notes-tab");
+      tab.type = "button";
+      tab.setAttribute("aria-expanded", "false");
+      tab.addEventListener("click", function () {
+        if (!panel) buildPanel();
+        panel.hidden = !panel.hidden;
+        tab.setAttribute("aria-expanded", String(!panel.hidden));
+        if (!panel.hidden) renderPanel();
+      });
+      document.body.appendChild(tab);
+    }
+    tab.hidden = false;
+    tab.textContent = "Your notes (" + notes.length + ")";
+  }
+
+  function buildPanel() {
+    panel = el("div", "notes-panel");
+    panel.hidden = true;
+    panel.setAttribute("role", "region");
+    panel.setAttribute("aria-label", "Your notes");
+    document.body.appendChild(panel);
+  }
+
+  function notesMarkdown() {
+    var out = ["## Notes on Hotel Caller Field Guide", ""];
+    notes.forEach(function (n) {
+      out.push("- **" + n.section + "**" + (n.quote ? " > \"" + n.quote + "\"" : ""));
+      n.text.split("\n").forEach(function (line) { out.push("  " + line); });
+    });
+    return out.join("\n");
+  }
+
+  var clearArmed = false;
+  function renderPanel() {
+    if (tab) tab.textContent = "Your notes (" + notes.length + ")";
+    if (!panel) return;
+    panel.textContent = "";
+    panel.appendChild(el("h3", null, "Your notes"));
+    if (!notes.length) {
+      panel.appendChild(el("p", "empty", "No notes yet. Select text on the page and press Comment."));
+      return;
+    }
+    var list = el("ol");
+    notes.forEach(function (n) {
+      var li = el("li");
+      li.appendChild(el("div", "sec", n.section));
+      if (n.quote) li.appendChild(el("div", "quote", "“" + n.quote + "”"));
+      li.appendChild(el("div", "txt", n.text));
+      var del = el("button", "del", "Delete"); del.type = "button";
+      del.addEventListener("click", function () {
+        notes = notes.filter(function (x) { return x.id !== n.id; });
+        saveNotes(); renderPanel();
+      });
+      li.appendChild(del);
+      list.appendChild(li);
+    });
+    panel.appendChild(list);
+    var row = el("div", "row");
+    var clear = el("button", "btn", "Clear all"); clear.type = "button";
+    clear.addEventListener("click", function () {
+      if (!clearArmed) { clearArmed = true; clear.textContent = "Click again to clear"; setTimeout(function () { clearArmed = false; clear.textContent = "Clear all"; }, 3000); return; }
+      clearArmed = false; notes = []; saveNotes(); renderPanel();
+    });
+    var copy = el("button", "btn primary", "Copy all"); copy.type = "button";
+    copy.addEventListener("click", function () {
+      var md = notesMarkdown();
+      var p;
+      try { p = navigator.clipboard.writeText(md); } catch (e) { p = Promise.reject(e); }
+      p.then(function () { toast("Copied. Paste the notes into the chat with Claude."); })
+       .catch(function () {
+         var ta = panel.querySelector("textarea.copy-fallback");
+         if (!ta) { ta = el("textarea", "copy-fallback"); ta.id = "notes-copy"; ta.readOnly = true; panel.appendChild(ta); }
+         ta.value = md; ta.focus(); ta.select();
+         toast("Copy didn't work here. The notes are selected below, so press Cmd+C or Ctrl+C.");
+       });
+    });
+    row.appendChild(clear); row.appendChild(copy);
+    panel.appendChild(row);
+  }
+})();
+</script>

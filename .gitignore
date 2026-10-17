@@ -6,3 +6,4 @@ output/
 expedia-dump*.html
 .claude/
 pricing-results.json
+.DS_Store

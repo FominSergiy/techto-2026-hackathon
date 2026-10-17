@@ -19,6 +19,11 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — No payment; booking ends at verbal confirmation and/or reservation ID
+tags: decision, booking, call-handling, spec
+- Decision: The agent never handles payment. Success means the hotel confirms the booking verbally, gives a reservation ID, or both. If a hotel won't book without a card, the agent gets verbal confirmation that the room is available for the requested date at the quoted price, and we count that as the confirmation.
+- Why: Clarified by the team and added to the spec under "Booking Goal (No Payment)". It keeps payment details out of the call flow and makes the call shorter.
+
 ## 2026-10-17 — Search suite lives in hotel_search/, one root entry point
 tags: decision, structure
 - Decision: All search scripts moved to `hotel_search/` (the old `search.js` orchestrator is now `hotel_search/index.js`). The root `search.js` is the single entry point and also has a `--json` mode, which replaces `search-json.js`. `.cache/`, `output/` and `.browser-profile/` stay at the repo root. All six sources are on by default, so the UI starts with every box ticked (a source still shows disabled until its `.env` keys exist).
