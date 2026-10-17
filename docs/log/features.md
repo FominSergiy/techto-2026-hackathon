@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Prompt review step switched off (REVIEW_STEP flag)
+tags: feature, ui, prompt
+- Feature: The page's "Review prompt" step (`/api/refine`) is off: `const REVIEW_STEP = false` in `public/index.html`. The buttons ("Run search", "Ask Backboard") send the typed text straight to the server, which parses it with `parsePrompt` (LLM, else regex) and runs it. The region stays Ontario, CA (`pinRegion` in `prompt.js` drops a region/country the parser guessed, unless the text has `--region=` / `--country-code=`). Typed `--flags` still win over parsed values. Set the flag to `true` to get the review step back; `/api/refine` and `prompt_refine.js` are untouched.
+- Status: done, offline tests only.
+- Notes: Without the review step nothing fills in assumed values on screen: dates default to the next Saturday for 1 night, the price cap to 150, the top count to `settings.js`'s `targetCount` (30), and a prompt with no city is refused with a message (`hasCity` guard in `server.js`, so nothing is searched or paid for; `report.js` also no longer crashes without a city).
+
 ## 2026-10-17 — City check without Google Places; Xotelo search falls back to the bare city name
 tags: feature, search, places, xotelo, learnings
 - Feature: (1) A Toronto search showed hotels from Markham and Richmond Hill: the Google actor returns nearby towns, and the only thing that removed them was the Places city check, which did not run (no `places` raw file in three browser runs). Now, when Places is off, `index.js` still drops hotels a source places in another city (`dropKnownOtherCities`); the Google normalizer reads the city from addresses like "Markham, ON, Canada". (2) Xotelo `/search` for "Toronto Ontario", "Etobicoke Ontario" and "Humber Bay Ontario" all answered 400 "No results found" live, so `locationKey` now also tries the bare city name (no retries on the 400).

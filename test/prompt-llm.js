@@ -113,5 +113,23 @@ function keys({ anthropic, backboard }) {
     stub({ body: nullPrice({ maxNightlyPrice: 90 }) });
     assert.ok((await refine(`${ROUGH}, under 90`, "search")).prompt.includes("--max-nightly-price=90"));
 
+    // Without the review step the region stays Ontario, CA: a region or country the model guessed is dropped...
+    const { pinRegion } = require("../prompt");
+    keys({ backboard: "bb-key" });
+    stub({ body: { status: "COMPLETED", content: JSON.stringify({ city: "Paris", region: null, countryCode: "FR", adults: 2 }), input_tokens: 5, output_tokens: 5 } });
+    const guessed = await parsePrompt("hotels in Paris for 2");
+    assert.ok(guessed.args.includes("--region=null") && guessed.args.includes("--country-code=FR"), "the model's guess is in the parsed args");
+    assert.deepStrictEqual(pinRegion(guessed.args, "hotels in Paris for 2"), ["--city=Paris", "--adults=2"]);
+    // ...unless the prompt itself carries the flag
+    assert.deepStrictEqual(pinRegion(["--city=Paris", "--region=Quebec", "--country-code=CA"], "hotels in Paris --region=Quebec"), ["--city=Paris", "--region=Quebec"]);
+
+    // A prompt with no city is refused instead of searching the whole province
+    const { hasCity } = require("../prompt");
+    assert.strictEqual(hasCity(["--city=Hamilton", "--adults=1"]), true);
+    for (const none of [[], ["--adults=1"], ["--city=null"], ["--city="], ["--city=undefined"]]) {
+        assert.strictEqual(hasCity(none), false, JSON.stringify(none));
+    }
+    assert.strictEqual(hasCity((await parsePrompt("hotels", { offline: true })).args), false, "the regex parser found no city in 'hotels'");
+
     console.log("prompt-llm: all tests passed");
 })();

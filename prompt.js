@@ -126,6 +126,21 @@ function parseWithRegex(prompt) {
 // --key=value or --key="value with spaces"
 const FLAG_PATTERN = /--[\w-]+=(?:"[^"]*"|\S*)/g;
 
+// The region is fixed to Ontario, CA (settings.js). Without the review step (prompt_refine.js) nothing pins it, so drop a
+// region or country the parser guessed ("--region=null" would make "Hamilton" ambiguous), unless the prompt itself
+// carries --region= / --country-code=.
+function pinRegion(args, prompt) {
+    const typed = new Set((prompt.match(FLAG_PATTERN) || []).map(flag => flag.slice(2).split("=")[0]));
+    return args.filter(arg => {
+        const key = arg.slice(2).split("=")[0];
+        return !["region", "country-code"].includes(key) || typed.has(key);
+    });
+}
+
+// True when the args name a city. Without one every source searches the whole province (and charges for it), so the
+// server refuses to run (the review step used to be the only thing that warned about it).
+const hasCity = args => args.some(arg => /^--city=(?!(?:null|undefined)?$)./.test(arg));
+
 // Returns { args, settings, usage, parser } - args are ready to pass to search.js.
 // offline: regex parser only, no API call (DEMO mode). literal: the prompt is a reviewed one (prompt_refine.js)
 // that already carries every setting as a --flag, so use the flags as they are and don't parse the text again.
@@ -169,4 +184,4 @@ async function parsePrompt(prompt, { offline = false, literal = false } = {}) {
     return { args, parser, usage, fallbackReason: parser === "regex" && reasons.length ? reasons.join("; ") : null };
 }
 
-module.exports = { parsePrompt };
+module.exports = { parsePrompt, pinRegion, hasCity };

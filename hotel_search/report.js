@@ -56,7 +56,7 @@ function writeReport(hotels) {
     }
 
     const records = hotels.map(toRecord);
-    const base = path.join(settings.outputDir, `hotels-${settings.city.toLowerCase().replace(/\W+/g, "-")}-${settings.checkIn}`);
+    const base = path.join(settings.outputDir, `hotels-${(settings.city || "no-city").toLowerCase().replace(/\W+/g, "-")}-${settings.checkIn}`);
     fs.mkdirSync(settings.outputDir, { recursive: true });
 
     const columns = Object.keys(records[0] || toRecord({}));

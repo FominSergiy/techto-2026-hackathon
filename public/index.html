@@ -137,7 +137,7 @@ async function run(text) {
         const response = await fetch("/api/search", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt: text, reviewed: true, ...pickedSources() })
+            body: JSON.stringify({ prompt: text, reviewed: REVIEW_STEP, ...pickedSources() })
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error);
@@ -241,11 +241,14 @@ async function runBackboard(text) {
     }
 }
 
-// Two steps per box: "Review prompt" shows the full prompt that will run (nothing is searched yet),
-// the "Run" button in the review panel then runs exactly that text.
+// REVIEW_STEP true: two steps per box. "Review prompt" shows the full prompt that will run (nothing is searched yet)
+// and the "Run" button in the review panel then runs exactly that text. false (now): the button runs what you typed.
+const REVIEW_STEP = false;
 const BOXES = {
-    search: { input: "prompt", button: "run", status: "status", panel: "review", go: run, verb: "Run search" },
-    backboard: { input: "bbPrompt", button: "bbRun", status: "bbStatus", panel: "bbReview", go: runBackboard, verb: "Ask Backboard" }
+    search: { input: "prompt", button: "run", status: "status", panel: "review", go: run, verb: "Run search",
+        hint: "Ctrl/Cmd+Enter to run. Your text is parsed as written (add --flags to force a setting). Tick the APIs to use above." },
+    backboard: { input: "bbPrompt", button: "bbRun", status: "bbStatus", panel: "bbReview", go: runBackboard, verb: "Ask Backboard",
+        hint: "Separate from the search above: a web-search model answers directly with your text as written. Prices are hints, not API rates. Ctrl/Cmd+Enter to ask." }
 };
 
 function showReview(box, data) {
@@ -303,9 +306,14 @@ async function review(target) {
 }
 
 for (const [target, box] of Object.entries(BOXES)) {
-    $(box.button).addEventListener("click", () => review(target));
+    const start = () => (REVIEW_STEP ? review(target) : box.go($(box.input).value));
+    if (!REVIEW_STEP) {
+        $(box.button).textContent = box.verb;
+        $(box.status).textContent = box.hint;
+    }
+    $(box.button).addEventListener("click", start);
     $(box.input).addEventListener("keydown", event => {
-        if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) review(target);
+        if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) start();
     });
 }
 </script>

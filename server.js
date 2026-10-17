@@ -4,7 +4,7 @@ const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
 const { spawn } = require("node:child_process");
-const { parsePrompt } = require("./prompt");
+const { parsePrompt, pinRegion, hasCity } = require("./prompt");
 const { refine } = require("./prompt_refine");
 const { SOURCES, describe } = require("./hotel_search/sources");
 const backboard = require("./backboard_search/backboard");
@@ -95,7 +95,12 @@ async function handleSearch(request, response) {
 
         const started = Date.now();
         const parsed = await parsePrompt(prompt, { literal: Boolean(reviewed) });
-        const args = [...parsed.args.filter(arg => !/^--(sources|enrich-phones)=/.test(arg)), ...picked];
+        // A reviewed prompt already has the region fixed; a typed one gets Ontario, CA unless it says otherwise with flags
+        const parsedArgs = reviewed ? parsed.args : pinRegion(parsed.args, prompt);
+        if (!hasCity(parsedArgs)) {
+            return sendJson(response, 400, { error: 'No city found in your prompt, so nothing was searched. Name one, e.g. "cheapest hotel in Hamilton, 1 person, 2026-11-04 to 2026-11-05" (or add --city=Hamilton).' });
+        }
+        const args = [...parsedArgs.filter(arg => !/^--(sources|enrich-phones)=/.test(arg)), ...picked];
         const { hotels, log } = await runSearch(args);
         sendJson(response, 200, { hotels, log, args, parser: parsed.parser, usage: parsed.usage, seconds: (Date.now() - started) / 1000 });
     } catch (error) {
