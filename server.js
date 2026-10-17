@@ -238,10 +238,87 @@ async function handleReservation(request, response) {
             maps.status === "fulfilled" && maps.value.ranking?.error && `Price estimates failed: ${maps.value.ranking.error}`
         ].filter(Boolean);
         const hotels = combine(maps.value?.hotels, found.value);
-        sendJson(response, 200, { hotels, warnings });
+
+        // The search is the first half of the job: the hotels with a phone (cheapest first, unpriced last) become the call queue
+        const callList = hotels.filter(hotel => hotel.phone).slice(0, MAX_QUEUE);
+        let job = null;
+        if (callList.length) {
+            job = startCalls(prompt.trim(), callList);
+            if (callList.length < WANT_PRICES) {
+                warnings.push(`Only ${callList.length} hotels have a phone number, so fewer than ${WANT_PRICES} prices may come back.`);
+            }
+        } else {
+            warnings.push("No hotel has a phone number, so nobody was called.");
+        }
+        sendJson(response, 200, { hotels, warnings, job: job && { id: job.id, phones: job.phones } });
     } catch (error) {
         sendJson(response, 500, { error: error.message });
     }
+}
+
+const CALLS = 5; // calls running at the same time
+const WANT_PRICES = 3; // stop once this many conversations gave a price
+const MAX_QUEUE = 15; // hotels handed to the call script at most
+const CALL_DIR = path.join(__dirname, "output", "calls");
+const jobs = new Map();
+
+// The call race: Davide_test/main.py phones the queue through ElevenLabs, CALLS at a time, dialing the next hotel whenever a
+// call ends, until WANT_PRICES conversations gave a price (said on the call) or the queue runs out. Then it emails the cheapest
+// booking (RESULT_EMAIL). It runs in the background, one process per request, inside its own folder under output/calls/<id>/
+// (hotels.json in; results.json, rewritten after every call, and run logs out). The page follows it through /api/reservation/status.
+// With TEST_NUMBER set in .env the calls go to those numbers instead of the hotels' own phones.
+function startCalls(prompt, hotels) {
+    const id = Date.now().toString(36);
+    const dir = path.join(CALL_DIR, id);
+    fs.mkdirSync(dir, { recursive: true });
+    const file = path.join(dir, "hotels.json");
+    fs.writeFileSync(file, JSON.stringify(hotels.map(hotel => ({ name: hotel.name, address: hotel.address, phone: hotel.phone, nightlyPrice: hotel.price }))));
+
+    const job = { id, dir, state: "calling", phones: hotels.map(hotel => hotel.phone), error: null };
+    jobs.set(id, job);
+
+    let log = "";
+    const child = spawn(process.env.PYTHON || "python3", ["-u", path.join(__dirname, "Davide_test", "main.py"), "--hotels", file, "--calls", String(CALLS), "--want", String(WANT_PRICES), "--strategy", "cheapest", prompt], { cwd: dir });
+    child.stdout.on("data", chunk => (log += chunk));
+    child.stderr.on("data", chunk => (log += chunk));
+    child.on("error", error => {
+        job.state = "failed";
+        job.error = `Could not start the call script: ${error.message}`;
+    });
+    child.on("close", code => {
+        fs.writeFileSync(path.join(dir, "log.txt"), log);
+        job.state = code === 0 ? "done" : "failed";
+        job.error = code === 0 ? null : (log.trim().split("\n").pop() || `the call script exited with code ${code}`);
+        job.emailed = /\] email sent/.test(log);
+        job.emailError = log.split("\n").find(line => line.includes("EMAIL FAILED")) || null;
+        try {
+            job.results = JSON.parse(fs.readFileSync(path.join(dir, "results.json"), "utf8"));
+        } catch {
+            job.results = null;
+        }
+    });
+    return job;
+}
+
+function handleCallStatus(request, response) {
+    const job = jobs.get(new URL(request.url, "http://localhost").searchParams.get("id"));
+    if (!job) {
+        return sendJson(response, 404, { error: "Unknown call run (the server was restarted?)" });
+    }
+    const { state, error, emailed, emailError } = job;
+    let results = job.results;
+    if (state === "calling") {
+        // the script rewrites results.json after every finished call; it may be missing or half-written, which just means "no news yet"
+        try {
+            results = JSON.parse(fs.readFileSync(path.join(job.dir, "results.json"), "utf8"));
+        } catch {
+            results = null;
+        }
+    }
+    const calls = (results?.calls || []).map(({ phone, status, number, call_price, hotel, error: why }) => ({ phone, status, number, price: call_price, hotel, error: why }));
+    const chosen = results?.chosen && { hotel: results.chosen.hotel, number: results.chosen.number, price: results.chosen.price };
+    const priced = calls.filter(call => call.price).length;
+    sendJson(response, 200, { state, error, emailed: Boolean(emailed), emailError, calls, chosen, priced, want: WANT_PRICES });
 }
 
 function serveStatic(request, response) {
@@ -279,6 +356,9 @@ http.createServer((request, response) => {
     }
     if (request.method === "POST" && request.url === "/api/reservation") {
         return handleReservation(request, response);
+    }
+    if (request.method === "GET" && request.url.startsWith("/api/reservation/status")) {
+        return handleCallStatus(request, response);
     }
     serveStatic(request, response);
 }).listen(PORT, () => console.log(`Reservation AI service on http://localhost:${PORT} (original search page: /search)${process.env.DEMO ? " (DEMO mode: saved results, no API calls)" : ""}`));

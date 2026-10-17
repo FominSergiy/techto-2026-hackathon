@@ -95,7 +95,8 @@ async function findPlace(apiKey, hotel) {
     return { miss: describeMiss(name, spot, seen) };
 }
 
-const component = (place, type) => place?.addressComponents?.find(part => part.types.includes(type));
+// Some parts come without types (Halifax: "5120 Salter Street, Registration number STR2425T5341"), so they never match
+const component = (place, type) => place?.addressComponents?.find(part => part.types?.includes(type));
 
 // Where the place really is, from its structured address (not from the query we sent)
 function locationOf(place) {

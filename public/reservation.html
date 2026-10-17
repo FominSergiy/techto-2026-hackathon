@@ -58,7 +58,22 @@ function priceCell(hotel) {
     return `<span title="${PRICE_HINT[hotel.priceKind] || ""}">${PRICE_PREFIX[hotel.priceKind] ?? ""}${esc(hotel.price)} <small>${esc(hotel.currency)}</small></span>`;
 }
 
-function render(hotels) {
+// Phones are written differently in the search ("(416) 555-0101") and the call script ("+14165550101"): compare the last 10 digits
+const digits = phone => String(phone ?? "").replace(/\D/g, "").slice(-10);
+
+// What the call to one hotel came to: empty for hotels that are not being called
+function callCell(hotel, job, calls) {
+    if (!job || !job.phones.some(phone => digits(phone) === digits(hotel.phone))) return '<span class="muted">—</span>';
+    const call = calls.find(item => digits(item.phone) === digits(hotel.phone));
+    // no result yet: on the call or still in the queue; after the run: never dialed (enough prices came in first)
+    if (!call) return `<span class="muted">${job.finished ? "not called" : "…"}</span>`;
+    const quoted = call.price ? ` <small>${esc(call.price)}</small>` : "";
+    if (call.status === "booked") return `<strong>booked</strong>${quoted}${call.number ? ` <small>#${esc(call.number)}</small>` : ""}`;
+    if (call.status === "priced") return `quoted${quoted}`;
+    return `<span class="muted">${esc(call.status === "failed" ? "no price" : call.status)}</span>`;
+}
+
+function render(hotels, job = null, calls = []) {
     if (!hotels.length) {
         $("results").innerHTML = "";
         $("note").innerHTML = '<p class="note">No hotels found.</p>';
@@ -70,8 +85,49 @@ function render(hotels) {
             <td class="price">${priceCell(hotel)}</td>
             <td class="phone">${hotel.phone ? `<a href="tel:${esc(hotel.phone.replace(/[^+\d]/g, ""))}">${esc(hotel.phone)}</a>` : '<span class="muted">—</span>'}</td>
             <td>${esc(hotel.address) || '<span class="muted">—</span>'}</td>
+            ${job ? `<td class="call">${callCell(hotel, job, calls)}</td>` : ""}
         </tr>`).join("");
-    $("results").innerHTML = `<div class="scroll"><table><thead><tr><th>Hotel</th><th>Price / night</th><th>Phone</th><th>Address</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    $("results").innerHTML = `<div class="scroll"><table><thead><tr><th>Hotel</th><th>Price / night</th><th>Phone</th><th>Address</th>${job ? "<th>Call</th>" : ""}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+// After the search the server phones the top hotels in parallel and emails the cheapest booking: follow that until it is over
+async function followCalls(hotels, job) {
+    job.finished = false;
+    $("bar").classList.add("on");
+    $("note").insertAdjacentHTML("beforeend", '<p class="note" id="callNote">Calling hotels…</p>');
+    for (;;) {
+        await sleep(3000);
+        let status;
+        try {
+            const response = await fetch(`/api/reservation/status?id=${encodeURIComponent(job.id)}`);
+            status = await response.json();
+            if (!response.ok) throw new Error(status.error);
+        } catch (error) {
+            $("callNote").className = "note error";
+            $("callNote").textContent = error.message;
+            return;
+        }
+        job.finished = status.state !== "calling";
+        render(hotels, job, status.calls);
+        const note = $("callNote");
+        if (!job.finished) {
+            note.textContent = `Calling hotels… ${status.priced} of ${status.want} prices so far.`;
+            continue;
+        }
+        if (status.state === "failed") {
+            note.className = "note error";
+            note.textContent = `The calls failed: ${status.error}`;
+        } else if (!status.chosen) {
+            note.textContent = `${status.priced} hotel${status.priced === 1 ? "" : "s"} quoted a price, but none confirmed a booking, so no email was sent.`;
+        } else {
+            const { hotel, number, price } = status.chosen;
+            note.textContent = `Booked ${hotel}${price ? ` at ${price}` : ""}${number ? `, confirmation #${number}` : ""}. ${status.emailed ? "Confirmation emailed." : "The confirmation email was NOT sent."}`;
+            if (!status.emailed) note.className = "note error";
+        }
+        return;
+    }
 }
 
 async function search() {
@@ -92,10 +148,12 @@ async function search() {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error);
-        render(data.hotels);
+        render(data.hotels, data.job);
         if (data.warnings.length) {
             $("note").innerHTML = data.warnings.map(warning => `<p class="note error">${esc(warning)}</p>`).join("") + $("note").innerHTML;
         }
+        // The input stays locked until the calls are over, so a second Enter cannot start another round of phone calls
+        if (data.job) await followCalls(data.hotels, data.job);
     } catch (error) {
         $("note").innerHTML = `<p class="note error">${esc(error.message)}</p>`;
     } finally {
