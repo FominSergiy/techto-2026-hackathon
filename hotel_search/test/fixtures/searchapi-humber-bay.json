@@ -1,0 +1,370 @@
+{
+  "properties": [
+    {
+      "name": "Stay Inn Express Toronto",
+      "gps_coordinates": {
+        "latitude": 43.6102778,
+        "longitude": -79.5526541
+      },
+      "price_per_night": {
+        "price": "$154",
+        "extracted_price": 154,
+        "price_before_taxes": "$130",
+        "extracted_price_before_taxes": 130
+      },
+      "total_price": {
+        "price": "$154",
+        "extracted_price": 154,
+        "price_before_taxes": "$130",
+        "extracted_price_before_taxes": 130
+      },
+      "rating": 3.6,
+      "reviews": 847,
+      "link": "https://www.stayinnexpress.com/?utm_source=google&utm_medium=gbp&utm_campaign=local"
+    },
+    {
+      "name": "Check Inn CA",
+      "gps_coordinates": {
+        "latitude": 43.6415403,
+        "longitude": -79.4313708
+      },
+      "price_per_night": {
+        "price": "$56",
+        "extracted_price": 56,
+        "price_before_taxes": "$47",
+        "extracted_price_before_taxes": 47
+      },
+      "total_price": {
+        "price": "$56",
+        "extracted_price": 56,
+        "price_before_taxes": "$47",
+        "extracted_price_before_taxes": 47
+      },
+      "rating": 4.2,
+      "reviews": 87,
+      "link": "https://checkinnca.com/"
+    },
+    {
+      "name": "Nomad Pod Hotel",
+      "gps_coordinates": {
+        "latitude": 43.6570565,
+        "longitude": -79.40328889999999
+      },
+      "price_per_night": {
+        "price": "$61",
+        "extracted_price": 61,
+        "price_before_taxes": "$50",
+        "extracted_price_before_taxes": 50
+      },
+      "total_price": {
+        "price": "$61",
+        "extracted_price": 61,
+        "price_before_taxes": "$50",
+        "extracted_price_before_taxes": 50
+      },
+      "rating": 4.6,
+      "reviews": 129,
+      "link": "https://nomadpodhotel.com/"
+    },
+    {
+      "name": "Queensway Motel",
+      "gps_coordinates": {
+        "latitude": 43.6278658,
+        "longitude": -79.4969364
+      },
+      "price_per_night": {
+        "price": "$134",
+        "extracted_price": 134,
+        "price_before_taxes": "$112",
+        "extracted_price_before_taxes": 112
+      },
+      "total_price": {
+        "price": "$134",
+        "extracted_price": 134,
+        "price_before_taxes": "$112",
+        "extracted_price_before_taxes": 112
+      },
+      "rating": 3.1,
+      "reviews": 294,
+      "link": "http://www.queenswaymotel.com/"
+    },
+    {
+      "name": "Deluxe Inn",
+      "gps_coordinates": {
+        "latitude": 43.6186527,
+        "longitude": -79.5393643
+      },
+      "price_per_night": {
+        "price": "$150",
+        "extracted_price": 150,
+        "price_before_taxes": "$125",
+        "extracted_price_before_taxes": 125
+      },
+      "total_price": {
+        "price": "$150",
+        "extracted_price": 150,
+        "price_before_taxes": "$125",
+        "extracted_price_before_taxes": 125
+      },
+      "rating": 3.3,
+      "reviews": 824,
+      "link": "http://www.deluxeinntoronto.com/"
+    },
+    {
+      "name": "Samesun Toronto",
+      "gps_coordinates": {
+        "latitude": 43.6568404,
+        "longitude": -79.4031701
+      },
+      "price_per_night": {
+        "price": "$99",
+        "extracted_price": 99,
+        "price_before_taxes": "$83",
+        "extracted_price_before_taxes": 83
+      },
+      "total_price": {
+        "price": "$99",
+        "extracted_price": 99,
+        "price_before_taxes": "$83",
+        "extracted_price_before_taxes": 83
+      },
+      "rating": 3.9,
+      "reviews": 929,
+      "link": "http://www.samesun.com/"
+    },
+    {
+      "name": "Super 5 Inn",
+      "gps_coordinates": {
+        "latitude": 43.626207,
+        "longitude": -79.56701199999999
+      },
+      "price_per_night": {
+        "price": "$162",
+        "extracted_price": 162,
+        "price_before_taxes": "$136",
+        "extracted_price_before_taxes": 136
+      },
+      "total_price": {
+        "price": "$162",
+        "extracted_price": 162,
+        "price_before_taxes": "$136",
+        "extracted_price_before_taxes": 136
+      },
+      "rating": 3.3,
+      "reviews": 766,
+      "link": "https://www.super5inntoronto.com/"
+    },
+    {
+      "name": "Stylish City Escape Toronto",
+      "gps_coordinates": {
+        "latitude": 43.6863647,
+        "longitude": -79.4926772
+      },
+      "price_per_night": {
+        "price": "$175",
+        "extracted_price": 175,
+        "price_before_taxes": "$149",
+        "extracted_price_before_taxes": 149
+      },
+      "total_price": {
+        "price": "$175",
+        "extracted_price": 175,
+        "price_before_taxes": "$149",
+        "extracted_price_before_taxes": 149
+      },
+      "rating": 4.8,
+      "reviews": 21,
+      "link": "http://www.stylishcityescape.com/"
+    },
+    {
+      "name": "586 Hotel Toronto",
+      "gps_coordinates": {
+        "latitude": 43.652587399999994,
+        "longitude": -79.4006538
+      },
+      "price_per_night": {
+        "price": "$141",
+        "extracted_price": 141,
+        "price_before_taxes": "$118",
+        "extracted_price_before_taxes": 118
+      },
+      "total_price": {
+        "price": "$141",
+        "extracted_price": 141,
+        "price_before_taxes": "$118",
+        "extracted_price_before_taxes": 118
+      },
+      "rating": 3.4,
+      "reviews": 41,
+      "link": "https://586hoteltoronto.com/"
+    },
+    {
+      "name": "Dragon Gate Inn - Toronto",
+      "gps_coordinates": {
+        "latitude": 43.6517142,
+        "longitude": -79.40758919999999
+      },
+      "price_per_night": {
+        "price": "$157",
+        "extracted_price": 157,
+        "price_before_taxes": "$130",
+        "extracted_price_before_taxes": 130
+      },
+      "total_price": {
+        "price": "$157",
+        "extracted_price": 157,
+        "price_before_taxes": "$130",
+        "extracted_price_before_taxes": 130
+      },
+      "rating": 2.6,
+      "reviews": 229,
+      "link": "https://expe.onelink.me/hnLd/aub63sht"
+    },
+    {
+      "name": "The Jade Guesthouse",
+      "gps_coordinates": {
+        "latitude": 43.6874841,
+        "longitude": -79.4417714
+      },
+      "price_per_night": {
+        "price": "$152",
+        "extracted_price": 152,
+        "price_before_taxes": "$108",
+        "extracted_price_before_taxes": 108
+      },
+      "total_price": {
+        "price": "$152",
+        "extracted_price": 152,
+        "price_before_taxes": "$108",
+        "extracted_price_before_taxes": 108
+      },
+      "rating": 5,
+      "reviews": 2,
+      "link": "https://www.booking.com/hotel/ca/the-jade-house.html"
+    },
+    {
+      "name": "Toronto Travellers Home",
+      "gps_coordinates": {
+        "latitude": 43.6524999,
+        "longitude": -79.4007134
+      },
+      "price_per_night": {
+        "price": "$135",
+        "extracted_price": 135,
+        "price_before_taxes": "$114",
+        "extracted_price_before_taxes": 114
+      },
+      "total_price": {
+        "price": "$135",
+        "extracted_price": 135,
+        "price_before_taxes": "$114",
+        "extracted_price_before_taxes": 114
+      },
+      "rating": 2.5,
+      "reviews": 352,
+      "link": "https://www.booking.com/hotel/ca/toronto-travellers-home.html"
+    },
+    {
+      "name": "Mississauga Gate Inn",
+      "gps_coordinates": {
+        "latitude": 43.6207828,
+        "longitude": -79.5705445
+      },
+      "price_per_night": {
+        "price": "$156",
+        "extracted_price": 156,
+        "price_before_taxes": "$129",
+        "extracted_price_before_taxes": 129
+      },
+      "total_price": {
+        "price": "$156",
+        "extracted_price": 156,
+        "price_before_taxes": "$129",
+        "extracted_price_before_taxes": 129
+      },
+      "rating": 3.4,
+      "reviews": 570,
+      "link": "https://www.mississaugagateinn.com/"
+    },
+    {
+      "name": "Goldwin's Place - Deluxe Queen Room",
+      "gps_coordinates": {
+        "latitude": 43.689208984375,
+        "longitude": -79.50184631347656
+      },
+      "price_per_night": {
+        "price": "$111",
+        "extracted_price": 111
+      },
+      "total_price": {
+        "price": "$111",
+        "extracted_price": 111
+      },
+      "link": "https://www.bluepillow.com/search/6949a2a65c042e01bacd39be?dest=bkng&cat=House&lat=43.68921&lng=-79.50185&language=en"
+    },
+    {
+      "name": "Love-nest With Private Hot Tub",
+      "gps_coordinates": {
+        "latitude": 43.66967391967773,
+        "longitude": -79.48108673095703
+      },
+      "price_per_night": {
+        "price": "$160",
+        "extracted_price": 160,
+        "price_before_taxes": "$134",
+        "extracted_price_before_taxes": 134
+      },
+      "total_price": {
+        "price": "$160",
+        "extracted_price": 160,
+        "price_before_taxes": "$134",
+        "extracted_price_before_taxes": 134
+      },
+      "rating": 3.8,
+      "reviews": 64,
+      "link": "https://www.booking.com/hotel/ca/love-nest-with-private-hot-tub.en-gb.html?aid=2068758&utm_source=seogooglelocal&utm_medium=description&utm_term=hotel-7357251&utm_campaign=en-gb&label=seogooglelocal-link-imagesaow-hotel-7357251_grp-3_gendate-20261013"
+    },
+    {
+      "name": "Elegant Queen Street Suits",
+      "gps_coordinates": {
+        "latitude": 43.64694976806641,
+        "longitude": -79.4065170288086
+      },
+      "price_per_night": {
+        "price": "$134",
+        "extracted_price": 134,
+        "price_before_taxes": "$116",
+        "extracted_price_before_taxes": 116
+      },
+      "total_price": {
+        "price": "$134",
+        "extracted_price": 134,
+        "price_before_taxes": "$116",
+        "extracted_price_before_taxes": 116
+      },
+      "rating": 2.6472602,
+      "reviews": 146,
+      "link": "https://whimstay.com/detail/Elegant-Queen-Street-Suits/100823784?isgoogle=true"
+    },
+    {
+      "name": "Closet Room in a Shared Loft",
+      "gps_coordinates": {
+        "latitude": 43.64882278442383,
+        "longitude": -79.43086242675781
+      },
+      "price_per_night": {
+        "price": "$166",
+        "extracted_price": 166,
+        "price_before_taxes": "$144",
+        "extracted_price_before_taxes": 144
+      },
+      "total_price": {
+        "price": "$166",
+        "extracted_price": 166,
+        "price_before_taxes": "$144",
+        "extracted_price_before_taxes": 144
+      },
+      "link": "https://jnieves.com/listing/en/632864"
+    }
+  ]
+}

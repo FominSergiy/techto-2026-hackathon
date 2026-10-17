@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hotel Search</title>
+<style>
+    :root {
+        --bg: #f6f7f9; --card: #fff; --text: #1c2430; --muted: #6b7686; --border: #dfe3ea;
+        --accent: #2457d6; --accent-text: #fff; --error: #b3261e; --row: #f0f3f9; --ok: #1a7f37; --warn: #9a6700;
+    }
+    @media (prefers-color-scheme: dark) {
+        :root { --bg: #14171c; --card: #1c2027; --text: #e7eaf0; --muted: #8f9aab; --border: #2f3641; --accent: #6b93ff; --accent-text: #0b1020; --error: #ff8a80; --row: #232833; --ok: #56d364; --warn: #e3b341; }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px 16px; background: var(--bg); color: var(--text); font: 15px/1.45 system-ui, sans-serif; }
+    main { max-width: 1200px; margin: 0 auto; }
+    h1 { margin: 0 0 16px; font-size: 22px; }
+    h2 { margin: 0 0 10px; font-size: 16px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+    textarea { width: 100%; min-height: 90px; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: inherit; font: inherit; resize: vertical; }
+    .bar { display: flex; gap: 12px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+    button { padding: 9px 18px; border: 0; border-radius: 8px; background: var(--accent); color: var(--accent-text); font: inherit; font-weight: 600; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: wait; }
+    button.secondary { background: var(--row); color: var(--text); border: 1px solid var(--border); }
+    .review { border-color: var(--accent); }
+    .muted { color: var(--muted); font-size: 13px; }
+    .error { color: var(--error); }
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .chip { background: var(--row); border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; font-size: 12px; }
+    .scroll { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; font-size: 14px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); white-space: nowrap; }
+    tbody tr:hover { background: var(--row); }
+    td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    a { color: var(--accent); }
+    .sources { display: flex; gap: 8px 20px; flex-wrap: wrap; margin-bottom: 12px; }
+    .sources label { display: flex; gap: 6px; align-items: baseline; cursor: pointer; }
+    .sources label.off { cursor: not-allowed; opacity: .65; }
+    .badge { font-size: 11px; font-weight: 600; padding: 1px 8px; border: 1px solid currentColor; border-radius: 999px; white-space: nowrap; }
+    .badge.free { color: var(--ok); }
+    .badge.tier { color: var(--warn); }
+    .sources .places { border-left: 1px solid var(--border); padding-left: 20px; }
+    details { margin-top: 12px; }
+    pre { margin: 8px 0 0; padding: 10px; background: var(--bg); border-radius: 8px; overflow-x: auto; font-size: 12px; }
+</style>
+</head>
+<body>
+<main>
+    <h1>Hotel Search</h1>
+
+    <div class="card">
+        <div id="sources" class="sources muted">Loading sources…</div>
+        <textarea id="prompt" placeholder="e.g. Cheapest hotels in Aurora from 2026-11-20 to 2026-11-22 for 2 adults under 250 CAD (the region is always Ontario)"></textarea>
+        <div class="bar">
+            <button id="run">Review prompt</button>
+            <span id="status" class="muted">Ctrl/Cmd+Enter to review. You see the full prompt before anything runs. Tick the APIs to use above.</span>
+        </div>
+    </div>
+
+    <div id="review"></div>
+    <div id="output"></div>
+
+    <div class="card">
+        <h2>Backboard (web search)</h2>
+        <textarea id="bbPrompt" placeholder="e.g. Cheapest hotels in Aurora for 2026-11-20, 1 night, 2 adults, under 250 CAD, with phone numbers (the region is always Ontario)"></textarea>
+        <div class="bar">
+            <button id="bbRun">Review prompt</button>
+            <span id="bbStatus" class="muted">Separate from the search above: a web-search model answers directly. Prices are hints, not API rates. Ctrl/Cmd+Enter to review.</span>
+        </div>
+    </div>
+
+    <div id="bbReview"></div>
+    <div id="bbOutput"></div>
+
+    <div class="card">
+        <h2>Google Maps (Places only)</h2>
+        <textarea id="gmPrompt" placeholder="e.g. Hotels in Vancouver, or Hotels in London, Ontario (any city in Canada; name the province only when the city name is shared)" style="min-height: 52px"></textarea>
+        <div class="bar">
+            <button id="gmRun">Search Google Maps</button>
+            <label class="muted"><input type="checkbox" id="gmRank" checked> Rank by expected price (Backboard, web search, up to 20 hotels)</label>
+            <span id="gmStatus" class="muted">No price APIs: the city is pulled from your text and 5 fixed Maps searches run for it ("hotels in X", "inns in X", "motels in X", "hotels at X", "cheap hotels in X"). 5 Places calls per run, plus one Backboard call when ranking. Ctrl/Cmd+Enter to run.</span>
+        </div>
+    </div>
+
+    <div id="gmOutput"></div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const COLUMNS = [
+    ["Hotel", h => h.name],
+    ["City", h => h.city],
+    ["Address", h => h.address],
+    ["Phone", h => h.phone && `<a href="tel:${h.phone.replace(/[^+\d]/g, "")}">${esc(h.phone)}</a>`, true],
+    ["Price / night", h => h.nightlyPrice != null ? `${h.nightlyPrice} ${h.currency}` : "no price", "num"],
+    ["Total", h => h.totalPrice != null ? `${h.totalPrice} ${h.currency}` : "", "num"],
+    ["Rating", h => h.rating != null ? `${h.rating} (${h.reviews ?? "?"})` : "", "num"],
+    ["Source", h => h.source],
+    ["Other offers", h => h.otherOffers],
+    ["Link", h => h.url && `<a href="${esc(h.url)}" target="_blank" rel="noopener">open</a>`, true]
+];
+
+function esc(value) {
+    return String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+// The Google Maps card has no price API behind it: Google's price range is a hint that few hotels have, and every
+// row remembers which of the fixed searches found it
+// With ranking on, the table is ordered by the model's expected price (cheapest first); hotels it didn't estimate come last
+const PLACES_COLUMNS = [
+    ["Hotel", h => h.name],
+    ["Expected / night", h => h.expectedPrice != null ? `~${h.expectedPrice} ${h.currency}` : "", "num"],
+    ["Class", h => h.priceClass],
+    ["Confidence", h => h.priceConfidence],
+    ["Why", h => h.priceBasis],
+    ["City", h => h.city],
+    ["Address", h => h.address],
+    ["Phone", COLUMNS[3][1], true],
+    ["Price hint", h => h.priceRange || h.priceLevel?.replace("PRICE_LEVEL_", "").toLowerCase() || "none"],
+    ["Rating", COLUMNS[6][1], "num"],
+    ["Found by", h => `${h.foundBy.length} of 5: ${h.foundBy.map(query => query.split(" ")[0] + " " + query.split(" ")[1]).join(", ")}`],
+    ["Website", h => h.url && `<a href="${esc(h.url)}" target="_blank" rel="noopener">open</a>`, true],
+    ["Maps", h => h.mapsUrl && `<a href="${esc(h.mapsUrl)}" target="_blank" rel="noopener">map</a>`, true]
+];
+
+function renderTable(hotels, columns = COLUMNS) {
+    const head = columns.map(([label]) => `<th>${label}</th>`).join("");
+    // Columns flagged true return ready-made (already escaped) HTML
+    const rows = hotels.map(hotel => "<tr>" + columns.map(([, get, kind]) => {
+        const value = get(hotel);
+        return `<td${kind === "num" ? ' class="num"' : ""}>${kind === true ? value || "" : esc(value)}</td>`;
+    }).join("") + "</tr>").join("");
+    return `<div class="scroll"><table><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+// Source failures are logged as "<source> failed: <reason>" - show them instead of burying them in the run log
+function failuresIn(log) {
+    return (log || "").split("\n").filter(line => /^\w+ failed: /.test(line));
+}
+
+// What every API returned (before any filter), how many passed the price / rating filters, and where its raw JSON was saved
+function renderSources(report) {
+    if (!report) return "";
+    const rows = report.sources.map(source => `<tr>
+        <td>${esc(source.label)}</td>
+        <td>${source.ok ? "ok" : `<span class="error">${esc(source.error)}</span>`}</td>
+        <td class="num">${source.fetched ?? "?"}</td>
+        <td class="num">${source.ok ? source.kept : ""}</td>
+        <td>${esc(source.file || "")}</td>
+    </tr>`).join("");
+    return `<details open><summary class="muted">What each API returned</summary><div class="scroll"><table>
+        <thead><tr><th>Source</th><th>Result</th><th>Hotels returned</th><th>Passed price / rating filters</th><th>Raw response saved to</th></tr></thead>
+        <tbody>${rows}</tbody></table></div></details>`;
+}
+
+// What the city check did: kept / dropped, and which hotels, so nothing disappears without a trace
+function renderCityCheck(report) {
+    const city = report?.city;
+    if (!city) return "";
+    const names = list => list.map(item => esc(typeof item === "string" ? item : `${item.name} (${item.city})`)).join(", ");
+    return `<p class="muted">City check for "${esc(city.searched)}" using ${esc(city.mode)}: kept ${city.kept}, dropped ${city.dropped.length} placed in other cities, ${city.unverified.length} with no city found${city.unverifiedDropped ? " (dropped too)" : " (kept)"}.</p>
+        ${city.dropped.length ? `<details><summary class="muted">Dropped by the city check (${city.dropped.length})</summary><p>${names(city.dropped)}</p></details>` : ""}
+        ${city.unverified.length ? `<details><summary class="muted">No city found (${city.unverified.length})</summary><p>${names(city.unverified)}</p></details>` : ""}`;
+}
+
+// Why the table is empty, from what the APIs actually returned
+function emptyMessage(result, failures) {
+    const report = result.report;
+    if (!report) {
+        return failures.length ? "<p>No hotels came back because the source(s) above failed.</p>" : "<p>No hotels matched. Try loosening the filters.</p>";
+    }
+    const returned = report.sources.reduce((sum, source) => sum + (source.fetched || 0), 0);
+    const passed = report.sources.reduce((sum, source) => sum + source.kept, 0);
+    const failed = report.sources.filter(source => !source.ok).length;
+    let why = "No hotels matched.";
+    if (!returned) {
+        why = `No API returned any hotels (${failed} of ${report.sources.length} sources failed, see the table above).`;
+    } else if (!passed) {
+        why = `The APIs returned ${returned} hotels, but none passed the price / rating filters.`;
+    } else if (report.city && report.city.kept === 0) {
+        const cities = report.city.dropped.map(hotel => hotel.city).filter(Boolean);
+        const top = [...new Set(cities)].sort((a, b) => cities.filter(c => c === b).length - cities.filter(c => c === a).length)[0];
+        const where = top ? `in ${top}, not "${report.searched}"` : "in other cities";
+        why = `The APIs returned ${returned} hotels and ${passed} passed the filters, but the city check removed all of them: ${report.city.dropped.length} are ${where}`
+            + `${report.city.unverified.length && report.city.unverifiedDropped ? ` and ${report.city.unverified.length} could not be placed in any city` : ""}. See the list below; try searching ${top ? `"${top}"` : "a city"}.`;
+    }
+    return `<p class="error">${esc(why)}</p>`;
+}
+
+function render(result) {
+    const failures = failuresIn(result.log);
+    const usage = result.usage ? ` · ${result.usage.input_tokens + result.usage.output_tokens} prompt-parsing tokens` : "";
+    const chips = result.args.map(arg => `<span class="chip">${esc(arg)}</span>`).join("");
+    $("output").innerHTML = `
+        <div class="card">
+            <div class="chips">${chips || '<span class="chip">default settings</span>'}</div>
+            ${failures.map(line => `<p class="error">${esc(line)}</p>`).join("")}
+            ${result.args.includes("--enrich-phones=false") ? '<p class="error">Google Places was off for this run, so there are no phone numbers, addresses or city check. Tick "Google Places" and run again.</p>' : ""}
+            ${renderSources(result.report)}
+            ${result.hotels.length ? renderTable(result.hotels) : emptyMessage(result, failures)}
+            ${renderCityCheck(result.report)}
+            <p class="muted">${result.hotels.length} hotels in ${result.seconds.toFixed(1)}s · prompt parsed by ${esc(result.parser)}${usage}</p>
+            <details><summary class="muted">Run log</summary><pre>${esc(result.log)}</pre></details>
+        </div>`;
+}
+
+async function run(text) {
+    const button = $("run");
+    const started = Date.now();
+    button.disabled = true;
+    $("output").innerHTML = "";
+    const timer = setInterval(() => $("status").textContent = `Searching… ${Math.round((Date.now() - started) / 1000)}s (sources run in parallel, can take a minute)`, 500);
+
+    try {
+        const response = await fetch("/api/search", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt: text, reviewed: REVIEW_STEP, ...pickedSources() })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error);
+        render(data);
+        $("status").textContent = "Done";
+    } catch (error) {
+        $("status").innerHTML = `<span class="error">${esc(error.message)}</span>`;
+    } finally {
+        clearInterval(timer);
+        button.disabled = false;
+    }
+}
+
+// Source checkboxes. A source whose .env keys are missing is shown but can't be ticked.
+const CHOICES_KEY = "hotel-search-choices-v2";   // bumped so earlier unticked boxes reset to on
+
+function savedChoices() {
+    try {
+        return JSON.parse(localStorage.getItem(CHOICES_KEY)) || {};
+    } catch {
+        return {};
+    }
+}
+
+function saveChoices() {
+    const choices = Object.fromEntries([...document.querySelectorAll("#sources input")].map(box => [box.value, box.checked]));
+    try {
+        localStorage.setItem(CHOICES_KEY, JSON.stringify(choices));
+    } catch {
+        // Storage blocked - the choices just won't be remembered
+    }
+}
+
+function badge(cost) {
+    return cost ? `<span class="badge ${esc(cost.kind)}" title="${esc(cost.note)}">${esc(cost.label)}</span>` : "";
+}
+
+function checkbox({ value, label, detail, cost, missing, checked, className = "" }) {
+    const off = missing.length > 0;
+    const note = off ? `missing ${missing.join(", ")} in .env` : detail;
+    return `<label class="${className} ${off ? "off" : ""}">
+        <input type="checkbox" value="${esc(value)}" ${checked && !off ? "checked" : ""} ${off ? "disabled" : ""}>
+        <span>${esc(label)} ${badge(cost)} <span class="muted">${esc(note)}</span></span>
+    </label>`;
+}
+
+async function loadSources() {
+    try {
+        const response = await fetch("/api/sources");
+        const { sources, places } = await response.json();
+        const saved = savedChoices();
+
+        $("sources").classList.remove("muted");
+        $("sources").innerHTML = sources
+            .map(source => checkbox({ value: source.name, label: source.label, detail: source.detail, cost: source.cost, missing: source.missing, checked: saved[source.name] ?? source.defaultOn }))
+            .join("")
+            + checkbox({ value: "places", label: "Google Places", detail: "phones, addresses, city check", cost: places.cost, missing: places.missing, checked: saved.places ?? true, className: "places" });
+        $("sources").addEventListener("change", saveChoices);
+    } catch (error) {
+        $("sources").textContent = `Could not load the source list: ${error.message}`;
+    }
+}
+
+// The ticked sources, plus whether to look hotels up in Google Places (phones, addresses, city check)
+function pickedSources() {
+    const ticked = [...document.querySelectorAll("#sources input:checked")].map(box => box.value);
+    return { sources: ticked.filter(value => value !== "places"), places: ticked.includes("places") };
+}
+
+loadSources();
+
+async function runBackboard(text) {
+    const button = $("bbRun");
+    const started = Date.now();
+    button.disabled = true;
+    $("bbOutput").innerHTML = "";
+    const timer = setInterval(() => $("bbStatus").textContent = `Asking Backboard… ${Math.round((Date.now() - started) / 1000)}s (web search, can take a minute)`, 500);
+
+    try {
+        const response = await fetch("/api/backboard", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt: text })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error);
+        const { run } = data;
+        $("bbOutput").innerHTML = `
+            <div class="card">
+                ${data.hotels.length ? renderTable(data.hotels) : "<p>Backboard found no hotels.</p>"}
+                <p class="muted">${data.hotels.length} shown · the model returned ${run.returned} · ${data.seconds.toFixed(1)}s · ${esc(run.model)} · ${run.inputTokens ?? "?"} in / ${run.outputTokens ?? "?"} out tokens</p>
+                ${run.dropped.length ? `<p class="error">Dropped: ${run.dropped.map(entry => `${esc(entry.name ?? "?")} (${esc(entry.reason)})`).join(", ")}</p>` : ""}
+                <details><summary class="muted">What the model replied</summary><pre>${esc(run.reply)}</pre></details>
+            </div>`;
+        $("bbStatus").textContent = "Done";
+    } catch (error) {
+        $("bbStatus").innerHTML = `<span class="error">${esc(error.message)}</span>`;
+    } finally {
+        clearInterval(timer);
+        button.disabled = false;
+    }
+}
+
+async function runPlaces() {
+    const button = $("gmRun");
+    const started = Date.now();
+    button.disabled = true;
+    $("gmOutput").innerHTML = "";
+    const timer = setInterval(() => $("gmStatus").textContent = `Searching Google Maps${$("gmRank").checked ? " and ranking by expected price (web search, can take a minute or two)" : ""}… ${Math.round((Date.now() - started) / 1000)}s`, 500);
+
+    try {
+        const response = await fetch("/api/places", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt: $("gmPrompt").value, rank: $("gmRank").checked })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error);
+        const usage = data.usage ? ` · ${data.usage.input_tokens + data.usage.output_tokens} prompt-parsing tokens` : "";
+        $("gmOutput").innerHTML = `
+            <div class="card">
+                <div class="chips">${data.queries.map(q => `<span class="chip">${esc(q.query)}: ${q.error ? `<span class="error">failed (${esc(q.error)})</span>` : `${q.returned} found, ${q.added} new`}</span>`).join("")}</div>
+                ${data.ranking?.error ? `<p class="error">Ranking failed, so the hotels below are unranked: ${esc(data.ranking.error)}</p>` : ""}
+                ${data.hotels.length ? renderTable(data.hotels, PLACES_COLUMNS) : "<p>Google Maps found no hotels.</p>"}
+                <p class="muted">${data.hotels.length} hotels in ${esc(data.city)} · ${data.seconds.toFixed(1)}s · city read by ${esc(data.parser)}${usage}</p>
+                ${data.ranking && !data.ranking.error ? `<p class="muted">Expected prices are model estimates, not rates for any dates. ${data.ranking.ranked} of ${data.ranking.sent} sent hotels estimated${data.hotels.length > data.ranking.sent ? ` (only ${data.ranking.sent} of ${data.hotels.length} are sent, the rest are listed last)` : ""} · ${data.ranking.seconds.toFixed(1)}s · ${esc(data.ranking.model)} · ${data.ranking.inputTokens ?? "?"} in / ${data.ranking.outputTokens ?? "?"} out tokens</p>
+                ${data.ranking.unusable.length ? `<p class="error">Skipped: ${data.ranking.unusable.map(esc).join(", ")}</p>` : ""}
+                <details><summary class="muted">What the model replied</summary><pre>${esc(data.ranking.reply)}</pre></details>` : ""}
+                ${data.dropped.length ? `<p class="muted">Dropped: ${data.dropped.map(entry => `${esc(entry.name ?? "?")} (${esc(entry.reason)})`).join(", ")}</p>` : ""}
+            </div>`;
+        $("gmStatus").textContent = "Done";
+    } catch (error) {
+        $("gmStatus").innerHTML = `<span class="error">${esc(error.message)}</span>`;
+    } finally {
+        clearInterval(timer);
+        button.disabled = false;
+    }
+}
+
+$("gmRun").addEventListener("click", runPlaces);
+$("gmPrompt").addEventListener("keydown", event => {
+    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) runPlaces();
+});
+
+// REVIEW_STEP true: two steps per box. "Review prompt" shows the full prompt that will run (nothing is searched yet)
+// and the "Run" button in the review panel then runs exactly that text. false (now): the button runs what you typed.
+const REVIEW_STEP = false;
+const BOXES = {
+    search: { input: "prompt", button: "run", status: "status", panel: "review", go: run, verb: "Run search",
+        hint: "Ctrl/Cmd+Enter to run. Your text is parsed as written (add --flags to force a setting). Tick the APIs to use above." },
+    backboard: { input: "bbPrompt", button: "bbRun", status: "bbStatus", panel: "bbReview", go: runBackboard, verb: "Ask Backboard",
+        hint: "Separate from the search above: a web-search model answers directly with your text as written. Prices are hints, not API rates. Ctrl/Cmd+Enter to ask." }
+};
+
+function showReview(box, data) {
+    const usage = data.usage ? ` · ${data.usage.input_tokens + data.usage.output_tokens} tokens` : "";
+    const hint = data.target === "search" ? " Edit the --flags to change a setting." : "";
+    $(box.panel).innerHTML = `
+        <div class="card review">
+            <h2>Prompt that will run</h2>
+            ${data.warnings.map(warning => `<p class="error">${esc(warning)}</p>`).join("")}
+            <textarea id="${box.panel}Text">${esc(data.prompt)}</textarea>
+            ${data.assumed.length ? `<p class="muted">Filled in because the request didn't say: ${data.assumed.map(esc).join(" · ")}</p>` : ""}
+            <div class="bar">
+                <button id="${box.panel}Go">${box.verb}</button>
+                <button id="${box.panel}Cancel" class="secondary">Cancel</button>
+                <span class="muted">Rewritten by ${esc(data.parser)}${usage}. Nothing has been searched yet.${hint}</span>
+            </div>
+        </div>`;
+
+    const proceed = () => {
+        const text = $(`${box.panel}Text`).value;
+        $(box.panel).innerHTML = "";
+        box.go(text);
+    };
+    $(`${box.panel}Go`).addEventListener("click", proceed);
+    $(`${box.panel}Cancel`).addEventListener("click", () => {
+        $(box.panel).innerHTML = "";
+        $(box.status).textContent = "Cancelled";
+    });
+    $(`${box.panel}Text`).addEventListener("keydown", event => {
+        if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) proceed();
+    });
+}
+
+async function review(target) {
+    const box = BOXES[target];
+    $(box.button).disabled = true;
+    $(box.panel).innerHTML = "";
+    $(box.status).textContent = "Preparing the prompt…";
+
+    try {
+        const response = await fetch("/api/refine", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt: $(box.input).value, target })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error);
+        showReview(box, data);
+        $(box.status).textContent = "Check the prompt below, edit it if needed, then run it.";
+    } catch (error) {
+        $(box.status).innerHTML = `<span class="error">${esc(error.message)}</span>`;
+    } finally {
+        $(box.button).disabled = false;
+    }
+}
+
+for (const [target, box] of Object.entries(BOXES)) {
+    const start = () => (REVIEW_STEP ? review(target) : box.go($(box.input).value));
+    if (!REVIEW_STEP) {
+        $(box.button).textContent = box.verb;
+        $(box.status).textContent = box.hint;
+    }
+    $(box.button).addEventListener("click", start);
+    $(box.input).addEventListener("keydown", event => {
+        if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) start();
+    });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+[
+ {
+  "t": 0.0,
+  "msg": "parsed",
+  "city": "Toronto",
+  "check_in": "2026-10-17",
+  "check_out": "2026-10-18",
+  "guests": 1
+ },
+ {
+  "t": 0.0,
+  "msg": "config",
+  "n_calls": 3,
+  "test_numbers": [
+   "+",
+   "+"
+  ]
+ },
+ {
+  "t": 0.0,
+  "msg": "reading saved search",
+  "file": "D:\\techTO hackaton\\techto-2026-hackathon\\output\\hotels-toronto-2026-10-17.json"
+ },
+ {
+  "t": 0.0,
+  "msg": "hotel",
+  "name": "Motel 6 Moncton",
+  "price": 61,
+  "address": "1905 Main St, Moncton, NB E1E 1H9, Canada",
+  "phone": "+15068301666",
+  "_us": false
+ },
+ {
+  "t": 0.0,
+  "msg": "hotel",
+  "name": "Hotel Moncton",
+  "price": 75,
+  "address": "2779 Mountain Rd, Moncton, NB E1G 2W5, Canada",
+  "phone": "+15063843554",
+  "_us": false
+ },
+ {
+  "t": 0.0,
+  "msg": "hotel",
+  "name": "Rodd Moncton",
+  "price": 84,
+  "address": "434 Main St, Moncton, NB E1C 1B9, Canada",
+  "phone": "+15063821664",
+  "_us": false
+ },
+ {
+  "t": 0.0,
+  "msg": "strategy",
+  "strategy": "cheapest"
+ },
+ {
+  "t": 0.5,
+  "msg": "FAILED",
+  "hotel": "Rodd Moncton",
+  "number": null,
+  "price": null
+ },
+ {
+  "t": 0.7,
+  "msg": "FAILED",
+  "hotel": "Hotel Moncton",
+  "number": null,
+  "price": null
+ },
+ {
+  "t": 0.7,
+  "msg": "FAILED",
+  "hotel": "Motel 6 Moncton",
+  "number": null,
+  "price": null
+ },
+ {
+  "t": 0.7,
+  "msg": "no booking obtained"
+ }
+]

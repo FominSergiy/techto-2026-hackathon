@@ -1,0 +1,13 @@
+{
+  "hotel": "Check Inn CA",
+  "address": "83 Elm Grove Ave, Toronto, ON M6K 2J2",
+  "phone": "+19423887270",
+  "number": "5678",
+  "price": 20.0,
+  "google_price": 56,
+  "date": "2026-10-17",
+  "status": "booked",
+  "conversation_id": "conv_9001m55kcre0e0vrde98q7mkr3e2",
+  "call_secs": 31,
+  "cost_credits": 264
+}

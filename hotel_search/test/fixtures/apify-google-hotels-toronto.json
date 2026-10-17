@@ -1,0 +1,189 @@
+[
+  {
+    "search_type": "search",
+    "page_number": 1,
+    "properties": [
+      {
+        "type": "hotel",
+        "name": "Best Western Parkway Hotel Toronto North",
+        "property_token": "ChgIn8b187qNuK4CGgwvZy8xaGhqc2w4bXQQAQ",
+        "address": "Richmond Hill, ON, Canada",
+        "phone": "+1 905-881-2600",
+        "phone_link": "tel:+19058812600",
+        "gps_coordinates": {
+          "latitude": 43.8459454,
+          "longitude": -79.3817206
+        },
+        "rate_per_night": {
+          "lowest": "CA$95",
+          "extracted_lowest": 95,
+          "before_taxes_fees": "CA$82",
+          "extracted_before_taxes_fees": 82
+        },
+        "total_rate": {
+          "lowest": "CA$95",
+          "extracted_lowest": 95,
+          "before_taxes_fees": "CA$82",
+          "extracted_before_taxes_fees": 82
+        },
+        "overall_rating": 3.9,
+        "reviews": 1354,
+        "link": "https://www.bestwestern.com/en_US/book/hotel-rooms.66054.html?iata=00171880&ssob=BLBWI0004G&cid=BLBWI0004G:google:gmb:66054"
+      },
+      {
+        "type": "hotel",
+        "name": "Hampton Inn & Suites by Hilton Toronto Markham",
+        "property_token": "ChkIh7Wh9e6_1-40Gg0vZy8xMWI3M2xuX2hmEAE",
+        "address": "Markham, ON, Canada",
+        "phone": "+1 905-752-5600",
+        "phone_link": "tel:+19057525600",
+        "gps_coordinates": {
+          "latitude": 43.843105,
+          "longitude": -79.3554711
+        },
+        "rate_per_night": {
+          "lowest": "CA$119",
+          "extracted_lowest": 119,
+          "before_taxes_fees": "CA$101",
+          "extracted_before_taxes_fees": 101
+        },
+        "total_rate": {
+          "lowest": "CA$119",
+          "extracted_lowest": 119,
+          "before_taxes_fees": "CA$101",
+          "extracted_before_taxes_fees": 101
+        },
+        "overall_rating": 4.1,
+        "reviews": 1211,
+        "link": "https://www.hilton.com/en/hotels/yyzmkhx-hampton-suites-toronto-markham/?SEO_id=GMB-AMER-HX-YYZMKHX"
+      },
+      {
+        "type": "hotel",
+        "name": "Park Inn by Radisson Toronto-Markham",
+        "property_token": "ChkItcLfj97Xk8jKARoML2cvMXBwMnRfOWJzEAE",
+        "address": "Markham, ON, Canada",
+        "phone": "+1 289-806-1944",
+        "phone_link": "tel:+12898061944",
+        "gps_coordinates": {
+          "latitude": 43.8437347,
+          "longitude": -79.3670863
+        },
+        "rate_per_night": {
+          "lowest": "CA$86",
+          "extracted_lowest": 86,
+          "before_taxes_fees": "CA$72",
+          "extracted_before_taxes_fees": 72
+        },
+        "total_rate": {
+          "lowest": "CA$86",
+          "extracted_lowest": 86,
+          "before_taxes_fees": "CA$72",
+          "extracted_before_taxes_fees": 72
+        },
+        "overall_rating": 3.3,
+        "reviews": 2045,
+        "link": "https://www.choicehotels.com/ontario/markham/park-inn-hotels/cnc39?mc=llgoxxpx"
+      },
+      {
+        "type": "hotel",
+        "name": "Best Western Premier Toronto Airport Carlingview Hotel",
+        "property_token": "ChkI7b_3kvm5m_1-Gg0vZy8xMWJ6ejBmN3o4EAE",
+        "address": "135 Carlingview Dr",
+        "phone": "+1 416-637-7000",
+        "phone_link": "tel:+14166377000",
+        "gps_coordinates": {
+          "latitude": 43.679100999999996,
+          "longitude": -79.59068099999999
+        },
+        "rate_per_night": {
+          "lowest": "CA$117",
+          "extracted_lowest": 117,
+          "before_taxes_fees": "CA$96",
+          "extracted_before_taxes_fees": 96
+        },
+        "total_rate": {
+          "lowest": "CA$117",
+          "extracted_lowest": 117,
+          "before_taxes_fees": "CA$96",
+          "extracted_before_taxes_fees": 96
+        },
+        "overall_rating": 3.9,
+        "reviews": 2030,
+        "link": "https://www.bestwestern.com/en_US/book/hotel-rooms.66121.html?iata=00171880&ssob=BLBWI0004G&cid=BLBWI0004G:google:gmb:66121"
+      },
+      {
+        "type": "hotel",
+        "name": "The Clarence Park",
+        "property_token": "ChkI27aKmLC2oOi8ARoML2cvMTI0c3BfOWxyEAE",
+        "address": "7 Clarence Square",
+        "phone": "+1 416-591-7387",
+        "phone_link": "tel:+14165917387",
+        "gps_coordinates": {
+          "latitude": 43.6447372,
+          "longitude": -79.3939254
+        },
+        "rate_per_night": {
+          "lowest": "CA$70",
+          "extracted_lowest": 70,
+          "before_taxes_fees": "CA$58",
+          "extracted_before_taxes_fees": 58
+        },
+        "total_rate": {
+          "lowest": "CA$70",
+          "extracted_lowest": 70,
+          "before_taxes_fees": "CA$58",
+          "extracted_before_taxes_fees": 58
+        },
+        "overall_rating": 3.8,
+        "reviews": 585,
+        "link": "http://www.theclarencepark.com/"
+      },
+      {
+        "type": "vacation rental",
+        "name": "Cosy Room Yonge Dundas Square-Fast Wi-Fi and Self Check In - Triple Room",
+        "property_token": "ChkQ8Y_j8OuA2q0UGg0vZy8xMXp4aHJicTh2EAI",
+        "gps_coordinates": {
+          "latitude": 43.656959533691406,
+          "longitude": -79.37632751464844
+        },
+        "rate_per_night": {
+          "lowest": "$136",
+          "extracted_lowest": 136,
+          "before_taxes_fees": "$136",
+          "extracted_before_taxes_fees": 136
+        },
+        "total_rate": {
+          "lowest": "$136",
+          "extracted_lowest": 136,
+          "before_taxes_fees": "$136",
+          "extracted_before_taxes_fees": 136
+        },
+        "link": "https://www.bluepillow.com/search/69f97fc3a8387c9ba63f1cbd?dest=bkng&cat=House&lat=43.65696&lng=-79.37633&language=en"
+      },
+      {
+        "type": "hotel",
+        "name": "Deluxe Inn",
+        "property_token": "ChcItumyzoGa3sJAGgsvZy8xdGRuNHIwahAB",
+        "gps_coordinates": {
+          "latitude": 43.6186527,
+          "longitude": -79.5393643
+        },
+        "rate_per_night": {
+          "lowest": "$121",
+          "extracted_lowest": 121,
+          "before_taxes_fees": "$101",
+          "extracted_before_taxes_fees": 101
+        },
+        "total_rate": {
+          "lowest": "$121",
+          "extracted_lowest": 121,
+          "before_taxes_fees": "$101",
+          "extracted_before_taxes_fees": 101
+        },
+        "overall_rating": 3.3,
+        "reviews": 824,
+        "link": "http://www.deluxeinntoronto.com/"
+      }
+    ]
+  }
+]
