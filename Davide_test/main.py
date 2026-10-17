@@ -15,13 +15,14 @@ if it is missing or fails, falls back to the built-in SearchAPI + Google Places 
 """
 import os, re, sys, json, time, shlex, smtplib, subprocess, datetime as dt, requests
 from email.message import EmailMessage
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed, wait, FIRST_COMPLETED
 from dotenv import load_dotenv
 from email_service import build, send_confirmation
 
 load_dotenv(override=True)  # the .env file wins over variables already set in the shell
 E = os.environ
-N_CALLS = int(E.get("N_CALLS", 3))  # the 3 cheapest hotels
+N_CALLS = int(E.get("N_CALLS", 3))  # calls running at the same time
+WANT = int(E.get("WANT_PRICES", 3))  # keep dialing new hotels until this many conversations gave a price
 CALL_TIMEOUT = int(E.get("CALL_TIMEOUT", 300))  # seconds per call
 OUTPUT_DIR = E.get("OUTPUT_DIR") or r"D:\techTO hackaton\techto-2026-hackathon\output"  # where search.js saves hotels-<city>-<date>.json
 T0 = time.time()
@@ -178,8 +179,8 @@ def normalize_records(raw):
     hotels = []
     for h in raw:
         digits = re.sub(r"\D", "", h.get("phone") or "")
-        price = h.get("totalPrice") or h.get("nightlyPrice")
-        if len(digits) < 10 or not price:
+        price = h.get("totalPrice") or h.get("nightlyPrice")  # may be empty: the call asks for the price anyway
+        if len(digits) < 10:
             continue
         us = "USA" in (h.get("address") or "")
         hotels.append({"name": h["name"], "price": price, "address": h.get("address"),
@@ -189,8 +190,9 @@ def normalize_records(raw):
         us_count = sum(h["_us"] for h in hotels)
         keep_us = us_count > len(hotels) / 2
         hotels = [h for h in hotels if h["_us"] == keep_us]
-    hotels.sort(key=lambda h: h["price"])
-    return hotels[:N_CALLS]
+    # cheapest first, hotels without a search price last; the whole list is the call queue (the pool stops at WANT prices)
+    hotels.sort(key=lambda h: (_num(h["price"]) is None, _num(h["price"]) or 0))
+    return hotels
 
 
 # ---------- 3. Call hotels in parallel ----------
@@ -206,12 +208,10 @@ def hang_up(call_sid):
 ACTIVE = {}
 
 
-def to_number(h):
-    """TEST_NUMBER overrides the hotel's phone, but only if its first entry is a real number (a bad one dialed "+")."""
-    digits = re.sub(r"\D", "", E.get("TEST_NUMBER", "").split(",")[0])
-    if len(digits) < 10:
-        return h["phone"]
-    return "+" + (digits if len(digits) > 10 else "1" + digits)  # same NANP rule as load_hotels_json
+# TEST_NUMBER may hold several comma-separated numbers (one per hotel); entries that are not real numbers are ignored
+# (a bad one dialed "+"). Same NANP rule as normalize_records.
+TEST = ["+" + (d if len(d) > 10 else "1" + d)
+        for d in (re.sub(r"\D", "", x) for x in E.get("TEST_NUMBER", "").split(",")) if len(d) >= 10]
 
 
 TEST = to_number({"phone": None})  # the TEST_NUMBER every call dials, None = real hotel phones
@@ -220,7 +220,7 @@ TEST = to_number({"phone": None})  # the TEST_NUMBER every call dials, None = re
 def call_hotel(h, q, i=0):
     r = requests.post("https://api.elevenlabs.io/v1/convai/twilio/outbound-call", headers=XI, timeout=20, json={
         "agent_id": E["ELEVENLABS_AGENT_ID"], "agent_phone_number_id": E["ELEVENLABS_PHONE_NUMBER_ID"],
-        "to_number": to_number(h),
+        "to_number": to_number(h, i),
         "conversation_initiation_client_data": {"dynamic_variables": {
             "hotel_name": h["name"], "guest_name": E["GUEST_NAME"], "number_of_guests": str(q["guests"]),
             "check_in_date": q["check_in"], "check_out_date": q["check_out"], "contact_email": E["CONTACT_EMAIL"]}}})
@@ -248,18 +248,33 @@ VERBAL = ("verbal_booking", "verbal_availability")
 
 
 def result_from(c, h, q):
-    """Booking from a finished conversation. Spec: a reservation ID or a verbal confirmation (name + price) counts."""
+    """Result of a finished conversation. Spec: a reservation ID or a verbal confirmation (name + price) counts as booked.
+    A call where the hotel quoted a price but did not confirm is still a result ("priced"); anything else raises."""
     d = {k: (v or {}).get("value") for k, v in (c.get("analysis", {}).get("data_collection_results") or {}).items()}
     verbal = d.get("confirmation_type") in VERBAL and d.get("price")
-    if not d.get("reservation_number") and not verbal:
-        raise RuntimeError(f"{h['name']}: no reservation ({c.get('status')})")
+    booked = d.get("reservation_number") or verbal
+    if not booked and not d.get("price"):
+        raise RuntimeError(f"{h['name']}: no price, no reservation ({c.get('status')})")
     start = (c.get("metadata") or {}).get("start_time_unix_secs") or time.time()
     return {"status": "booked", "conversation_id": c.get("conversation_id"),  # id -> call recording in the email
             "hotel": d.get("hotel_name") or h["name"], "address": d.get("hotel_address") or h["address"],
             "phone": h["phone"], "number": d.get("reservation_number"),
             "type": d.get("confirmation_type"), "receptionist": d.get("receptionist_name"),
             "call_time": dt.datetime.fromtimestamp(start).strftime("%Y-%m-%d %H:%M"),
-            "price": d.get("price") or h["price"], "date": q["check_in"], "check_out": q["check_out"]}
+            "price": d.get("price") or h["price"], "call_price": d.get("price"), "google_price": h["price"],
+            "date": q["check_in"], "check_out": q["check_out"], "status": "booked" if booked else "priced",
+            "conversation_id": c.get("conversation_id")}
+
+
+# ---------- 4. Email ----------
+def send_email(res, to=None, dry=False):
+    """The receipt for one booking, through email_service. dry=True prints it instead of sending."""
+    res = {**res, "price": res.get("price") or res.get("google_price")}  # the call may not have captured a price
+    if dry:
+        subject, body = build(res)
+        print(f"to: {to or E.get('RESULT_EMAIL')}\nsubject: {subject}\n\n{body}")
+        return
+    send_confirmation(res, to=to)
 
 
 def send_email(res, to=None, dry=False):
@@ -274,6 +289,7 @@ def send_email(res, to=None, dry=False):
 
 
 def main():
+    global N_CALLS, WANT
     args = sys.argv[1:]
     to = args[args.index("--to") + 1] if "--to" in args else None  # override recipient (tests!)
     dry = "--dry-run" in args
@@ -288,7 +304,18 @@ def main():
         return
     search_only = "--search-only" in args
     hotels_file = args[args.index("--hotels") + 1] if "--hotels" in args else None
-    skip = {"--search-only", "--rescrape", "--hotels", hotels_file, "--to", to, "--dry-run"}
+    # --calls / --want / --strategy beat the .env values (load_dotenv(override=True) would beat anything the caller puts in the environment)
+    calls = args[args.index("--calls") + 1] if "--calls" in args else None
+    want = args[args.index("--want") + 1] if "--want" in args else None
+    strategy_flag = args[args.index("--strategy") + 1] if "--strategy" in args else None
+    if calls:
+        N_CALLS = int(calls)
+    if want:
+        WANT = int(want)
+    if strategy_flag:
+        E["STRATEGY"] = strategy_flag
+    skip = {"--search-only", "--rescrape", "--hotels", hotels_file, "--to", to, "--dry-run",
+            "--calls", calls, "--want", want, "--strategy", strategy_flag}
     prompt = " ".join(a for a in args if a not in skip)
     q = parse_prompt(prompt, need_city=not hotels_file)
     log("parsed", **q)
@@ -324,25 +351,47 @@ def main():
         return
     strategy = E.get("STRATEGY", "cheapest")  # cheapest = wait all calls, pick lowest price | first = stop at first booking
     log("strategy", strategy=strategy)
-    ex = ThreadPoolExecutor(len(hotels))
-    futs = {ex.submit(call_hotel, h, q, i): h for i, h in enumerate(hotels)}
+    # Call pool: at most N_CALLS calls at once, the next hotel in the list is dialed as soon as a call ends, until WANT
+    # conversations have given a price (the hotel said it on the call, not the search price) or the list runs out
+    log("pool", at_once=N_CALLS, want_prices=WANT, hotels=len(hotels))
+    ex = ThreadPoolExecutor(N_CALLS)
+    queue = list(enumerate(hotels))
+    futs = {}
     results = []
-    for f in as_completed(futs):
-        h = futs[f]
-        try:
-            res = f.result()
-        except Exception as e:
-            res = {"hotel": h["name"], "address": h["address"], "phone": h["phone"], "google_price": h["price"],
-                   "status": "failed", "error": str(e)[:300]}
-        results.append(res)
-        log(res["status"].upper(), hotel=res["hotel"], number=res.get("number"), price=res.get("price"))
-        if strategy == "first" and res["status"] == "booked":
-            for sid in list(ACTIVE.values()):  # stop the other calls: saves minutes + tokens
-                hang_up(sid)
-            for g, hh in futs.items():
-                if not g.done():
-                    results.append({"hotel": hh["name"], "phone": hh["phone"], "status": "cancelled"})
+
+    def dial_more():
+        while queue and len(futs) < N_CALLS:
+            i, h = queue.pop(0)
+            futs[ex.submit(call_hotel, h, q, i)] = h
+
+    def stop_calls():
+        for sid in list(ACTIVE.values()):  # stop the other calls: saves minutes + tokens
+            hang_up(sid)
+        for hh in futs.values():
+            results.append({"hotel": hh["name"], "phone": hh["phone"], "status": "cancelled"})
+
+    dial_more()
+    while futs:
+        done, _ = wait(futs, return_when=FIRST_COMPLETED)
+        stop = False
+        for f in done:
+            h = futs.pop(f)
+            try:
+                res = f.result()
+            except Exception as e:
+                res = {"hotel": h["name"], "address": h["address"], "phone": h["phone"], "google_price": h["price"],
+                       "status": "failed", "error": str(e)[:300]}
+            results.append(res)
+            log(res["status"].upper(), hotel=res["hotel"], number=res.get("number"), price=res.get("call_price"))
+            stop = stop or (strategy == "first" and res["status"] == "booked")
+        priced = sum(1 for r in results if r.get("call_price"))
+        if stop or priced >= WANT:
+            log("enough results, stopping", priced=priced)
+            stop_calls()
             break
+        dial_more()
+        # the page reads this while the calls run
+        json.dump({"query": q, "running": True, "calls": results}, open("results.json", "w"), indent=2, ensure_ascii=False)
 
     booked = [r for r in results if r["status"] == "booked"]
     if strategy == "cheapest":
