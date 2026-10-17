@@ -33,6 +33,10 @@
     a:hover { color: var(--accent); }
     td.phone a { color: var(--accent); }
     .muted { color: var(--muted); }
+    td.call { white-space: nowrap; }
+    .spin { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; vertical-align: -1px; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    tr.live { background: var(--row); }
 </style>
 </head>
 <body>
@@ -61,31 +65,37 @@ function priceCell(hotel) {
 // Phones are written differently in the search ("(416) 555-0101") and the call script ("+14165550101"): compare the last 10 digits
 const digits = phone => String(phone ?? "").replace(/\D/g, "").slice(-10);
 
+const clock = seconds => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+
+const liveCall = (hotel, live) => live.find(item => digits(item.phone) === digits(hotel.phone));
+
 // What the call to one hotel came to: empty for hotels that are not being called
-function callCell(hotel, job, calls) {
+function callCell(hotel, job, calls, live) {
     if (!job || !job.phones.some(phone => digits(phone) === digits(hotel.phone))) return '<span class="muted">—</span>';
     const call = calls.find(item => digits(item.phone) === digits(hotel.phone));
-    // no result yet: on the call or still in the queue; after the run: never dialed (enough prices came in first)
-    if (!call) return `<span class="muted">${job.finished ? "not called" : "…"}</span>`;
+    const now = liveCall(hotel, live);
+    if (!call && now) return `<span class="spin"></span>on the phone <small class="muted">${clock(now.seconds)}</small>`;
+    // no result yet: still in the queue; after the run: never dialed (enough prices came in first)
+    if (!call) return `<span class="muted">${job.finished ? "not called" : "queued"}</span>`;
     const quoted = call.price ? ` <small>${esc(call.price)}</small>` : "";
     if (call.status === "booked") return `<strong>booked</strong>${quoted}${call.number ? ` <small>#${esc(call.number)}</small>` : ""}`;
     if (call.status === "priced") return `quoted${quoted}`;
     return `<span class="muted">${esc(call.status === "failed" ? "no price" : call.status)}</span>`;
 }
 
-function render(hotels, job = null, calls = []) {
+function render(hotels, job = null, calls = [], live = []) {
     if (!hotels.length) {
         $("results").innerHTML = "";
         $("note").innerHTML = '<p class="note">No hotels found.</p>';
         return;
     }
     const rows = hotels.map(hotel => `
-        <tr>
+        <tr${liveCall(hotel, live) ? ' class="live"' : ""}>
             <td>${hotel.url ? `<a href="${esc(hotel.url)}" target="_blank" rel="noopener">${esc(hotel.name)}</a>` : esc(hotel.name)}</td>
             <td class="price">${priceCell(hotel)}</td>
             <td class="phone">${hotel.phone ? `<a href="tel:${esc(hotel.phone.replace(/[^+\d]/g, ""))}">${esc(hotel.phone)}</a>` : '<span class="muted">—</span>'}</td>
             <td>${esc(hotel.address) || '<span class="muted">—</span>'}</td>
-            ${job ? `<td class="call">${callCell(hotel, job, calls)}</td>` : ""}
+            ${job ? `<td class="call">${callCell(hotel, job, calls, live)}</td>` : ""}
         </tr>`).join("");
     $("results").innerHTML = `<div class="scroll"><table><thead><tr><th>Hotel</th><th>Price / night</th><th>Phone</th><th>Address</th>${job ? "<th>Call</th>" : ""}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
@@ -98,7 +108,7 @@ async function followCalls(hotels, job) {
     $("bar").classList.add("on");
     $("note").insertAdjacentHTML("beforeend", '<p class="note" id="callNote">Calling hotels…</p>');
     for (;;) {
-        await sleep(3000);
+        await sleep(2000);
         let status;
         try {
             const response = await fetch(`/api/reservation/status?id=${encodeURIComponent(job.id)}`);
@@ -110,10 +120,11 @@ async function followCalls(hotels, job) {
             return;
         }
         job.finished = status.state !== "calling";
-        render(hotels, job, status.calls);
+        render(hotels, job, status.calls, status.live || []);
         const note = $("callNote");
         if (!job.finished) {
-            note.textContent = `Calling hotels… ${status.priced} of ${status.want} prices so far.`;
+            const names = (status.live || []).map(call => call.hotel);
+            note.innerHTML = `${names.length ? `<span class="spin"></span>On the phone with ${names.length}: ${names.map(esc).join(", ")}.` : "Dialing…"} ${status.booked} of ${status.want} bookings so far (${status.priced} quoted a price).`;
             continue;
         }
         if (status.state === "failed") {
