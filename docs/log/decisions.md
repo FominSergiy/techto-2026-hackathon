@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Accept a verbal confirmation (name + price) as a booking
+tags: decision, email, workflow
+- Decision: `main.py` treats a call as booked when it has a reservation number, **or** when `confirmation_type` is `verbal_booking`/`verbal_availability` and a price was given. The email's Reservation # then reads "Verbal confirmation from <receptionist> at <hotel>, call at <time>".
+- Why: The spec counts "a verbal confirmation from the hotel, a reservation ID, or both" (brief, Booking Goal). The 15:11 Moncton run got Rodd Moncton verbally ($282 CAD, confirmed by Hamza), but the old reservation-number-only check threw it away, so no email went out.
+- Alternatives: Keep requiring a number (real hotels won't give one by phone without a card).
+
 ## 2026-10-17 — Alex on Main: repo prompt + Luke voice; LLM unchanged
 tags: decision, elevenlabs, call-handling
 - Decision: Main, `repo-sync` and Sergiy's copy all run the repo prompt plus the callback, date, quote-or-exit and style rules, with the Luke voice (stability 0.3, speed 1.05) and a 480 s cap. The LLM stays `deepseek-v41-flash` with reasoning `null`. This replaced Davide's dashboard prompt on Main (`agtvrsn_5901m55h5xt7et3tzm1n9vjpayns`, shorter, reads back only when unclear). A plain CLI push hit Main by mistake, and Sergiy chose to keep it there rather than roll back.
