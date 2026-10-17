@@ -7,6 +7,10 @@ function stub(...statuses) {
     calls = 0;
     global.fetch = async () => {
         const status = statuses[Math.min(calls++, statuses.length - 1)];
+        // Xotelo style: HTTP 200 with the real status in the body
+        if (status === "body500") {
+            return { ok: true, status: 200, json: async () => ({ error: { status_code: 500, message: "Internal Server Error" }, result: null }) };
+        }
         return {
             ok: status < 400,
             status,
@@ -28,6 +32,13 @@ async function timed(promise) {
     assert.deepStrictEqual(recovered.value, { result: "ok" });
     assert.strictEqual(calls, 3);
     assert.ok(recovered.ms >= 1400, `expected backoff of ~1.5s, took ${recovered.ms}ms`);
+
+    // Xotelo reports its 500 inside an HTTP 200 body: that must back off too (it used to retry instantly)
+    stub("body500", "body500", 200);
+    const bodyError = await timed(getJson("https://data.xotelo.com/api/rates", {}, 4));
+    assert.deepStrictEqual(bodyError.value, { result: "ok" });
+    assert.strictEqual(calls, 3);
+    assert.ok(bodyError.ms >= 1400, `expected backoff of ~1.5s for a body-level 500, took ${bodyError.ms}ms`);
 
     // A permanent 500 uses every attempt and keeps the message the UI shows
     stub(500);

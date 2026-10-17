@@ -1,15 +1,19 @@
 // Live OTA rates via Xotelo (TripAdvisor data, no API key) - https://xotelo.com/
 const settings = require("./settings");
-const { getJson, passesFilters, cheapest, runIfMain } = require("./hotel-utils");
+const { sleep, getJson, passesFilters, cheapest, runIfMain } = require("./hotel-utils");
 const { tripadvisorLocationKey } = require("./locations");
 
 const BASE_URL = "https://data.xotelo.com/api";
 const PAGE_SIZE = 100;
 const RATE_BATCH_SIZE = 10;
-// Xotelo returns intermittent 500s (getJson backs off between attempts). The list call decides whether the whole
-// source works, so it gets more attempts than the per-hotel rate lookups, which just count as "no rate" on failure.
-const LIST_RETRIES = 4;
+// Xotelo returns intermittent quick 500s (getJson backs off between attempts). The list call decides whether the
+// whole source works, so it gets more attempts than the per-hotel rate lookups, which just count as "no rate" on failure.
+const LIST_RETRIES = 3;
 const RATE_RETRIES = 2;
+// Tested live: for a city with many hotels (Toronto, Montreal, Hamilton) /list answers HTTP 200 with a 500 in the
+// body after ~10.8s every time, whatever the limit or sort, while Aurora (5 hotels) answers in under a second.
+// A failure that took this long is Xotelo's own timeout, so retrying only burns another 11s per attempt.
+const SLOW_FAILURE_MS = 8000;
 
 function toHotel(item, nightlyPrice) {
     return {
@@ -39,6 +43,24 @@ async function lowestRate(hotelKey) {
     return rates.length ? Math.min(...rates) : null;
 }
 
+// One /list page. Quick failures are retried with backoff (a blip); a slow failure is Xotelo's timeout on a big
+// city, so it fails at once with an explanation instead of hanging for a minute.
+async function listPage(params) {
+    for (let attempt = 0; ; attempt++) {
+        const started = Date.now();
+        try {
+            return await getJson(`${BASE_URL}/list?${params}`);
+        } catch (error) {
+            const seconds = (Date.now() - started) / 1000;
+            if (seconds * 1000 >= SLOW_FAILURE_MS) {
+                throw new Error(`${error.message} after ${seconds.toFixed(0)}s - Xotelo's server times out listing cities with many hotels (Toronto, Montreal and Hamilton all do, Aurora works), so Xotelo cannot be used for this city`);
+            }
+            if (attempt >= LIST_RETRIES) throw error;
+            await sleep(500 * 2 ** attempt);
+        }
+    }
+}
+
 async function search() {
     // 1. Pull the hotel list. Its price ranges are typical prices, not live ones.
     const locationKey = await tripadvisorLocationKey();
@@ -52,7 +74,7 @@ async function search() {
         });
         let result;
         try {
-            ({ result } = await getJson(`${BASE_URL}/list?${params}`, {}, LIST_RETRIES));
+            ({ result } = await listPage(params));
         } catch (error) {
             // A later page failing must not throw away the pages already listed
             if (!listed.length) throw error;
@@ -88,5 +110,5 @@ async function search() {
     return cheapest(matches);
 }
 
-module.exports = { search };
+module.exports = { search, listPage };
 runIfMain(module, "Xotelo", search);

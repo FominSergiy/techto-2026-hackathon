@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Xotelo diagnosed live: big cities time out, rates come back empty
+tags: feature, search, xotelo, learnings
+- Feature: Tested against the real Xotelo API (no key needed). `/list` answers HTTP 200 with `{"error":{"status_code":500,...}}` in the body after ~10.8s for every city with many hotels (Toronto, Montreal, Hamilton: 13 calls, any `limit` from 10 to 100, any `sort`), while Aurora (5 hotels) answers in 0.9s every time. So it is not intermittent for big cities: Xotelo's server gives up at ~11s. `xotelo.js` now fails at once on a slow failure with a message saying so (it used to retry 5 times, ~1 minute of waiting), still retries quick failures with backoff, and `getJson` now backs off on a 500 reported inside an HTTP 200 body, which is how Xotelo reports errors.
+- Status: done and checked live for Hamilton (fails in 11s with the message) and Aurora (list works, `/rates` called). Offline tests: `hotel_search/test/xotelo-list.js`, `get-json.js`.
+- Notes: Even where `/list` works, `/rates` took ~13s per hotel and returned `rates: []` for the Aurora Microtel for 2026-10-24, 2026-11-20 and 2026-12-05, so the Aurora run found 0 hotels with live rates. Right now Xotelo gives no usable prices for any city we tried, so treat it as unreliable and rely on SearchApi, LiteAPI and Hotelbeds. Cost of leaving it ticked: 11s of a parallel run for a big city, ~14s for Aurora, and no results.
+
 ## 2026-10-17 — Backboard keeps unpriced hotels; top 20 in both boxes
 tags: feature, search, backboard
 - Feature: Hotels the Backboard model finds but cannot price are no longer dropped: they show as "no price" (`priceType: "none"`, `nightlyPrice: null`, Source `backboard (no price)`) after the priced ones, so they can still be called and asked. The prompt tells the model never to leave a hotel out because its price is unconfirmed. Both boxes now default to the top 20 hotels (was 10 for Backboard, 30 for the search), and the parser is told that "the cheapest option/hotel" is not a count of 1.

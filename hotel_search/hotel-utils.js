@@ -31,7 +31,9 @@ async function getJson(url, options = {}, retries = 0, attempt = 0) {
 
     if (!response.ok || data.error) {
         if (retries > 0) {
-            if (response.status >= 500 || response.status === 429) {
+            // Some APIs (Xotelo) answer HTTP 200 and put the real status in the body: { error: { status_code: 500 } }
+            const status = response.ok ? data.error?.status_code ?? 0 : response.status;
+            if (status >= 500 || status === 429) {
                 await sleep(500 * 2 ** attempt);
             }
             return getJson(url, options, retries - 1, attempt + 1);
@@ -145,4 +147,4 @@ function runIfMain(mod, label, search) {
         });
 }
 
-module.exports = { requireEnv, getJson, hotelbedsHeaders, normalizeName, perNight, passesFilters, cheapest, collectPages, printHotels, runIfMain };
+module.exports = { sleep, requireEnv, getJson,hotelbedsHeaders, normalizeName, perNight, passesFilters, cheapest, collectPages, printHotels, runIfMain };
