@@ -3,13 +3,14 @@
 const assert = require("node:assert");
 process.env.GOOGLE_MAPS_API_KEY = "test-key";
 const settings = require("../settings");
-Object.assign(settings, { region: "Ontario", countryCode: "CA" });
+// settings.region keeps its Ontario default on purpose: this search must not read it
+Object.assign(settings, { countryCode: "CA" });
 const { run, queriesFor, inCity, QUERY_TEMPLATES, normalize } = require("../places-search");
 
-const address = (city, regionCode = "ON", region = "Ontario") => [
+const address = (city, regionCode = "ON", region = "Ontario", [country, countryCode] = ["Canada", "CA"]) => [
     { longText: city, shortText: city, types: ["locality"] },
     { longText: region, shortText: regionCode, types: ["administrative_area_level_1"] },
-    { longText: "Canada", shortText: "CA", types: ["country"] }
+    { longText: country, shortText: countryCode, types: ["country"] }
 ];
 const place = (id, name, extra = {}) => ({ id, displayName: { text: name }, formattedAddress: `1 Main St, ${name}`, addressComponents: address("Hamilton"), businessStatus: "OPERATIONAL", ...extra });
 
@@ -19,16 +20,18 @@ const PLACES = {
     c: place("c", "Gamma Motel", { priceRange: { startPrice: { currencyCode: "CAD", units: "90" } } }),
     closed: place("closed", "Closed Lodge", { businessStatus: "CLOSED_PERMANENTLY" }),
     elsewhere: place("elsewhere", "Burlington Suites", { addressComponents: address("Burlington") }),
-    wrongProvince: place("wrongProvince", "Hamilton Inn NZ", { addressComponents: address("Hamilton", "WKO", "Waikato") })
+    wrongCountry: place("wrongCountry", "Hamilton Inn NZ", { addressComponents: address("Hamilton", "WKO", "Waikato", ["New Zealand", "NZ"]) }),
+    // Another province, same country: kept, this search covers all of Canada
+    otherProvince: place("otherProvince", "Hamilton BC Lodge", { addressComponents: address("Hamilton", "BC", "British Columbia") })
 };
 
-// Which places each fixed search "finds" - Alpha turns up in three of them
+// Which places each fixed search "finds" - Alpha turns up in three of them. No province in the queries: none was asked for.
 const BY_QUERY = {
-    "hotels in Hamilton, Ontario": [PLACES.a, PLACES.b, PLACES.elsewhere],
-    "inns in Hamilton, Ontario": [PLACES.a, PLACES.closed],
-    "motels in Hamilton, Ontario": [PLACES.c, PLACES.wrongProvince],
-    "hotels at Hamilton, Ontario": [PLACES.a],
-    "cheap hotels in Hamilton, Ontario": [PLACES.b]
+    "hotels in Hamilton": [PLACES.a, PLACES.b, PLACES.elsewhere],
+    "inns in Hamilton": [PLACES.a, PLACES.closed],
+    "motels in Hamilton": [PLACES.c, PLACES.wrongCountry],
+    "hotels at Hamilton": [PLACES.a, PLACES.otherProvince],
+    "cheap hotels in Hamilton": [PLACES.b]
 };
 
 const calls = [];
@@ -47,8 +50,8 @@ function stubFetch(failQuery) {
 (async () => {
     // The prompt becomes 5 fixed searches for the city
     assert.strictEqual(QUERY_TEMPLATES.length, 5);
-    assert.deepStrictEqual(queriesFor("Hamilton", "Ontario"), Object.keys(BY_QUERY));
-    assert.deepStrictEqual(queriesFor("Hamilton", null)[0], "hotels in Hamilton");
+    assert.deepStrictEqual(queriesFor("Hamilton", null), Object.keys(BY_QUERY));
+    assert.deepStrictEqual(queriesFor("Hamilton", "Ontario")[0], "hotels in Hamilton, Ontario", "a province the request named goes into the query");
 
     try {
         stubFetch();
@@ -58,13 +61,13 @@ function stubFetch(failQuery) {
         assert.ok(calls.every(call => call.url === "https://places.googleapis.com/v1/places:searchText" && call.headers["X-Goog-Api-Key"] === "test-key"));
         assert.ok(calls.every(call => call.body.includedType === "lodging" && call.body.regionCode === "CA" && call.body.pageSize === 20));
 
-        // 4 distinct lodging places in the city: Alpha, Beta, Gamma priced/unpriced; closed, Burlington and Waikato dropped
-        assert.deepStrictEqual(hotels.map(hotel => hotel.name), ["Gamma Motel", "Beta Hotel", "Alpha Inn"], "priced cheapest first, then the rest by rating");
+        // Kept: Alpha, Beta, Gamma and the British Columbia one (no province filter); dropped: closed, Burlington, New Zealand
+        assert.deepStrictEqual(hotels.map(hotel => hotel.name), ["Gamma Motel", "Beta Hotel", "Alpha Inn", "Hamilton BC Lodge"], "priced cheapest first, then the rest by rating");
         assert.deepStrictEqual(dropped.map(entry => entry.name).sort(), ["Burlington Suites", "Closed Lodge", "Hamilton Inn NZ"]);
         assert.ok(dropped.find(entry => entry.name === "Closed Lodge").reason.includes("closed permanently"));
 
         const alpha = hotels.find(hotel => hotel.name === "Alpha Inn");
-        assert.deepStrictEqual(alpha.foundBy, ["hotels in Hamilton, Ontario", "inns in Hamilton, Ontario", "hotels at Hamilton, Ontario"], "one row remembers every search that found it");
+        assert.deepStrictEqual(alpha.foundBy, ["hotels in Hamilton", "inns in Hamilton", "hotels at Hamilton"], "one row remembers every search that found it");
         assert.strictEqual(alpha.phone, "+1 905-555-0100");
         assert.strictEqual(alpha.city, "Hamilton");
         assert.strictEqual(alpha.url, "https://alpha.test");
@@ -77,14 +80,20 @@ function stubFetch(failQuery) {
         assert.strictEqual(hotels.find(hotel => hotel.name === "Gamma Motel").priceRange, "CAD 90+", "open-ended range");
 
         // Per-query numbers for the page: found and newly added
-        assert.deepStrictEqual(queries.map(query => [query.returned, query.added]), [[3, 3], [2, 1], [2, 2], [1, 0], [1, 0]]);
+        assert.deepStrictEqual(queries.map(query => [query.returned, query.added]), [[3, 3], [2, 1], [2, 2], [2, 1], [1, 0]]);
 
         // One failed search doesn't sink the others
         calls.length = 0;
-        stubFetch("inns in Hamilton, Ontario");
+        stubFetch("inns in Hamilton");
         const partial = await run("Hamilton");
         assert.ok(partial.queries[1].error.includes("bad request"));
-        assert.strictEqual(partial.hotels.length, 3, "the other four searches still contribute");
+        assert.strictEqual(partial.hotels.length, 4, "the other four searches still contribute");
+
+        // A named province goes into every query text, and is still not a filter
+        calls.length = 0;
+        stubFetch();
+        await run("Hamilton", "Ontario");
+        assert.deepStrictEqual(calls.map(call => call.body.textQuery), queriesFor("Hamilton", "Ontario"));
 
         // Every search failing is an error
         calls.length = 0;
@@ -101,7 +110,8 @@ function stubFetch(failQuery) {
     assert.ok(inCity(normalize({ ...sudbury, formattedAddress: "1 Main St, Greater Sudbury, ON" }), "Sudbury"), "the locality alone is enough");
     assert.ok(inCity(normalize({ ...sudbury, addressComponents: address("Lively"), formattedAddress: "1 Main St, Sudbury, ON" }), "Sudbury"), "the formatted address naming the city is enough");
     assert.ok(!inCity(normalize({ ...sudbury, addressComponents: address("Burlington"), formattedAddress: "1 Main St, Burlington, ON" }), "Sudbury"), "another city still drops");
-    assert.ok(!inCity(normalize({ ...sudbury, addressComponents: address("Sudbury", "MA", "Massachusetts"), formattedAddress: "1 Main St, Sudbury, MA" }), "Sudbury"), "same name in another region still drops");
+    assert.ok(!inCity(normalize({ ...sudbury, addressComponents: address("Sudbury", "MA", "Massachusetts", ["United States", "US"]), formattedAddress: "1 Main St, Sudbury, MA" }), "Sudbury"), "same name in another country still drops");
+    assert.ok(inCity(normalize({ ...sudbury, addressComponents: address("Vancouver", "BC", "British Columbia"), formattedAddress: "1 Main St, Vancouver, BC" }), "Vancouver"), "any Canadian province is fine");
 
     // normalize alone: a bare place still fills every field
     const bare = normalize({ id: "x", displayName: { text: "Bare Inn" } });
