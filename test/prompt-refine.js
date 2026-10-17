@@ -13,7 +13,9 @@ const { parsePrompt } = require("../prompt");
     for (const flag of ["--city=Paris", "--region=Ontario", "--country-code=CA", "--check-in=2026-11-20", "--check-out=2026-11-22", "--adults=2", "--currency=EUR", "--max-nightly-price=200"]) {
         assert.ok(flags.includes(flag), `missing ${flag} in: ${flags}`);
     }
-    assert.ok(search.assumed.some(note => note.startsWith("min rating")), "defaults must be listed as assumed");
+    assert.ok(search.assumed.includes("hotels to return: 20 (default)"), "defaults must be listed as assumed");
+    assert.ok(!search.assumed.some(note => /^min (rating|reviews)/.test(note)), "rating and review minimums have no default, so they stay off");
+    assert.ok(!/minRating|min-rating|min-reviews/.test(flags), `no rating or review flags without a request for them: ${flags}`);
     assert.strictEqual(search.warnings.length, 1);
     assert.match(search.warnings[0], /region is fixed to Ontario, CA, so "FR" from the request was ignored/);
     assert.ok(search.assumed.includes("region: Ontario, CA (fixed)"));
@@ -28,10 +30,12 @@ const { parsePrompt } = require("../prompt");
     assert.deepStrictEqual(argsToSettings(spaced.args), { city: "Sydney", region: "New South Wales", adults: 2 });
     assert.match(searchPrompt({ city: "Sydney", region: "New South Wales", countryCode: "AU", checkIn: "2026-11-20", checkOut: "2026-11-21", adults: 1, currency: "AUD", maxNightlyPrice: null, minRating: null, minReviews: null, targetCount: 10 }), /--region="New South Wales" .*--max-nightly-price=null/);
 
-    // An empty-ish request falls back to the default city and next Saturday, and says so
+    // An empty-ish request has no default city (it only comes from the prompt), so it is warned about; dates fall back to next Saturday
     const bare = await refine("hotels", "search", { offline: true });
-    assert.match(bare.prompt, /^Cheapest hotels in Aurora, Ontario, CA, check-in \d{4}-\d{2}-\d{2}, check-out \d{4}-\d{2}-\d{2}, 1 adult,/);
+    assert.match(bare.prompt, /^Cheapest hotels in Ontario, CA, check-in \d{4}-\d{2}-\d{2}, check-out \d{4}-\d{2}-\d{2}, 1 adult,/);
+    assert.ok(bare.warnings.some(warning => /names no city/.test(warning)), `expected a no-city warning: ${bare.warnings}`);
     assert.ok(bare.assumed.some(note => /^check-in: .* \(next Saturday\)$/.test(note)));
+    assert.ok(!resolve({ city: "Aurora" }).warnings.some(warning => /names no city/.test(warning)), "a city from the request must not warn");
 
     // A different city with no country is flagged instead of silently getting the default country
     const other = resolve({ city: "Markham", region: "Illinois", countryCode: "US" });

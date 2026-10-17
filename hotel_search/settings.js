@@ -3,32 +3,22 @@
 //   node search.js --city=Paris --country-code=FR --max-nightly-price=200
 // Lists are comma-separated (--sources=xotelo,searchapi) and "null" disables a filter (--min-reviews=null).
 const defaults = {
-    // City X is revealed at competition time
-    city: "Aurora",
+
     countryCode: "CA",
     region: "Ontario",      // province/state - tells apart cities sharing a name (Aurora, ON vs Aurora, IL); null to skip
     strictCity: true,       // keep only hotels whose Google Places address is in city (needs enrichPhones)
-    // Provider location codes - null looks them up from city (see locations.js)
-    tripadvisorLocationKey: null,       // Xotelo, e.g. g155019 for Toronto
-    hotelbedsDestinationCode: null,     // Hotelbeds, e.g. YTO for Toronto
 
-    // Stay
-    checkIn: null,      // YYYY-MM-DD - null means next Saturday
     nights: 1,
-    checkOut: null,     // YYYY-MM-DD - null means checkIn + nights
     adults: 1,
     currency: "CAD",
 
-    // Results
     targetCount: 30,
     maxPages: 5,
     enrichPhones: true,     // look up phone numbers and addresses in Google Places (needs GOOGLE_MAPS_API_KEY)
     outputDir: "output",    // search.js saves CSV + JSON here; null disables
 
     // Filters (null disables)
-    maxNightlyPrice: 400,
-    minRating: 4.0,     // out of 5 - 10-point sources (Booking, LiteAPI) are halved before comparing
-    minReviews: 50,
+    maxNightlyPrice: 200,
 
     // Sources search.js runs: xotelo, searchapi, liteapi, hotelbeds, booking
     sources: ["xotelo", "searchapi", "liteapi", "hotelbeds", "booking", "expedia"]
@@ -45,6 +35,11 @@ function parseValue(raw, current) {
 // Flags a source reads from process.argv itself (expedia.js --dump-html=<file>), not settings
 const PASSTHROUGH_FLAGS = ["dump-html"];
 
+// Settings with no default because they only come from the prompt (or the command line). The value is an example
+// of the type, so parseValue knows whether to keep a string or convert a number.
+const PROMPT_ONLY = { city: "", checkIn: "", checkOut: "", minRating: 0, minReviews: 0, tripadvisorLocationKey: "", hotelbedsDestinationCode: "" };
+const KNOWN = { ...PROMPT_ONLY, ...defaults };
+
 // --max-nightly-price=200 -> { maxNightlyPrice: 200 }
 function parseArgs(argv) {
     const overrides = {};
@@ -54,11 +49,11 @@ function parseArgs(argv) {
 
         const key = match[1].replace(/-(\w)/g, (_, letter) => letter.toUpperCase());
         if (PASSTHROUGH_FLAGS.includes(match[1])) continue;
-        if (!(key in defaults)) {
+        if (!(key in KNOWN)) {
             console.error(`Unknown setting --${match[1]}`);
             process.exit(1);
         }
-        overrides[key] = parseValue(match[2], defaults[key]);
+        overrides[key] = parseValue(match[2], KNOWN[key]);
     }
     return overrides;
 }

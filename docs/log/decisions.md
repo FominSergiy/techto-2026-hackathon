@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Prompt-only settings have no default in settings.js
+tags: decision, search, settings
+- Decision: `settings.js` no longer defaults `city`, `checkIn`/`checkOut` (dates are still derived: next Saturday), `minRating`, `minReviews` or the TripAdvisor/Hotelbeds location codes, and the price cap is 200. They are still accepted as `--flags` (`PROMPT_ONLY` in `settings.js`). A request with no city gets a warning in the review panel, and rating/review minimums stay off unless the request asks for them.
+- Why: The values only exist once the prompt is parsed, and a default city (Aurora) silently searched the wrong place. Dropping the keys from `defaults` alone made `parseArgs` reject `--city`, so the prompt flow broke.
+- Alternatives: Keep `city: null` etc. in `defaults` (simpler, but it was removed on purpose). The old behaviour of resetting the region for a non-default city went too: the region is always Ontario.
+
 ## 2026-10-17 — Apify sources: johnvc Google Hotels actor and jeremy_frost Hotels.com actor
 tags: decision, search, apify
 - Decision: Google Hotels via `johnvc/google-hotels-search-scraper` (the exact "Google Hotels Search Scraper" title, $0.02 per run + $0.02 per page) and Hotels.com via `jeremy_frost/hotels-com-scraper`. The key is `APIFY_KEY`, matching `.env`, for every Apify source.

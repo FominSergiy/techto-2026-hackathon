@@ -9,8 +9,6 @@ try {
     // No .env file - rely on the environment
 }
 
-const defaults = require("./hotel_search/settings");
-
 const MODEL = "claude-haiku-5-5";
 const SETTING_KEYS = {
     city: "string",
@@ -155,12 +153,6 @@ async function parsePrompt(prompt, { offline = false, literal = false } = {}) {
         reasons.push("no ANTHROPIC_API_KEY or BACKBOARD_API_KEY is set");
     }
     parsed ||= parseWithRegex(text);
-
-    // settings.js's default region belongs to its default city - another city must not inherit it
-    // (a search for Paris would otherwise look for "Paris, Ontario" and the city check would drop every hotel)
-    if (parsed.city && !("region" in parsed) && parsed.city.toLowerCase() !== defaults.city.toLowerCase()) {
-        parsed.region = null;
-    }
 
     const flagKeys = new Set(flags.map(flag => flag.slice(2).split("=")[0]));
     const args = [...toArgs(parsed).filter(arg => !flagKeys.has(arg.slice(2).split("=")[0])), ...flags];

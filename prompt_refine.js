@@ -47,12 +47,13 @@ function resolve(parsed) {
     const warnings = [];
     const settings = { ...parsed };
     const fill = (key, label) => {
-        if (settings[key] !== undefined) return;
+        // No default (rating and review minimums are only known from the prompt) means the filter stays off
+        if (settings[key] !== undefined || defaults[key] === undefined) return;
         settings[key] = defaults[key];
         assumed.push(`${label}: ${show(defaults[key])} (default)`);
     };
 
-    // The city comes from the request (settings.js's city only when the request names none).
+    // The city only comes from the request (settings.js has no default city), so warn when there is none.
     // The region is always Ontario and the country Canada, so say so if the request named another one.
     const differs = (said, fixed) => said != null && String(said).toLowerCase() !== String(fixed).toLowerCase();
     const ignored = [
@@ -62,7 +63,9 @@ function resolve(parsed) {
     if (ignored.length) {
         warnings.push(`The region is fixed to ${REGION}, ${defaults.countryCode}, so "${ignored.join(", ")}" from the request was ignored.`);
     }
-    fill("city", "city");
+    if (!settings.city) {
+        warnings.push("The request names no city, so there is nothing to search. Add one, e.g. \"cheapest hotel in Aurora\".");
+    }
     settings.region = REGION;
     settings.countryCode = defaults.countryCode;
     assumed.push(`region: ${REGION}, ${defaults.countryCode} (fixed)`);
