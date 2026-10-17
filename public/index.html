@@ -82,7 +82,7 @@ const COLUMNS = [
     ["City", h => h.city],
     ["Address", h => h.address],
     ["Phone", h => h.phone && `<a href="tel:${h.phone.replace(/[^+\d]/g, "")}">${esc(h.phone)}</a>`, true],
-    ["Price / night", h => `${h.nightlyPrice} ${h.currency}`, "num"],
+    ["Price / night", h => h.nightlyPrice != null ? `${h.nightlyPrice} ${h.currency}` : "no price", "num"],
     ["Total", h => h.totalPrice != null ? `${h.totalPrice} ${h.currency}` : "", "num"],
     ["Rating", h => h.rating != null ? `${h.rating} (${h.reviews ?? "?"})` : "", "num"],
     ["Source", h => h.source],
@@ -226,7 +226,7 @@ async function runBackboard(text) {
         const { run } = data;
         $("bbOutput").innerHTML = `
             <div class="card">
-                ${data.hotels.length ? renderTable(data.hotels) : "<p>Backboard found no hotels with a price.</p>"}
+                ${data.hotels.length ? renderTable(data.hotels) : "<p>Backboard found no hotels.</p>"}
                 <p class="muted">${data.hotels.length} shown · the model returned ${run.returned} · ${data.seconds.toFixed(1)}s · ${esc(run.model)} · ${run.inputTokens ?? "?"} in / ${run.outputTokens ?? "?"} out tokens</p>
                 ${run.dropped.length ? `<p class="error">Dropped: ${run.dropped.map(entry => `${esc(entry.name ?? "?")} (${esc(entry.reason)})`).join(", ")}</p>` : ""}
                 <details><summary class="muted">What the model replied</summary><pre>${esc(run.reply)}</pre></details>

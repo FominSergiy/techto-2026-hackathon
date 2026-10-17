@@ -41,6 +41,8 @@ function keys({ anthropic, backboard }) {
     assert.deepStrictEqual([calls[0].body.llm_provider, calls[0].body.model_name, calls[0].body.web_search, calls[0].body.memory], ["openai", "gpt-4o-mini", "off", "off"]);
     assert.strictEqual(calls[0].body.content, ROUGH);
     assert.match(calls[0].body.system_prompt, /Fix obvious typos/);
+    // "the cheapest option" must not be read as a count of 1 (that gave a top-1 list)
+    assert.match(calls[0].body.system_prompt, /'the cheapest hotel\/option' is NOT a count of 1: omit the key/);
     assert.strictEqual(viaBackboard.parser, "backboard/gpt-4o-mini");
     assert.deepStrictEqual(viaBackboard.usage, { input_tokens: 80, output_tokens: 25 });
     assert.ok(viaBackboard.args.includes("--city=Montreal") && viaBackboard.args.includes("--check-out=2026-10-18"));
@@ -93,6 +95,7 @@ function keys({ anthropic, backboard }) {
     assert.match(reviewed.prompt, /^Cheapest hotels in Montreal, Ontario, CA, check-in 2026-10-17, check-out 2026-10-18, 1 adult,/);
     assert.strictEqual(reviewed.parser, "backboard/gpt-4o-mini");
     assert.deepStrictEqual(reviewed.warnings, []);
+    assert.match(reviewed.prompt, /top 20\n/, "no count in the reply means the top 20, not 1");
 
     console.log("prompt-llm: all tests passed");
 })();

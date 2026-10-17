@@ -24,7 +24,7 @@ const SETTING_KEYS = {
     maxNightlyPrice: "number or null for no limit",
     minRating: "number out of 5, or null",
     minReviews: "number, or null",
-    targetCount: "number of hotels to return",
+    targetCount: "number of hotels to return, ONLY when the user gives an explicit count such as 'top 5' or '10 hotels'. 'the cheapest hotel/option' is NOT a count of 1: omit the key",
     sources: "array from: xotelo, searchapi, liteapi, hotelbeds, booking"
 };
 

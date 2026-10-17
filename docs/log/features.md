@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Backboard keeps unpriced hotels; top 20 in both boxes
+tags: feature, search, backboard
+- Feature: Hotels the Backboard model finds but cannot price are no longer dropped: they show as "no price" (`priceType: "none"`, `nightlyPrice: null`, Source `backboard (no price)`) after the priced ones, so they can still be called and asked. The prompt tells the model never to leave a hotel out because its price is unconfirmed. Both boxes now default to the top 20 hotels (was 10 for Backboard, 30 for the search), and the parser is told that "the cheapest option/hotel" is not a count of 1.
+- Status: done, tested offline (stubbed fetch, 4 of 4 hotels kept with 1 unpriced). Not re-run live, so whether the model now returns 20 is unconfirmed: the "returned N" line under the table shows it.
+- Notes: A top-1 result most likely came from the parser reading "find the cheapest option" as `targetCount: 1`, which then went into `--target-count=1` for the search. An explicit count in the request ("top 5") still wins, and the review panel shows `--target-count` so it can be edited before running. If Backboard is ever wired into the merged search, its null-priced rows must be filtered out there (`passesFilters` already rejects `nightlyPrice == null`).
+
 ## 2026-10-17 — Xotelo 500s: backoff and keep earlier pages
 tags: feature, search, xotelo, reliability
 - Feature: "xotelo failed: data.xotelo.com: Internal Server Error" is Xotelo's `/list` endpoint failing, which it does intermittently. `getJson` now waits 0.5s, 1s, 2s, ... between retries after a 5xx or 429 (client errors still retry at once), the list call gets 4 retries (the per-hotel rate lookups keep 2), and a later list page failing keeps the pages already listed instead of throwing them away.

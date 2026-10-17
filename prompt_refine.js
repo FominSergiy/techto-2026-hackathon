@@ -15,7 +15,7 @@ const NUMBERS = new Set(["adults", "nights", "maxNightlyPrice", "minRating", "mi
 
 // The settings that end up as --flags in the search prompt. Sources and Places come from the checkboxes.
 const FLAG_KEYS = ["city", "region", "countryCode", "checkIn", "checkOut", "adults", "currency", "maxNightlyPrice", "minRating", "minReviews", "targetCount"];
-const BACKBOARD_COUNT = 10;
+const TOP_COUNT = 20;   // hotels to return in both boxes unless the request gives an explicit count
 const REGION = "Ontario";
 
 // ["--check-in=2026-11-20", "--min-rating=null"] -> { checkIn: "2026-11-20", minRating: null }
@@ -83,7 +83,10 @@ function resolve(parsed) {
     fill("maxNightlyPrice", "max price per night");
     fill("minRating", "min rating");
     fill("minReviews", "min reviews");
-    fill("targetCount", "hotels to return");
+    if (settings.targetCount == null) {
+        settings.targetCount = TOP_COUNT;
+        assumed.push(`hotels to return: ${TOP_COUNT} (default)`);
+    }
     return { settings, assumed, warnings };
 }
 
@@ -111,7 +114,7 @@ function searchPrompt(settings) {
 // asked for, since the defaults would empty the list for a small city
 function backboardPrompt(settings, said) {
     const place = [settings.city, settings.region, settings.countryCode && countryName(settings.countryCode)].filter(Boolean).join(", ");
-    const count = said.targetCount || BACKBOARD_COUNT;
+    const count = settings.targetCount;
     const price = settings.maxNightlyPrice != null ? `, under ${settings.maxNightlyPrice} per night` : "";
     const rating = [
         said.minRating != null && `rated ${said.minRating}+`,
@@ -139,10 +142,8 @@ async function refine(prompt, target = "search", { offline = false } = {}) {
         warnings.unshift(`Rewritten by the regex fallback (${fallbackReason}). It misses typos and words like "tomorrow", so check the city and dates below.`);
     }
 
-    // Backboard ignores the rating/review minimums and asks for fewer hotels, so don't list those as assumptions
-    const notes = target === "search"
-        ? assumed
-        : [...assumed.filter(note => !/^(min rating|min reviews|hotels to return)/.test(note)), ...(said.targetCount ? [] : [`hotels to return: ${BACKBOARD_COUNT} (Backboard default)`])];
+    // Backboard ignores the rating/review minimums, so don't list those as assumptions
+    const notes = target === "search" ? assumed : assumed.filter(note => !/^(min rating|min reviews)/.test(note));
     return {
         prompt: target === "search" ? searchPrompt(settings) : backboardPrompt(settings, said),
         target,

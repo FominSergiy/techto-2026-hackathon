@@ -46,7 +46,14 @@ const { parsePrompt } = require("../prompt");
     assert.match(backboard.prompt, /phone number, street address, and the page where you saw the price/);
     assert.doesNotMatch(backboard.prompt, /rated|reviews/, "default rating/review minimums must not go to Backboard");
     assert.ok(!backboard.assumed.some(note => /^min (rating|reviews)/.test(note)), "Backboard must not list unused defaults");
-    assert.ok(backboard.assumed.includes("hotels to return: 10 (Backboard default)"));
+    assert.ok(backboard.assumed.includes("hotels to return: 20 (default)"));
+    assert.match(backboard.prompt, /^List the 20 cheapest hotels inside the city of/);
+
+    // Both boxes default to the top 20, and an explicit count in the request still wins
+    assert.match(search.prompt, /top 20\n/);
+    assert.ok(flags.includes("--target-count=20"), `missing --target-count=20 in: ${flags}`);
+    assert.strictEqual(resolve({ targetCount: 5 }).settings.targetCount, 5);
+    assert.strictEqual(resolve({ targetCount: null }).settings.targetCount, 20);
 
     await assert.rejects(() => refine(rough, "nope"), /unknown target/);
     console.log("prompt-refine: all tests passed");

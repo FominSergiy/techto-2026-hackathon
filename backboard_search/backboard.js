@@ -34,7 +34,7 @@ function defaults() {
         adults: 2,
         currency: "CAD",
         maxNightlyPrice: null,
-        count: 10,
+        count: 20,
         provider: process.env.BACKBOARD_PROVIDER || "openai",
         model: process.env.BACKBOARD_MODEL || "gpt-4o",
         timeoutMs: 120000
@@ -68,8 +68,8 @@ function buildRequest(settings) {
             "Search as many times as you need (Google Hotels, Booking.com, Expedia, the hotels' own sites) to list the requested number of hotels. Do not stop after the first result.",
             context,
             "Reply with ONLY a JSON array, no prose and no code fences. Each element:",
-            `{"name": string, "address": string|null, "phone": string|null (international format), "nightlyPrice": number (a plain JSON number, no currency symbol; per night, taxes excluded unless only the taxed price is shown), "priceType": "quoted"|"from" ("quoted" only if you saw the rate for these exact dates, otherwise "from" for the lowest nightly rate the page shows), "totalPrice": number|null, "currency": string (ISO code of the prices; ${settings.currency} unless the request asks for another), "rating": number|null (out of 5), "url": string|null (page where you saw the price)}.`,
-            "Sort by nightlyPrice ascending. Only hotels inside the named city. Prefer a \"from\" rate over leaving a hotel out; omit a hotel only if you found no price for it at all. Never invent prices or phone numbers; use null when unknown."
+            `{"name": string, "address": string|null, "phone": string|null (international format), "nightlyPrice": number|null (a plain JSON number, no currency symbol; per night, taxes excluded unless only the taxed price is shown; null if no price is shown anywhere), "priceType": "quoted"|"from"|"none" ("quoted" only if you saw the rate for these exact dates, "from" for the lowest nightly rate a page shows, "none" when you found no price), "totalPrice": number|null, "currency": string (ISO code of the prices; ${settings.currency} unless the request asks for another), "rating": number|null (out of 5), "url": string|null (page where you saw the price)}.`,
+            "Sort by nightlyPrice ascending, hotels without a price last. Only hotels inside the named city. List every hotel you find, even without a price: never leave a hotel out because its price is unconfirmed (use a \"from\" rate if that is all you can see, or null with priceType \"none\"). Never invent prices or phone numbers; use null when unknown."
         ].filter(Boolean).join("\n"),
         llm_provider: settings.provider,
         model_name: settings.model,
@@ -104,11 +104,10 @@ function toNumber(value) {
     return match ? Number(match[0]) : NaN;
 }
 
-// Why a returned entry cannot be shown, or null when it can
+// Why a returned entry cannot be shown, or null when it can. A missing price is not a reason: hotels the
+// model could not price are kept (nightlyPrice null, priceType "none") so the caller can ring them anyway.
 function dropReason(raw) {
-    if (!raw?.name) return "no name";
-    const price = toNumber(raw.nightlyPrice);
-    return Number.isFinite(price) && price > 0 ? null : `no usable price (${JSON.stringify(raw.nightlyPrice)})`;
+    return raw?.name ? null : "no name";
 }
 
 function toHotel(raw, settings) {
@@ -116,17 +115,18 @@ function toHotel(raw, settings) {
         return null;
     }
     const nightlyPrice = toNumber(raw.nightlyPrice);
+    const priced = Number.isFinite(nightlyPrice) && nightlyPrice > 0;
     const total = toNumber(raw.totalPrice);
     return {
         name: String(raw.name).trim(),
         city: settings.city,
-        nightlyPrice: Math.round(nightlyPrice),
-        // "quoted" = the rate for these dates, "from" = the lowest nightly rate the page showed
-        priceType: raw.priceType === "from" ? "from" : "quoted",
+        nightlyPrice: priced ? Math.round(nightlyPrice) : null,
+        // "quoted" = the rate for these dates, "from" = the lowest nightly rate a page showed, "none" = no price found
+        priceType: !priced ? "none" : raw.priceType === "from" ? "from" : "quoted",
         // Free-text mode has no known night count, so only trust a total the model actually found
         totalPrice: Number.isFinite(total) && total > 0
             ? Math.round(total)
-            : settings.prompt ? null : Math.round(nightlyPrice * settings.nights),
+            : priced && !settings.prompt ? Math.round(nightlyPrice * settings.nights) : null,
         currency: raw.currency || settings.currency,
         rating: raw.rating ?? null,
         reviews: null,
@@ -165,7 +165,8 @@ async function search(options = {}) {
     const hotels = returned
         .map(raw => toHotel(raw, settings))
         .filter(Boolean)
-        .sort((a, b) => a.nightlyPrice - b.nightlyPrice)
+        // Priced hotels cheapest first, then the ones with no price (in the order the model gave them)
+        .sort((a, b) => (a.nightlyPrice ?? Infinity) - (b.nightlyPrice ?? Infinity) || 0)
         .slice(0, settings.count);
 
     // `returned` / `dropped` / `reply` say why a run gave few hotels: the model found few, or entries were unusable

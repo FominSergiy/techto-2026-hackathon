@@ -16,7 +16,9 @@ assert.match(request.content, /at or under 200 CAD/);
 // Fenced + prose-wrapped output still parses
 const fenced = 'Here you go:\n```json\n[{"name":"Hotel A","nightlyPrice":112.4,"phone":"+1 905-555-0100"},{"name":"Hotel B","nightlyPrice":"abc"},{"nightlyPrice":90}]\n```';
 const hotels = parseHotels(fenced).map(raw => toHotel(raw, settings)).filter(Boolean);
-assert.strictEqual(hotels.length, 1);
+// Hotel B has no usable price but is kept (unpriced), only the nameless entry is dropped
+assert.strictEqual(hotels.length, 2);
+assert.deepStrictEqual([hotels[1].name, hotels[1].nightlyPrice, hotels[1].totalPrice, hotels[1].priceType], ["Hotel B", null, null, "none"]);
 assert.deepStrictEqual([hotels[0].name, hotels[0].nightlyPrice, hotels[0].totalPrice, hotels[0].phone], ["Hotel A", 112, 225,"+1 905-555-0100"]);
 
 assert.throws(() => parseHotels("Sorry, no hotels found."), /no JSON array/);
@@ -36,11 +38,13 @@ assert.throws(() => parseHotels('[{"name": "A", nightlyPrice: oops}]'), /not val
 // Dropped entries say why, so a short list can be explained
 assert.strictEqual(dropReason({ name: "X", nightlyPrice: 100 }), null);
 assert.strictEqual(dropReason({ nightlyPrice: 100 }), "no name");
-assert.match(dropReason({ name: "X", nightlyPrice: "call for rates" }), /no usable price \("call for rates"\)/);
+assert.strictEqual(dropReason({ name: "X", nightlyPrice: "call for rates" }), null, "a missing price is never a reason to drop a hotel");
+assert.strictEqual(dropReason({ name: "X" }), null);
 
 // The system prompt must not tell the model to leave hotels out when unsure, and must ask for a plain number
 assert.doesNotMatch(buildRequest(settings).system_prompt, /If you cannot find a real price, omit the hotel/);
-assert.match(buildRequest(settings).system_prompt, /Prefer a "from" rate over leaving a hotel out/);
+assert.match(buildRequest(settings).system_prompt, /List every hotel you find, even without a price: never leave a hotel out because its price is unconfirmed/);
+assert.doesNotMatch(buildRequest(settings).system_prompt, /omit a hotel/);
 assert.match(buildRequest(settings).system_prompt, /plain JSON number/);
 
 // Free-text mode (the UI's Backboard box): the user's words go through untouched, no assumed nights or currency
@@ -66,10 +70,11 @@ global.fetch = async (url, options) => {
     return { ok: true, status: 200, json: async () => ({ status: "COMPLETED", content: reply, model_provider: "openai", model_name: "gpt-4o", input_tokens: 700, output_tokens: 120, thread_id: "t1" }) };
 };
 search({ prompt: "cheapest hotels in Montreal" }).then(found => {
-    assert.deepStrictEqual(found.map(hotel => [hotel.name, hotel.nightlyPrice]), [["Hotel Three", 95], ["Hotel One", 112], ["Hotel Two", 139]]);
+    assert.deepStrictEqual(found.map(hotel => [hotel.name, hotel.nightlyPrice]), [["Hotel Three", 95], ["Hotel One", 112], ["Hotel Two", 139], ["Hotel Four", null]]);
     assert.strictEqual(sent.content, "cheapest hotels in Montreal");
     assert.strictEqual(search.lastRun.returned, 4);
-    assert.deepStrictEqual(search.lastRun.dropped, [{ name: "Hotel Four", reason: 'no usable price ("call for rates")' }]);
+    assert.deepStrictEqual(found[3].priceType, "none");
+    assert.deepStrictEqual(search.lastRun.dropped, [], "an unpriced hotel is kept, not dropped");
     assert.match(search.lastRun.reply, /Hotel Three/);
     console.log("backboard_search: all tests passed");
 });
