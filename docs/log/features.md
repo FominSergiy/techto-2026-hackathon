@@ -19,6 +19,15 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Alex: backchannels don't interrupt; read back once
+tags: feature, elevenlabs, call-handling
+- Feature: 16 backchannel terms ("yeah", "okay", "mm-hmm", "uh-huh", "sure"…) set as `turn.interruption_ignore_terms`, plus ElevenLabs' English defaults (`merge_with_default_ignore_terms`). Prompt now says: read back exactly once, never start over, repeat only a corrected item, never re-ask for a detail already given.
+- Status: wip. On the `repo-sync` branch only; not merged to Main, no test call yet.
+- Notes:
+  - **Where this came from:** test calls `conv_5501…` and `conv_4501…` on the old config. The receptionist's "yeah" kept cutting the agent off mid-sentence, and it then restarted the read-back 2–3 times, wasting about 10–20 s per call.
+  - **Why not "yes"/"no":** left out because they can be real answers.
+  - **Not fixed here:** dates were spoken as "2026-10-17". Our service should pass human-readable dates (e.g. "October 17") in the dynamic variables.
+
 ## 2026-10-17 — Agent config in repo (Alex)
 tags: feature, elevenlabs, telephony, call-handling
 - Feature: Alex's config is pulled into `agent_configs/Alex.json` and fixed against the spec and architecture-plan:
