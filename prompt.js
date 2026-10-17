@@ -1,7 +1,8 @@
 // Turns the free-text prompt into search.js CLI arguments (settings overrides), e.g.
 //   "cheapest hotel in Paris, FR, Nov 20 to Nov 22 2026 for 2 adults under 200 EUR"
 //   -> ["--city=Paris", "--country-code=FR", "--check-in=2026-11-20", ...]
-// Uses Claude when ANTHROPIC_API_KEY is set, otherwise a small regex parser. Raw --flags always work.
+// Uses Claude Haiku when ANTHROPIC_API_KEY is set, else Backboard's cheap model (BACKBOARD_API_KEY), else a
+// small regex parser that misses typos and relative dates. Raw --flags always work.
 try {
     process.loadEnvFile();
 } catch {
@@ -35,6 +36,22 @@ function toArgs(settings) {
         .map(([key, value]) => `--${toFlag(key)}=${Array.isArray(value) ? value.join(",") : value}`);
 }
 
+// Backboard's cheap model, used when there is no Anthropic key (same BACKBOARD_API_KEY as the search source)
+const BACKBOARD_URL = "https://app.backboard.io/api";
+const backboardModel = () => ({
+    provider: process.env.BACKBOARD_PARSER_PROVIDER || "openai",
+    name: process.env.BACKBOARD_PARSER_MODEL || "gpt-4o-mini"
+});
+
+// Fixes typos ("monteral"), resolves relative dates ("tomorrow", "this Friday") against today, drops filler words
+const systemPrompt = () => `Extract hotel search settings from the user's request. Fix obvious typos in place names, resolve relative dates such as "today", "tomorrow" or "Friday" against today's date, and turn "1 person" into adults. Reply with only a JSON object using any of these keys (omit what the user did not say): ${JSON.stringify(SETTING_KEYS)}. Today is ${new Date().toISOString().slice(0, 10)}.`;
+
+const extractJson = text => {
+    const json = text?.match(/\{[\s\S]*\}/)?.[0];
+    if (!json) throw new Error(`no JSON in the reply: ${String(text).slice(0, 120)}`);
+    return JSON.parse(json);
+};
+
 async function parseWithClaude(prompt) {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
@@ -42,16 +59,44 @@ async function parseWithClaude(prompt) {
         body: JSON.stringify({
             model: MODEL,
             max_tokens: 400,
-            system: `Extract hotel search settings from the user's request. Reply with only a JSON object using any of these keys (omit what the user did not say): ${JSON.stringify(SETTING_KEYS)}. Today is ${new Date().toISOString().slice(0, 10)}.`,
+            system: systemPrompt(),
             messages: [{ role: "user", content: prompt }]
         })
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error?.message || response.status);
 
-    const json = data.content[0].text.match(/\{[\s\S]*\}/)?.[0];
-    return { settings: JSON.parse(json), usage: data.usage };
+    return { settings: extractJson(data.content[0].text), usage: data.usage };
 }
+
+async function parseWithBackboard(prompt) {
+    const model = backboardModel();
+    const response = await fetch(`${BACKBOARD_URL}/threads/messages`, {
+        method: "POST",
+        headers: { "X-API-Key": process.env.BACKBOARD_API_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({
+            content: prompt,
+            system_prompt: systemPrompt(),
+            llm_provider: model.provider,
+            model_name: model.name,
+            web_search: "off",
+            memory: "off",
+            stream: false,
+            send_to_llm: "true"
+        })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(JSON.stringify(data.detail || data.message || response.status).slice(0, 200));
+    if (data.status && data.status !== "COMPLETED") throw new Error(`run ${data.status}`);
+
+    return { settings: extractJson(data.content), usage: { input_tokens: data.input_tokens ?? 0, output_tokens: data.output_tokens ?? 0 } };
+}
+
+// Tried in order; the first one whose key is set and that answers wins, regex is the last resort
+const LLM_PARSERS = [
+    { name: "Claude", envKey: "ANTHROPIC_API_KEY", parse: parseWithClaude, label: () => MODEL },
+    { name: "Backboard", envKey: "BACKBOARD_API_KEY", parse: parseWithBackboard, label: () => `backboard/${backboardModel().name}` }
+];
 
 function parseWithRegex(prompt) {
     const settings = {};
@@ -94,13 +139,20 @@ async function parsePrompt(prompt, { offline = false, literal = false } = {}) {
     let parsed;
     let parser = "regex";
     let usage = null;
-    if (process.env.ANTHROPIC_API_KEY && !offline) {
+    const reasons = [];
+    for (const llm of offline ? [] : LLM_PARSERS) {
+        if (!process.env[llm.envKey]) continue;
         try {
-            ({ settings: parsed, usage } = await parseWithClaude(text));
-            parser = MODEL;
+            ({ settings: parsed, usage } = await llm.parse(text));
+            parser = llm.label();
+            break;
         } catch (error) {
-            console.error(`Claude prompt parsing failed (${error.message}), using regex`);
+            reasons.push(`${llm.name} failed: ${error.message}`);
+            console.error(`${llm.name} prompt parsing failed (${error.message})`);
         }
+    }
+    if (!parsed && !offline && !reasons.length) {
+        reasons.push("no ANTHROPIC_API_KEY or BACKBOARD_API_KEY is set");
     }
     parsed ||= parseWithRegex(text);
 
@@ -112,7 +164,8 @@ async function parsePrompt(prompt, { offline = false, literal = false } = {}) {
 
     const flagKeys = new Set(flags.map(flag => flag.slice(2).split("=")[0]));
     const args = [...toArgs(parsed).filter(arg => !flagKeys.has(arg.slice(2).split("=")[0])), ...flags];
-    return { args, parser, usage };
+    // Why the regex fallback was used (null when an LLM parsed it, or in offline/DEMO mode)
+    return { args, parser, usage, fallbackReason: parser === "regex" && reasons.length ? reasons.join("; ") : null };
 }
 
 module.exports = { parsePrompt };

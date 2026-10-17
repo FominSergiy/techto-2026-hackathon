@@ -132,9 +132,12 @@ async function refine(prompt, target = "search", { offline = false } = {}) {
         throw new Error(`unknown target "${target}"`);
     }
 
-    const { args, parser, usage } = await parsePrompt(prompt, { offline });
+    const { args, parser, usage, fallbackReason } = await parsePrompt(prompt, { offline });
     const said = argsToSettings(args);
     const { settings, assumed, warnings } = resolve(said);
+    if (fallbackReason) {
+        warnings.unshift(`Rewritten by the regex fallback (${fallbackReason}). It misses typos and words like "tomorrow", so check the city and dates below.`);
+    }
 
     // Backboard ignores the rating/review minimums and asks for fewer hotels, so don't list those as assumptions
     const notes = target === "search"

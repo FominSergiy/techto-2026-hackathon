@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Prompt rewriting uses a cheap LLM: Haiku, else Backboard gpt-4o-mini, else regex
+tags: decision, prompt, llm, cost
+- Decision: `parsePrompt` tries Claude Haiku (`ANTHROPIC_API_KEY`), then Backboard's `gpt-4o-mini` (`BACKBOARD_API_KEY`, no web search, no memory), then the regex parser. The LLM only extracts settings as JSON (fixes typos, resolves "today"/"tomorrow"); the review prompt and `--flags` are still built by code. When regex was used the review panel shows a warning with the reason.
+- Why: The regex fallback ran silently when no Anthropic key was set (the case on this machine) and turned "monteral ... today 17th october ... tomorrow 18th october" into the default city and next Saturday. A small model costs a few hundred tokens per review and the Backboard key is already needed for the Backboard source.
+- Alternatives: Having the LLM write the whole prompt and flags (cannot be tested or trusted to emit exact flags). A bigger model (more tokens for a parsing job). Improving the regex (will never cover typos).
+
 ## 2026-10-17 — City comes from the prompt, region always Ontario
 tags: decision, ui, prompt, search
 - Decision: Supersedes "The place is fixed". The review step (`prompt_refine.js`) takes the city from the request, and uses `settings.js`'s `city` only when the request names none (listed under "Filled in"). The region is always Ontario and the country always CA: a different region or country in the request is ignored with a warning in the review panel.
