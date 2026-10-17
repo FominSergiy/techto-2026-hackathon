@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — City comes from the prompt, region always Ontario
+tags: decision, ui, prompt, search
+- Decision: Supersedes "The place is fixed". The review step (`prompt_refine.js`) takes the city from the request, and uses `settings.js`'s `city` only when the request names none (listed under "Filled in"). The region is always Ontario and the country always CA: a different region or country in the request is ignored with a warning in the review panel.
+- Why: The city is the one thing that changes between runs, so it must be typed. Only the region is constant, and forcing it removes the wrong-province failure (Aurora, IL, or Paris, France) without a second input.
+- Alternatives: City fixed in `settings.js` (tried first, needs an edit per city). Letting the request set the region too (previous behaviour).
+
 ## 2026-10-17 — The place is fixed: city from settings.js, region always Ontario
 tags: decision, ui, prompt, search
 - Decision: The review step (`prompt_refine.js`) ignores any city, region or country in the request. The city is `settings.js`'s `city` (City X, edited once it is revealed), the region is always Ontario and the country is `settings.countryCode`. If the request names another place, the review panel warns that it was ignored.

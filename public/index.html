@@ -52,7 +52,7 @@
 
     <div class="card">
         <div id="sources" class="sources muted">Loading sources…</div>
-        <textarea id="prompt" placeholder="e.g. Cheapest hotel from 2026-11-20 to 2026-11-22 for 2 adults under 250 CAD (the city is fixed in settings.js, region Ontario)"></textarea>
+        <textarea id="prompt" placeholder="e.g. Cheapest hotels in Aurora from 2026-11-20 to 2026-11-22 for 2 adults under 250 CAD (the region is always Ontario)"></textarea>
         <div class="bar">
             <button id="run">Review prompt</button>
             <span id="status" class="muted">Ctrl/Cmd+Enter to review. You see the full prompt before anything runs. Tick the APIs to use above.</span>
@@ -64,7 +64,7 @@
 
     <div class="card">
         <h2>Backboard (web search)</h2>
-        <textarea id="bbPrompt" placeholder="e.g. Cheapest hotels for 2026-11-20, 1 night, 2 adults, under 250 CAD, with phone numbers (same fixed city and Ontario)"></textarea>
+        <textarea id="bbPrompt" placeholder="e.g. Cheapest hotels in Aurora for 2026-11-20, 1 night, 2 adults, under 250 CAD, with phone numbers (the region is always Ontario)"></textarea>
         <div class="bar">
             <button id="bbRun">Review prompt</button>
             <span id="bbStatus" class="muted">Separate from the search above: a web-search model answers directly. Prices are hints, not API rates. Ctrl/Cmd+Enter to review.</span>

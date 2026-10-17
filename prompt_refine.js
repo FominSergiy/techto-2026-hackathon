@@ -3,8 +3,8 @@
 //   target "search"    -> sentence + --flags for the price APIs (prompt.js reads the flags as-is, no second parse)
 //   target "backboard" -> the full sentence the web-search model gets: city/region/country, dates, guests,
 //                         currency, and a request for phone numbers, addresses and the page behind each price
-// The place (city, region, country) is fixed, never read from the request. Everything else the request leaves
-// out is filled from hotel_search/settings.js and listed in `assumed`.
+// The city is read from the request; the region is always Ontario (country Canada). Everything else the
+// request leaves out is filled from hotel_search/settings.js and listed in `assumed`.
 const { parsePrompt } = require("./prompt");
 const defaults = require("./hotel_search/settings");
 
@@ -52,21 +52,20 @@ function resolve(parsed) {
         assumed.push(`${label}: ${show(defaults[key])} (default)`);
     };
 
-    // The place is never taken from the request: the city is whatever hotel_search/settings.js says
-    // (City X, set when it is revealed) and the region is always Ontario. Say so if the request named another place.
+    // The city comes from the request (settings.js's city only when the request names none).
+    // The region is always Ontario and the country Canada, so say so if the request named another one.
     const differs = (said, fixed) => said != null && String(said).toLowerCase() !== String(fixed).toLowerCase();
     const ignored = [
-        differs(parsed.city, defaults.city) && parsed.city,
         differs(parsed.region, REGION) && parsed.region,
         differs(parsed.countryCode, defaults.countryCode) && parsed.countryCode
     ].filter(Boolean);
     if (ignored.length) {
-        warnings.push(`The place is fixed to ${defaults.city}, ${REGION}, ${defaults.countryCode}, so "${ignored.join(", ")}" from the request was ignored. The city comes from hotel_search/settings.js.`);
+        warnings.push(`The region is fixed to ${REGION}, ${defaults.countryCode}, so "${ignored.join(", ")}" from the request was ignored.`);
     }
-    settings.city = defaults.city;
+    fill("city", "city");
     settings.region = REGION;
     settings.countryCode = defaults.countryCode;
-    assumed.push(`place: ${defaults.city}, ${REGION}, ${defaults.countryCode} (fixed)`);
+    assumed.push(`region: ${REGION}, ${defaults.countryCode} (fixed)`);
 
     if (!settings.checkIn) {
         settings.checkIn = defaults.checkIn;
