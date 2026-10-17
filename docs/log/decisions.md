@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — On-device models for price extraction (Ollama qwen2.5vl:3b + tesseract)
+tags: decision, search, pricing, llm
+- Decision: Extract prices from Places photos and hotel websites with local models: tesseract OCR as a prefilter, then `qwen2.5vl:3b` via Ollama with a JSON schema. Websites are fetched with plain HTTP (no browser).
+- Why: Zero cloud-token cost (cost is judged) and spec bans browser automation. OCR prefilter cuts per-hotel time from ~130s to ~5s.
+- Alternatives: Cloud VLM (costs tokens); Playwright scraping (banned by rules).
+
 ## 2026-10-17 — Docs live in docs/, AGENTS.md is the canonical agent guide
 tags: decision, docs, process
 - Decision: All project docs go under `docs/` with YAML frontmatter. `AGENTS.md` is the single agent guide, and `CLAUDE.md` just imports it.
