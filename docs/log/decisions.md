@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — The place is fixed: city from settings.js, region always Ontario
+tags: decision, ui, prompt, search
+- Decision: The review step (`prompt_refine.js`) ignores any city, region or country in the request. The city is `settings.js`'s `city` (City X, edited once it is revealed), the region is always Ontario and the country is `settings.countryCode`. If the request names another place, the review panel warns that it was ignored.
+- Why: The task is one known city, and a place parsed from loose text (or guessed by Haiku) was the main way a run could search the wrong city (Aurora, IL, or a default region with the wrong city). The place is not a per-run input.
+- Alternatives: Still reading the city from the prompt (the previous behaviour, wrong city is easy). A `--city` flag override (only the `search.js` CLI keeps that, the UI does not).
+
 ## 2026-10-17 — Two-step prompts: review the rewritten prompt, then run it
 tags: decision, ui, prompt
 - Decision: Both UI boxes first call `POST /api/refine` (`prompt_refine.js`), which rewrites the rough request into the full explicit prompt and shows it in an editable box with the assumptions it made. A second click runs exactly that text. For the price APIs the reviewed prompt carries every setting as a `--flag`, so `parsePrompt(..., { literal: true })` uses them as-is and doesn't spend a second Haiku call. For Backboard it is a full sentence asking for city/region/country, dates, guests, currency, phone, address and the page behind each price.

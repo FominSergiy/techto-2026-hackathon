@@ -3,7 +3,8 @@
 //   target "search"    -> sentence + --flags for the price APIs (prompt.js reads the flags as-is, no second parse)
 //   target "backboard" -> the full sentence the web-search model gets: city/region/country, dates, guests,
 //                         currency, and a request for phone numbers, addresses and the page behind each price
-// Anything the request leaves out is filled from hotel_search/settings.js and listed in `assumed`.
+// The place (city, region, country) is fixed, never read from the request. Everything else the request leaves
+// out is filled from hotel_search/settings.js and listed in `assumed`.
 const { parsePrompt } = require("./prompt");
 const defaults = require("./hotel_search/settings");
 
@@ -15,6 +16,7 @@ const NUMBERS = new Set(["adults", "nights", "maxNightlyPrice", "minRating", "mi
 // The settings that end up as --flags in the search prompt. Sources and Places come from the checkboxes.
 const FLAG_KEYS = ["city", "region", "countryCode", "checkIn", "checkOut", "adults", "currency", "maxNightlyPrice", "minRating", "minReviews", "targetCount"];
 const BACKBOARD_COUNT = 10;
+const REGION = "Ontario";
 
 // ["--check-in=2026-11-20", "--min-rating=null"] -> { checkIn: "2026-11-20", minRating: null }
 function argsToSettings(args) {
@@ -50,21 +52,21 @@ function resolve(parsed) {
         assumed.push(`${label}: ${show(defaults[key])} (default)`);
     };
 
-    fill("city", "city");
-    const otherCity = settings.city.toLowerCase() !== defaults.city.toLowerCase();
-    if (settings.region === undefined) {
-        settings.region = otherCity ? null : defaults.region;
-        if (!otherCity) assumed.push(`region: ${defaults.region} (default)`);
+    // The place is never taken from the request: the city is whatever hotel_search/settings.js says
+    // (City X, set when it is revealed) and the region is always Ontario. Say so if the request named another place.
+    const differs = (said, fixed) => said != null && String(said).toLowerCase() !== String(fixed).toLowerCase();
+    const ignored = [
+        differs(parsed.city, defaults.city) && parsed.city,
+        differs(parsed.region, REGION) && parsed.region,
+        differs(parsed.countryCode, defaults.countryCode) && parsed.countryCode
+    ].filter(Boolean);
+    if (ignored.length) {
+        warnings.push(`The place is fixed to ${defaults.city}, ${REGION}, ${defaults.countryCode}, so "${ignored.join(", ")}" from the request was ignored. The city comes from hotel_search/settings.js.`);
     }
-    if (settings.countryCode === undefined) {
-        if (otherCity) {
-            delete settings.countryCode;
-            warnings.push(`No country given for ${settings.city}, so the search will assume ${defaults.countryCode}. Add it (e.g. "${settings.city}, FR") if that is wrong.`);
-        } else {
-            settings.countryCode = defaults.countryCode;
-            assumed.push(`country: ${defaults.countryCode} (default)`);
-        }
-    }
+    settings.city = defaults.city;
+    settings.region = REGION;
+    settings.countryCode = defaults.countryCode;
+    assumed.push(`place: ${defaults.city}, ${REGION}, ${defaults.countryCode} (fixed)`);
 
     if (!settings.checkIn) {
         settings.checkIn = defaults.checkIn;

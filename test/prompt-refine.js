@@ -8,12 +8,15 @@ const { parsePrompt } = require("../prompt");
     const rough = "cheapest hotel in Paris, FR under 200 EUR for 2 adults 2026-11-20 to 2026-11-22";
     const search = await refine(rough, "search", { offline: true });
     const [sentence, flags] = search.prompt.split("\n");
-    assert.match(sentence, /^Cheapest hotels in Paris, FR, check-in 2026-11-20, check-out 2026-11-22, 2 adults, under 200 EUR/);
-    for (const flag of ["--city=Paris", "--country-code=FR", "--check-in=2026-11-20", "--check-out=2026-11-22", "--adults=2", "--currency=EUR", "--max-nightly-price=200", "--region=null"]) {
+    // The place is never read from the request: Paris/FR is ignored, the city comes from settings.js and the region is Ontario
+    assert.match(sentence, /^Cheapest hotels in Aurora, Ontario, CA, check-in 2026-11-20, check-out 2026-11-22, 2 adults, under 200 EUR/);
+    for (const flag of ["--city=Aurora", "--region=Ontario", "--country-code=CA", "--check-in=2026-11-20", "--check-out=2026-11-22", "--adults=2", "--currency=EUR", "--max-nightly-price=200"]) {
         assert.ok(flags.includes(flag), `missing ${flag} in: ${flags}`);
     }
     assert.ok(search.assumed.some(note => note.startsWith("min rating")), "defaults must be listed as assumed");
-    assert.deepStrictEqual(search.warnings, []);
+    assert.strictEqual(search.warnings.length, 1);
+    assert.match(search.warnings[0], /fixed to Aurora, Ontario, CA, so "Paris, FR" from the request was ignored/);
+    assert.ok(search.assumed.includes("place: Aurora, Ontario, CA (fixed)"));
 
     // The reviewed prompt runs literally: same flags back, no second parse, values with spaces survive quoting
     const literal = await parsePrompt(search.prompt, { literal: true });
@@ -30,13 +33,14 @@ const { parsePrompt } = require("../prompt");
     assert.ok(bare.assumed.some(note => /^check-in: .* \(next Saturday\)$/.test(note)));
 
     // A different city with no country is flagged instead of silently getting the default country
-    const noCountry = resolve({ city: "Paris" });
-    assert.strictEqual(noCountry.settings.countryCode, undefined);
-    assert.match(noCountry.warnings[0], /No country given for Paris/);
+    const other = resolve({ city: "Aurora", region: "Illinois", countryCode: "US" });
+    assert.deepStrictEqual([other.settings.city, other.settings.region, other.settings.countryCode], ["Aurora", "Ontario", "CA"]);
+    assert.match(other.warnings[0], /"Illinois, US" from the request was ignored/);
+    assert.deepStrictEqual(resolve({ city: "aurora", region: "ontario" }).warnings, [], "the fixed place itself must not warn");
 
     // Backboard gets the full sentence: inside the city, country name, dates, and a request for phones/address/source page
     const backboard = await refine(rough, "backboard", { offline: true });
-    assert.match(backboard.prompt, /cheapest hotels inside the city of Paris, France, for check-in 2026-11-20 and check-out 2026-11-22, 2 adults\./);
+    assert.match(backboard.prompt, /cheapest hotels inside the city of Aurora, Ontario, Canada, for check-in 2026-11-20 and check-out 2026-11-22, 2 adults\./);
     assert.match(backboard.prompt, /Prices in EUR, under 200 per night\./);
     assert.match(backboard.prompt, /phone number, street address, and the page where you saw the price/);
     assert.doesNotMatch(backboard.prompt, /rated|reviews/, "default rating/review minimums must not go to Backboard");
