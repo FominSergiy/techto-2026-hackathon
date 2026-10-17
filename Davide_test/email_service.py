@@ -12,10 +12,12 @@ Usage:
   python email_service.py --send payload.json  # send a real receipt; "-" reads JSON from stdin
                                                # prints the result as JSON; exit 1 + error JSON on failure
 
-Call recording: if the payload has a `conversation_id`, the ElevenLabs recording (mp3) is attached.
-It never blocks the receipt: if the audio can't be fetched (or the send with it fails), the email goes without it.
+Call recording + transcript: if the payload has a `conversation_id`, the ElevenLabs recording (mp3) is attached
+and the transcript goes at the end of the body. Neither blocks the receipt: if one can't be fetched (or the send
+with the mp3 fails), the email goes without it.
 """
 import os, re, sys, json, time, base64, smtplib, datetime as dt, requests
+from concurrent.futures import ThreadPoolExecutor
 from email.message import EmailMessage
 from email.utils import make_msgid
 from dotenv import load_dotenv
@@ -48,9 +50,10 @@ def fmt_price(p):
     return str(p) if p else None
 
 
-def build(res, audio_name=None):
+def build(res, audio_name=None, transcript=None):
     """Returns (subject, body). Raises ValueError if a field the spec requires is missing.
-    audio_name: filename of the attached call recording (None = not attached)."""
+    audio_name: filename of the attached call recording (None = not attached).
+    transcript: call transcript text, added after the team footer."""
     fields = {"Reservation #": confirmation_field(res), "Price": fmt_price(res.get("price")),
               "Reservation Date": res.get("date"), "Address": res.get("address")}
     missing = [k for k, v in fields.items() if not v]
@@ -67,6 +70,10 @@ def build(res, audio_name=None):
     elif res.get("conversation_id"):
         lines.append(f"Call recording: unavailable (ElevenLabs conversation {res['conversation_id']})")
     lines += ["", f"Team members: Team {E.get('TEAM_NUMBER') or 4}", *TEAM_MEMBERS]
+    if transcript:
+        lines += ["", "Call transcript:", transcript]
+    elif res.get("conversation_id"):
+        lines += ["", "Call transcript: unavailable"]
     subject = f"Team # {E.get('TEAM_NUMBER', '?')} - Hotel Reservation Confirmed!"
     return subject, "\n".join(lines) + "\n"
 
@@ -89,11 +96,25 @@ def fetch_call_audio(cid):
     return None
 
 
+def fetch_transcript(cid):
+    """ElevenLabs call transcript as text, one "[m:ss] Alex|Hotel: ..." line per spoken turn, or None."""
+    r = requests.get(f"https://api.elevenlabs.io/v1/convai/conversations/{cid}", timeout=float(E.get("AUDIO_MAX_WAIT", 10)),
+                     headers={"xi-api-key": E["ELEVENLABS_API_KEY"]})
+    r.raise_for_status()
+    lines = []
+    for turn in r.json().get("transcript") or []:
+        msg = (turn.get("message") or "").strip()
+        if not msg:  # tool calls have no spoken text
+            continue
+        secs = int(turn.get("time_in_call_secs") or 0)
+        who = "Alex" if turn.get("role") == "agent" else "Hotel"
+        lines.append(f"[{secs // 60}:{secs % 60:02d}] {who}: {msg}")
+    return "\n".join(lines) or None
+
+
 def call_audio(res):
     """[(filename, bytes)] for the payload's conversation_id, [] if none or on any failure."""
     cid = res.get("conversation_id")
-    if not cid:
-        return []
     try:
         data = fetch_call_audio(cid)
     except Exception as e:
@@ -104,6 +125,28 @@ def call_audio(res):
         return []
     slug = re.sub(r"[^a-z0-9]+", "-", (res.get("hotel") or "hotel").lower()).strip("-")
     return [(f"call-{slug}-{cid}.mp3", data)]
+
+
+def call_transcript(res):
+    """Transcript text for the payload's conversation_id, None on any failure."""
+    cid = res.get("conversation_id")
+    try:
+        text = fetch_transcript(cid)
+    except Exception as e:
+        print(f"call transcript not added ({cid}): {e}", file=sys.stderr)
+        return None
+    if not text:
+        print(f"call transcript not added ({cid}): empty", file=sys.stderr)
+    return text
+
+
+def call_extras(res):
+    """(files, transcript) for the payload's conversation_id, both fetched in parallel. ([], None) if none."""
+    if not res.get("conversation_id"):
+        return [], None
+    with ThreadPoolExecutor(2) as ex:
+        audio, text = ex.submit(call_audio, res), ex.submit(call_transcript, res)
+        return audio.result(), text.result()
 
 
 def _send_smtp(to, subject, body, attachments=()):
@@ -143,21 +186,21 @@ def provider():
 
 
 def send_confirmation(res, to=None, attempts=2):
-    """Validate, build and send the receipt (with the call recording when it can be fetched).
-    Returns {provider, id, to, ms, audio, audio_ms}; raises on final failure."""
+    """Validate, build and send the receipt (with the call recording and transcript when they can be fetched).
+    Returns {provider, id, to, ms, audio, transcript, extras_ms}; raises on final failure."""
     to = to or E["RESULT_EMAIL"]
-    build(res)  # validate the required fields before spending time on the audio
+    build(res)  # validate the required fields before spending time on the recording
     t = time.time()
-    files = call_audio(res)
-    audio_ms = int((time.time() - t) * 1000)
+    files, transcript = call_extras(res)
+    extras_ms = int((time.time() - t) * 1000)
     name, t = provider(), time.time()
     tries = 0
     while True:
-        subject, body = build(res, files[0][0] if files else None)
+        subject, body = build(res, files[0][0] if files else None, transcript)
         try:
             msg_id = SENDERS[name](to, subject, body, files)
             return {"provider": name, "id": msg_id, "to": to, "ms": int((time.time() - t) * 1000),
-                    "audio": files[0][0] if files else None, "audio_ms": audio_ms}
+                    "audio": files[0][0] if files else None, "transcript": bool(transcript), "extras_ms": extras_ms}
         except Exception as e:
             if files:  # the receipt matters more than the recording: retry without it (doesn't use up a try)
                 print(f"send with recording failed, retrying without it: {e}", file=sys.stderr)
