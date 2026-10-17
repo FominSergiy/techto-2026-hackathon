@@ -13,7 +13,7 @@ Search order: 1) OUTPUT_DIR/hotels-<city>-<date>.json saved by search.js (defaul
 2) runs the teammate's Node scraper (search.js, found in SCRAPER_DIR, this folder or its parent);
 if it is missing or fails, falls back to the built-in SearchAPI + Google Places search below.
 """
-import os, re, sys, json, time, shlex, smtplib, subprocess, datetime as dt, requests
+import os, re, sys, json, time, shlex, smtplib, subprocess, threading, datetime as dt, requests
 from email.message import EmailMessage
 from concurrent.futures import ThreadPoolExecutor, as_completed, wait, FIRST_COMPLETED
 from dotenv import load_dotenv
@@ -22,7 +22,7 @@ from email_service import build, send_confirmation
 load_dotenv(override=True)  # the .env file wins over variables already set in the shell
 E = os.environ
 N_CALLS = int(E.get("N_CALLS", 3))  # calls running at the same time
-WANT = int(E.get("WANT_PRICES", 3))  # keep dialing new hotels until this many conversations gave a price
+WANT = int(E.get("WANT_BOOKINGS", 3))  # keep dialing new hotels until this many calls have booked
 CALL_TIMEOUT = int(E.get("CALL_TIMEOUT", 300))  # seconds per call
 OUTPUT_DIR = E.get("OUTPUT_DIR") or r"D:\techTO hackaton\techto-2026-hackathon\output"  # where search.js saves hotels-<city>-<date>.json
 T0 = time.time()
@@ -214,7 +214,9 @@ TEST = ["+" + (d if len(d) > 10 else "1" + d)
         for d in (re.sub(r"\D", "", x) for x in E.get("TEST_NUMBER", "").split(",")) if len(d) >= 10]
 
 
-TEST = to_number({"phone": None})  # the TEST_NUMBER every call dials, None = real hotel phones
+def to_number(h, i=0):
+    """The number to dial for hotel i: a test number when TEST_NUMBER is set, else the hotel's own phone."""
+    return TEST[i % len(TEST)] if TEST else h["phone"]
 
 
 def call_hotel(h, q, i=0):
@@ -244,6 +246,29 @@ def call_hotel(h, q, i=0):
     return result_from(c, h, q)
 
 
+# The calls ringing or talking right now, written to live.json whenever one starts or ends (the web page shows them)
+LIVE = {}
+LIVE_LOCK = threading.Lock()
+
+
+def save_live():
+    """Call with LIVE_LOCK held. Written to a temp file first so a reader never sees half a file."""
+    json.dump(list(LIVE.values()), open("live.json.tmp", "w"), ensure_ascii=False)
+    os.replace("live.json.tmp", "live.json")
+
+
+def tracked_call(h, q, i):
+    with LIVE_LOCK:
+        LIVE[h["phone"]] = {"phone": h["phone"], "hotel": h["name"], "since": time.time()}
+        save_live()
+    try:
+        return call_hotel(h, q, i)
+    finally:
+        with LIVE_LOCK:
+            LIVE.pop(h["phone"], None)
+            save_live()
+
+
 VERBAL = ("verbal_booking", "verbal_availability")
 
 
@@ -256,29 +281,20 @@ def result_from(c, h, q):
     if not booked and not d.get("price"):
         raise RuntimeError(f"{h['name']}: no price, no reservation ({c.get('status')})")
     start = (c.get("metadata") or {}).get("start_time_unix_secs") or time.time()
-    return {"status": "booked", "conversation_id": c.get("conversation_id"),  # id -> call recording in the email
+    return {"status": "booked" if booked else "priced",
+            "conversation_id": c.get("conversation_id"),  # id -> call recording in the email
             "hotel": d.get("hotel_name") or h["name"], "address": d.get("hotel_address") or h["address"],
             "phone": h["phone"], "number": d.get("reservation_number"),
             "type": d.get("confirmation_type"), "receptionist": d.get("receptionist_name"),
             "call_time": dt.datetime.fromtimestamp(start).strftime("%Y-%m-%d %H:%M"),
             "price": d.get("price") or h["price"], "call_price": d.get("price"), "google_price": h["price"],
-            "date": q["check_in"], "check_out": q["check_out"], "status": "booked" if booked else "priced",
-            "conversation_id": c.get("conversation_id")}
+            "date": q["check_in"], "check_out": q["check_out"]}
 
 
 # ---------- 4. Email ----------
 def send_email(res, to=None, dry=False):
-    """The receipt for one booking, through email_service. dry=True prints it instead of sending."""
-    res = {**res, "price": res.get("price") or res.get("google_price")}  # the call may not have captured a price
-    if dry:
-        subject, body = build(res)
-        print(f"to: {to or E.get('RESULT_EMAIL')}\nsubject: {subject}\n\n{body}")
-        return
-    send_confirmation(res, to=to)
-
-
-def send_email(res, to=None, dry=False):
     """Receipt via email_service (attaches the call recording when res has a conversation_id)."""
+    res = {**res, "price": res.get("price") or res.get("google_price")}  # the call may not have captured a price
     if dry:
         subject, body = build(res)
         print(f"to: {to or E.get('RESULT_EMAIL')}\nsubject: {subject}\n"
@@ -352,8 +368,8 @@ def main():
     strategy = E.get("STRATEGY", "cheapest")  # cheapest = wait all calls, pick lowest price | first = stop at first booking
     log("strategy", strategy=strategy)
     # Call pool: at most N_CALLS calls at once, the next hotel in the list is dialed as soon as a call ends, until WANT
-    # conversations have given a price (the hotel said it on the call, not the search price) or the list runs out
-    log("pool", at_once=N_CALLS, want_prices=WANT, hotels=len(hotels))
+    # calls have booked (reservation number, or a verbal confirmation with a price) or the list runs out
+    log("pool", at_once=N_CALLS, want_bookings=WANT, hotels=len(hotels))
     ex = ThreadPoolExecutor(N_CALLS)
     queue = list(enumerate(hotels))
     futs = {}
@@ -362,11 +378,14 @@ def main():
     def dial_more():
         while queue and len(futs) < N_CALLS:
             i, h = queue.pop(0)
-            futs[ex.submit(call_hotel, h, q, i)] = h
+            futs[ex.submit(tracked_call, h, q, i)] = h
 
     def stop_calls():
         for sid in list(ACTIVE.values()):  # stop the other calls: saves minutes + tokens
             hang_up(sid)
+        with LIVE_LOCK:
+            LIVE.clear()
+            save_live()
         for hh in futs.values():
             results.append({"hotel": hh["name"], "phone": hh["phone"], "status": "cancelled"})
 
@@ -384,9 +403,10 @@ def main():
             results.append(res)
             log(res["status"].upper(), hotel=res["hotel"], number=res.get("number"), price=res.get("call_price"))
             stop = stop or (strategy == "first" and res["status"] == "booked")
-        priced = sum(1 for r in results if r.get("call_price"))
-        if stop or priced >= WANT:
-            log("enough results, stopping", priced=priced)
+        booked_so_far = sum(1 for r in results if r["status"] == "booked")
+        # strategy "first": the first booking wins; otherwise stop at WANT bookings. Either way the calls still running are hung up
+        if stop or booked_so_far >= WANT:
+            log("enough bookings, hanging up the rest", booked=booked_so_far, still_running=len(futs))
             stop_calls()
             break
         dial_more()

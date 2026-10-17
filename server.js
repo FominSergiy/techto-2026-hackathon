@@ -244,8 +244,8 @@ async function handleReservation(request, response) {
         let job = null;
         if (callList.length) {
             job = startCalls(prompt.trim(), callList);
-            if (callList.length < WANT_PRICES) {
-                warnings.push(`Only ${callList.length} hotels have a phone number, so fewer than ${WANT_PRICES} prices may come back.`);
+            if (callList.length < WANT_BOOKINGS) {
+                warnings.push(`Only ${callList.length} hotels have a phone number, so fewer than ${WANT_BOOKINGS} bookings may come back.`);
             }
         } else {
             warnings.push("No hotel has a phone number, so nobody was called.");
@@ -257,13 +257,13 @@ async function handleReservation(request, response) {
 }
 
 const CALLS = 5; // calls running at the same time
-const WANT_PRICES = 3; // stop once this many conversations gave a price
-const MAX_QUEUE = 15; // hotels handed to the call script at most
+const WANT_BOOKINGS = 3; // stop once this many calls have booked: the calls still running are hung up
+const MAX_QUEUE = 30; // hotels handed to the call script at most = the most calls one run can make
 const CALL_DIR = path.join(__dirname, "output", "calls");
 const jobs = new Map();
 
 // The call race: Davide_test/main.py phones the queue through ElevenLabs, CALLS at a time, dialing the next hotel whenever a
-// call ends, until WANT_PRICES conversations gave a price (said on the call) or the queue runs out. Then it emails the cheapest
+// call ends, until WANT_BOOKINGS calls have booked (the calls still running are then hung up) or the queue runs out. Then it emails the cheapest
 // booking (RESULT_EMAIL). It runs in the background, one process per request, inside its own folder under output/calls/<id>/
 // (hotels.json in; results.json, rewritten after every call, and run logs out). The page follows it through /api/reservation/status.
 // With TEST_NUMBER set in .env the calls go to those numbers instead of the hotels' own phones.
@@ -278,7 +278,7 @@ function startCalls(prompt, hotels) {
     jobs.set(id, job);
 
     let log = "";
-    const child = spawn(process.env.PYTHON || "python3", ["-u", path.join(__dirname, "Davide_test", "main.py"), "--hotels", file, "--calls", String(CALLS), "--want", String(WANT_PRICES), "--strategy", "cheapest", prompt], { cwd: dir });
+    const child = spawn(process.env.PYTHON || "python3", ["-u", path.join(__dirname, "Davide_test", "main.py"), "--hotels", file, "--calls", String(CALLS), "--want", String(WANT_BOOKINGS), "--strategy", "cheapest", prompt], { cwd: dir });
     child.stdout.on("data", chunk => (log += chunk));
     child.stderr.on("data", chunk => (log += chunk));
     child.on("error", error => {
@@ -307,6 +307,7 @@ function handleCallStatus(request, response) {
     }
     const { state, error, emailed, emailError } = job;
     let results = job.results;
+    let live = [];
     if (state === "calling") {
         // the script rewrites results.json after every finished call; it may be missing or half-written, which just means "no news yet"
         try {
@@ -314,11 +315,19 @@ function handleCallStatus(request, response) {
         } catch {
             results = null;
         }
+        // live.json: the calls ringing or talking right now, rewritten whenever one starts or ends
+        try {
+            live = JSON.parse(fs.readFileSync(path.join(job.dir, "live.json"), "utf8"))
+                .map(({ phone, hotel, since }) => ({ phone, hotel, seconds: Math.max(0, Math.round(Date.now() / 1000 - since)) }));
+        } catch {
+            live = [];
+        }
     }
     const calls = (results?.calls || []).map(({ phone, status, number, call_price, hotel, error: why }) => ({ phone, status, number, price: call_price, hotel, error: why }));
     const chosen = results?.chosen && { hotel: results.chosen.hotel, number: results.chosen.number, price: results.chosen.price };
     const priced = calls.filter(call => call.price).length;
-    sendJson(response, 200, { state, error, emailed: Boolean(emailed), emailError, calls, chosen, priced, want: WANT_PRICES });
+    const booked = calls.filter(call => call.status === "booked").length;
+    sendJson(response, 200, { state, error, emailed: Boolean(emailed), emailError, calls, live, chosen, priced, booked, want: WANT_BOOKINGS });
 }
 
 function serveStatic(request, response) {
