@@ -129,10 +129,18 @@ def hang_up(call_sid):
 ACTIVE = {}
 
 
+def to_number(h):
+    """TEST_NUMBER overrides the hotel's phone, but only if its first entry is a real number (a bad one dialed "+")."""
+    digits = re.sub(r"\D", "", E.get("TEST_NUMBER", "").split(",")[0])
+    if len(digits) < 10:
+        return h["phone"]
+    return "+" + (digits if len(digits) > 10 else "1" + digits)  # same NANP rule as load_hotels_json
+
+
 def call_hotel(h, q):
     r = requests.post("https://api.elevenlabs.io/v1/convai/twilio/outbound-call", headers=XI, timeout=20, json={
         "agent_id": E["ELEVENLABS_AGENT_ID"], "agent_phone_number_id": E["ELEVENLABS_PHONE_NUMBER_ID"],
-        "to_number": ("+" + re.sub(r"\D", "", E["TEST_NUMBER"])) if E.get("TEST_NUMBER", "").strip() else h["phone"],
+        "to_number": to_number(h),
         "conversation_initiation_client_data": {"dynamic_variables": {
             "hotel_name": h["name"], "guest_name": E["GUEST_NAME"], "number_of_guests": str(q["guests"]),
             "check_in_date": q["check_in"], "check_out_date": q["check_out"], "contact_email": E["CONTACT_EMAIL"]}}})
@@ -153,11 +161,23 @@ def call_hotel(h, q):
         raise RuntimeError(f"{h['name']}: timeout")
     ACTIVE.pop(cid, None)
     LOG.append({"conv": cid, "hotel": h["name"], "metadata": c.get("metadata")})  # cost/duration for Learnings
+    return result_from(c, h, q)
+
+
+VERBAL = ("verbal_booking", "verbal_availability")
+
+
+def result_from(c, h, q):
+    """Booking from a finished conversation. Spec: a reservation ID or a verbal confirmation (name + price) counts."""
     d = {k: (v or {}).get("value") for k, v in (c.get("analysis", {}).get("data_collection_results") or {}).items()}
-    if not d.get("reservation_number"):
+    verbal = d.get("confirmation_type") in VERBAL and d.get("price")
+    if not d.get("reservation_number") and not verbal:
         raise RuntimeError(f"{h['name']}: no reservation ({c.get('status')})")
+    start = (c.get("metadata") or {}).get("start_time_unix_secs") or time.time()
     return {"hotel": d.get("hotel_name") or h["name"], "address": d.get("hotel_address") or h["address"],
-            "phone": h["phone"], "number": d["reservation_number"],
+            "phone": h["phone"], "number": d.get("reservation_number"),
+            "type": d.get("confirmation_type"), "receptionist": d.get("receptionist_name"),
+            "call_time": dt.datetime.fromtimestamp(start).strftime("%Y-%m-%d %H:%M"),
             "price": d.get("price") or h["price"], "date": q["check_in"], "check_out": q["check_out"]}
 
 

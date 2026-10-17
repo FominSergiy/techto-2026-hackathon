@@ -19,6 +19,17 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — main.py: verbal bookings count; TEST_NUMBER guard
+tags: feature, workflow, email, telephony
+- Feature: `result_from()` in `Davide_test/main.py` accepts a reservation number or a verbal confirmation with a price, and passes `type`, `receptionist` and `call_time` to `email_service`. `to_number()` uses `TEST_NUMBER` only if its first comma-separated entry has 10+ digits; otherwise it dials the hotel.
+- Status: done. Checked offline against saved conversations: Rodd Moncton (verbal) builds a full receipt, a reservation-ID call keeps its number, voicemail and wrong-line calls still fail. Not yet tried in a live run.
+- Notes (from the 15:08 and 15:11 Moncton runs):
+  - **No real hotel gave a reservation number.** Rodd quoted $282 all-in, wanted a 25% deposit, and confirmed availability at pay-at-hotel. Verbal is the realistic outcome.
+  - **A bad `TEST_NUMBER` dials "+".** All 3 calls at 15:08 failed with "number is not valid". An earlier comma-separated value got glued into one 21-digit number.
+  - **Read-back mixed up guest and receptionist:** Alex said the booking was "under the name Hamza" (the receptionist), not the guest. Needs a prompt fix on `repo-sync`.
+  - **Wrong line:** the Motel 6 number from search reached the bar. Alex got the front desk number but had no tool to use it, so the call was lost.
+  - **Call address can be short:** the call gave "434 Main Street" with no city, and it overrides the fuller scraper address.
+
 ## 2026-10-17 — Alex: callback refusal, spoken dates, quote-or-exit, human-sounding voice
 tags: feature, elevenlabs, call-handling
 - Feature:
