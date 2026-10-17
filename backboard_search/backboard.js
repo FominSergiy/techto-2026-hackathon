@@ -56,9 +56,11 @@ function buildRequest(settings) {
     const where = [settings.city, settings.region, settings.countryCode].filter(Boolean).join(", ");
     const limit = settings.maxNightlyPrice != null ? ` Only include hotels at or under ${settings.maxNightlyPrice} ${settings.currency} per night.` : "";
 
-    // `prompt` is the UI's free-text mode: the user's own words define city, dates, guests and currency
+    // `prompt` is the UI's free-text mode: the user's own words define city, dates, guests and currency. They rarely
+    // name a number ("cheap hotels sudbury" got 2 hotels back), so say how many to list unless the text does.
     const content = settings.prompt
-        || `Find the ${settings.count} cheapest hotels located in ${where} for check-in ${settings.checkIn}, check-out ${settings.checkOut} (${settings.nights} night${settings.nights === 1 ? "" : "s"}), ${settings.adults} adults.${limit}`;
+        ? `${settings.prompt}\n\nUnless the request above names a number of hotels, list at least ${settings.count}, and more if you find them. Search until you have that many.`
+        : `Find the ${settings.count} cheapest hotels located in ${where} for check-in ${settings.checkIn}, check-out ${settings.checkOut} (${settings.nights} night${settings.nights === 1 ? "" : "s"}), ${settings.adults} adults.${limit}`;
     const context = settings.prompt
         ? `Today is ${isoDate(Date.now())}. The request names the city, dates and guests; if it gives no dates use the next Saturday for one night.`
         : "";

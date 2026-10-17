@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Backboard free-text card: ask for a minimum number of hotels
+tags: feature, search, backboard, learnings
+- Feature: In free-text mode (`/api/backboard`) the user's words are now followed by "Unless the request above names a number of hotels, list at least N" (N = `count`, default 20).
+- Status: done offline only (request-building tests), not re-run live.
+- Notes: "cheap hotels sudbury" returned 2 hotels (an earlier run 5): the structured mode says "Find the 20 cheapest...", but free text sent only the user's words, so the model chose its own length (valid JSON, no truncation, 224 output tokens). The raw replies show `tool_calls: null`, so Backboard does not report whether web search ran; a short answer on few tokens does not prove it did not.
+
 ## 2026-10-17 — Expected-price ranking for the Google Maps card
 tags: feature, search, places, backboard
 - Feature: The Google Maps card has a "Rank by expected price" checkbox (on by default). When on, `backboard_search/classify.js` sends up to 20 hotels to a Backboard web-search model, which returns an expected nightly price, class (budget to luxury), confidence and a short reason for each. The table shows them and is ordered cheapest expected price first; unestimated hotels follow, with the reason. The page also shows the model, time and tokens used, and what the model replied.
