@@ -4,7 +4,7 @@ const assert = require("node:assert");
 process.env.GOOGLE_MAPS_API_KEY = "test-key";
 const settings = require("../settings");
 Object.assign(settings, { region: "Ontario", countryCode: "CA" });
-const { run, queriesFor, QUERY_TEMPLATES, normalize } = require("../places-search");
+const { run, queriesFor, inCity, QUERY_TEMPLATES, normalize } = require("../places-search");
 
 const address = (city, regionCode = "ON", region = "Ontario") => [
     { longText: city, shortText: city, types: ["locality"] },
@@ -94,6 +94,14 @@ function stubFetch(failQuery) {
     } finally {
         global.fetch = realFetch;
     }
+
+    // Google files Sudbury hotels under "Greater Sudbury" (all 36 were dropped in the first live run)
+    const sudbury = place("s", "Radisson Hotel Sudbury", { formattedAddress: "85 Ste Anne Rd, Sudbury, ON P3C 5E5, Canada", addressComponents: address("Greater Sudbury") });
+    assert.ok(inCity(normalize(sudbury), "Sudbury"), "Greater Sudbury is Sudbury");
+    assert.ok(inCity(normalize({ ...sudbury, formattedAddress: "1 Main St, Greater Sudbury, ON" }), "Sudbury"), "the locality alone is enough");
+    assert.ok(inCity(normalize({ ...sudbury, addressComponents: address("Lively"), formattedAddress: "1 Main St, Sudbury, ON" }), "Sudbury"), "the formatted address naming the city is enough");
+    assert.ok(!inCity(normalize({ ...sudbury, addressComponents: address("Burlington"), formattedAddress: "1 Main St, Burlington, ON" }), "Sudbury"), "another city still drops");
+    assert.ok(!inCity(normalize({ ...sudbury, addressComponents: address("Sudbury", "MA", "Massachusetts"), formattedAddress: "1 Main St, Sudbury, MA" }), "Sudbury"), "same name in another region still drops");
 
     // normalize alone: a bare place still fills every field
     const bare = normalize({ id: "x", displayName: { text: "Bare Inn" } });
