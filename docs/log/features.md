@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Google Maps (Places only) search card
+tags: feature, search, places, ui
+- Feature: A card on the page that takes a prompt, reads the city from it and runs 5 fixed Places searches (`hotels in X`, `inns in X`, `motels in X`, `hotels at X`, `cheap hotels in X`). The table shows phone, address, price hint, rating, website, a Maps link and which searches found each hotel; chips show how many each search returned and added.
+- Status: wip - code and offline tests done (stubbed fetch), never run against the live Places API.
+- Notes: Places has a price range for only a few hotels, so most rows show "none" for price (the column is a hint, not a rate). Each run is 5 Text Search calls with phone and price fields (Enterprise SKU, see `sources.js` PLACES cost note); only the first 20 results per query are read. Closed places and places whose own address is outside the city are dropped and listed under the table. Not available in DEMO mode (it would call the API). To judge it: compare the hotel count and phone count with what the price sources plus the Places enrichment return for the same city.
+
 ## 2026-10-17 — Page shows what every API returned and what the city check dropped
 tags: feature, ui, search, learnings
 - Feature: A search used to say "No hotels came back because the source(s) above failed" when the real story was different. Now `search.js --json` also prints a report (`@@REPORT@@`, built in `hotel_search/index.js` as `search.lastReport`), `server.js` passes it on, and the page shows: a table per source (ok or the error, hotels returned before any filter, how many passed the price/rating filters, the saved raw file), the city check's kept / dropped counts with the dropped hotels and the city each is really in, and an empty-result message that says which step removed everything. The city check itself is unchanged.
