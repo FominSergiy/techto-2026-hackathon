@@ -5,3 +5,4 @@ output/
 .browser-profile/
 expedia-dump*.html
 .claude/
+pricing-results.json

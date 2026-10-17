@@ -49,6 +49,11 @@ tags: decision, search, data-source
 - Why: The spec bans browser automation. Expedia's site also blocks headless browsers with a "Bot or Not?" 429 challenge. City X is revealed at competition time, so it is a single setting.
 - Alternatives: Playwright scraper for Expedia (`expedia.js`, against the rules, reference only). Partner APIs like Expedia Rapid and Booking Demand (approval takes weeks). Amadeus self-service (shut down July 2026).
 
+## 2026-10-17 — On-device models for price extraction (Ollama qwen2.5vl:3b + tesseract)
+tags: decision, search, pricing, llm
+- Decision: Extract prices from Places photos and hotel websites with local models: tesseract OCR as a prefilter, then `qwen2.5vl:3b` via Ollama with a JSON schema. Websites are fetched with plain HTTP (no browser).
+- Why: Zero cloud-token cost (cost is judged) and spec bans browser automation. OCR prefilter cuts per-hotel time from ~130s to ~5s.
+- Alternatives: Cloud VLM (costs tokens); Playwright scraping (banned by rules).
 
 ## 2026-10-17 — Docs live in docs/, AGENTS.md is the canonical agent guide
 tags: decision, docs, process

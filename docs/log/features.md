@@ -43,3 +43,8 @@ tags: feature, search, data-source
 - Status: wip. Xotelo was tested live before the refactor (30 Toronto hotels in ~63s, no key). The others are written against the docs and haven't been run yet.
 - Notes: None of these return phone numbers, so join with Google Places (`maps.js`) by name. Xotelo `/search` now needs RapidAPI and `/list` throws random 500s (retried), so `locations.js` finds the TripAdvisor city key with a SearchApi Google search (`site:tripadvisor.com`) and finds the Hotelbeds code in the Content API destination list (matching suburbs through zones). Both are cached in `.cache/locations.json`. Rating scales differ (Booking and LiteAPI are out of 10). Hotelbeds, LiteAPI and Booking prices are per stay, so they are divided by `NIGHTS`. The Apify actor runs a browser server-side, which is a gray area under the rules.
 
+## 2026-10-17 — On-device price finder (pricing.js)
+tags: feature, search, pricing, llm
+- Feature: `node pricing.js <City>` searches Places, OCR-prefilters each hotel's photos and sends hits to a local VLM, scrapes the hotel site and likely rate pages over plain HTTP, and has the local model extract rates. Writes `pricing-results.json`.
+- Status: done (experiment)
+- Notes: The VLM reads a synthetic rate card correctly (~12s and ~1.2k tokens per image on M4). On 5 Toronto budget hotels, 0 of 50 Places photos and 0 of 17 pages contained room prices. Photos are rooms and lobbies. Rates live in JS booking engines (asiwebres, xmlcal, Wix) that need dates, so static scraping can't see them. Conclusion: Places photos and static sites are not a viable price source. Use a rates API, or ask the price on the call.
