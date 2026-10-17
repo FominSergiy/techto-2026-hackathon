@@ -1,7 +1,7 @@
 <!--
 ---
 title: ElevenLabs + Backboard Field Guide
-tags: [research, telephony, elevenlabs, backboard, mcp, architecture]
+tags: [research, telephony, elevenlabs, backboard, mcp, architecture, tokens, judging]
 status: draft
 updated: 2026-10-17
 artifact: https://claude.ai/artifact/LNTQDh9RvPumpS1tPmusPp
@@ -160,6 +160,7 @@ pre.mermaid { background: var(--surface); text-align: center; }
       <li><a href="#coordination">Agents talking</a></li>
       <li><a href="#testing">Test on our phones</a></li>
       <li><a href="#limits">Limits and cost</a></li>
+      <li><a href="#tokens">Token tally</a></li>
       <li><a href="#risks">Open questions</a></li>
       <li><a href="#sources">Sources</a></li>
     </ol>
@@ -181,6 +182,7 @@ pre.mermaid { background: var(--surface); text-align: center; }
         <div class="answer"><div class="q">Q2</div><div><strong>ElevenLabs makes the calls. Backboard is the brain around them.</strong><p>ElevenLabs Agents + Twilio place the calls and handle the conversation. Backboard covers the LLM work around the calls: hotel search with web search, ranking, summarizing, cross-run memory and token accounting. Neither one sends email or supplies a phone line, so we need Twilio and an email API.</p></div></div>
         <div class="answer"><div class="q">Q3</div><div><strong>Yes, the calls run in parallel. They coordinate through our server.</strong><p>The Creator plan allows 10 concurrent calls. Calls can't message each other directly. Each call uses webhook tools to read and write a shared "race board" on our coordinator. A booking lock there makes sure only one hotel gets booked. A custom-LLM proxy can push state into every turn if we want more.</p></div></div>
         <div class="answer"><div class="q">Q4</div><div><strong>Test with one Twilio number and our own phones.</strong><p>Import a Twilio number into ElevenLabs. Trial accounts need each teammate's phone verified. Then fire 5 outbound-call requests at our own phones with fake hotel details. Each of us plays a receptionist with a different twist: a hold, a phone menu, a request for a card, a voicemail.</p></div></div>
+        <div class="answer"><div class="q">Tok</div><div><strong>Every LLM call writes one line to a ledger. A script sums it after the email goes out.</strong><p>Backboard returns token counts on every message. ElevenLabs reports per-model tokens and USD for each call once it finishes processing. Both go into one JSONL file per run, which <code>tally.py</code> turns into the final report.</p></div></div>
         <div class="answer"><div class="q">Q5</div><div><strong>English only is the simple case.</strong><p>Set the agent language to <code>en</code>, pick a natural English voice, and add hotel names as ASR keywords so the agent hears them correctly.</p></div></div>
       </div>
     </section>
@@ -439,11 +441,98 @@ async def report_confirmation(r: Confirmation):
           </tbody>
         </table>
       </div>
-      <p><strong>For the Learnings pitch:</strong> timestamp every stage (search, rank, dial, answer, quote, claim, confirm, email). At the end, pull Backboard <code>/billing/usage/summary</code> and the ElevenLabs conversation cost and duration. Put both in one run report.</p>
+      <p><strong>For the Learnings pitch:</strong> timestamp every stage and keep a token ledger. Section 8 covers how.</p>
+    </section>
+
+    <section id="tokens" aria-labelledby="h-tokens">
+      <h2 id="h-tokens">8 · Token tally for the whole pipeline</h2>
+      <p>Every place that spends tokens appends one line to a per-run ledger (<code>runs/&lt;run_id&gt;/ledger.jsonl</code>). Timing events go in the same file. Once the receipt email is out, <code>tally.py</code> waits for the 5 calls to finish processing, collects their usage, and prints the final report. The race clock stops at "email sent", so the tally never slows the booking down.</p>
+
+      <h3>Where tokens are spent, and where we read them</h3>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Stage</th><th>Who spends</th><th>Where the numbers come from</th><th>When</th></tr></thead>
+          <tbody>
+            <tr><td>Search and rank</td><td>Backboard</td><td>Every message response: <code>input_tokens</code>, <code>output_tokens</code> and <code>total_tokens</code>, plus <code>model_name</code>. Streaming responses also carry <code>cached_input_tokens</code>, <code>cache_write_input_tokens</code> and <code>cost_usd</code> on <code>run_ended</code> and <code>tool_submit_required</code>.</td><td>Immediately, inline</td></tr>
+            <tr><td>Each of the 5 calls</td><td>ElevenLabs agent LLM</td><td><code>GET /v1/convai/conversations/{id}</code>, field <code>metadata.charging.llm_usage.initiated_generation.model_usage</code>. Per model it gives <code>input</code>, <code>input_cache_read</code>, <code>input_cache_write</code> and <code>output_total</code>, each with <code>tokens</code> and <code>price</code>.</td><td>After <code>status</code> becomes <code>done</code>, or when the post-call webhook arrives</td></tr>
+            <tr><td>Post-call data extraction</td><td>ElevenLabs analysis LLM</td><td><code>metadata.charging.analysis.total.price</code>. Cost only; the API doesn't return tokens for this step.</td><td>After analysis</td></tr>
+            <tr><td>Voice (not tokens)</td><td>ElevenLabs TTS and ASR</td><td><code>charging.tts_usage.total_characters</code>, <code>call_duration_secs</code>, <code>platform_price</code>, and <code>cost_fiat</code> (total USD for the conversation)</td><td>After <code>done</code></td></tr>
+            <tr><td>Phone line (not tokens)</td><td>Twilio</td><td>Call resource <code>price</code> and <code>duration</code>, looked up by the <code>callSid</code> from the outbound-call response. Price can be empty for a minute or two after hang-up.</td><td>After hang-up</td></tr>
+            <tr><td>Our own LLM calls, if any</td><td>e.g. a custom-LLM proxy</td><td>The provider's <code>usage</code> block, logged by our code</td><td>Inline</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note info">
+        <p><strong>Two cross-checks.</strong> (1) Backboard's <code>GET /billing/usage/recent?start=YYYY-MM-DD</code> lists every billed event with tokens and <code>amount_deducted_usd</code>, including memory writes and vector reads that a message response doesn't show. Filter it to the run's time window and compare with the ledger. The API is account-wide, so nobody else should use that Backboard key during the run. (2) For each call, the token <code>price</code> values should add up to <code>charging.llm_price</code>. We assume <code>price</code> is in USD; this check confirms it on the first test call.</p>
+        <p><strong>Tagging.</strong> Generate a <code>run_id</code> at start and pass it to every call as a dynamic variable, next to <code>candidate_id</code>. Webhooks and lookups can then be tied back to the right run and hotel. <code>initiated_generation</code> appears to include generations cut off by an interruption, and <code>irreversible_generation</code> only committed ones. That reading comes from the field names, so log both and bill from <code>initiated</code>.</p>
+      </div>
+
+      <h3>The ledger</h3>
+<div class="codehead">python · ledger.py</div>
+<pre><code>RUN_ID = time.strftime("%Y%m%d-%H%M%S")
+os.makedirs(f"runs/{RUN_ID}", exist_ok=True)
+_f = open(f"runs/{RUN_ID}/ledger.jsonl", "a")
+
+def log(kind, stage, **fields):              # kind: "tokens" | "cost" | "stage"
+    _f.write(json.dumps({"ts": time.time(), "run_id": RUN_ID, "kind": kind, "stage": stage, **fields}) + "\n")
+    _f.flush()
+
+@contextmanager
+def timed(stage):                            # with timed("search"): ...
+    t0 = time.time(); log("stage", stage, event="start")
+    try: yield
+    finally: log("stage", stage, event="end", wall_ms=round((time.time() - t0) * 1000))
+
+def log_backboard(stage, r):                 # call right after every Backboard response
+    log("tokens", stage, source="backboard", model=f'{r["model_provider"]}/{r["model_name"]}',
+        input=r.get("input_tokens", 0), cached_input=r.get("cached_input_tokens", 0),
+        cache_write=r.get("cache_write_input_tokens", 0), output=r.get("output_tokens", 0),
+        cost_usd=r.get("cost_usd"), ref=r.get("message_id"))</code></pre>
+
+<div class="codehead">python · collect usage for one call, after the race</div>
+<pre><code>async def collect_call(conv_id, candidate_id):
+    for _ in range(60):                                        # up to ~5 min for analysis to finish
+        c = (await http.get(f"https://api.elevenlabs.io/v1/convai/conversations/{conv_id}",
+                            headers={"xi-api-key": EL_KEY})).json()
+        if c["status"] in ("done", "failed"): break
+        await asyncio.sleep(5)
+    md = c["metadata"]; ch = md.get("charging") or {}
+    usage = ((ch.get("llm_usage") or {}).get("initiated_generation") or {}).get("model_usage") or {}
+    for model, u in usage.items():
+        part = lambda k: (u.get(k) or {})
+        log("tokens", "call", source="elevenlabs", call=candidate_id, model=model, ref=conv_id,
+            input=part("input").get("tokens", 0), cached_input=part("input_cache_read").get("tokens", 0),
+            cache_write=part("input_cache_write").get("tokens", 0), output=part("output_total").get("tokens", 0),
+            cost_usd=sum(part(k).get("price", 0) for k in ("input", "input_cache_read", "input_cache_write", "output_total")))
+    log("cost", "call", source="elevenlabs", call=candidate_id, ref=conv_id,
+        llm_usd=ch.get("llm_price"), platform_usd=ch.get("platform_price"),
+        analysis_usd=((ch.get("analysis") or {}).get("total") or {}).get("price"),
+        total_usd=md.get("cost_fiat"), duration_s=md.get("call_duration_secs"),
+        tts_chars=(ch.get("tts_usage") or {}).get("total_characters"))</code></pre>
+      <p>A call that never connected (a <code>call_initiation_failure</code> webhook, or an outbound request that failed) gets one <code>cost</code> line with zeros, so the report still shows all 5 rows.</p>
+
+      <h3>The final report</h3>
+      <p><code>tally.py</code> reads the ledger, groups it, and writes <code>runs/&lt;run_id&gt;/report.md</code> and <code>report.json</code>. It prints the same tables to the terminal for the demo. The receipt email stays clean, with only the four required fields; the report goes to us.</p>
+<div class="codehead">example output · made-up numbers to show the layout</div>
+<pre><code>RUN 20261024-101502   booked: Hotel C (#ABC123, $119)   race time: 4m 12s (start → email sent)
+
+STAGE        WALL     TOKENS IN   CACHED   TOKENS OUT    LLM $
+search        14.2s       6,840        0          910   0.0210
+rank           2.1s       1,220        0          340   0.0031
+calls (5)    3m 51s      48,300   31,900        2,450   0.0420
+analysis         —           —         —            —   0.0060
+TOTAL        4m 12s      56,360   31,900        3,700   0.0721
+
+CALL   HOTEL     OUTCOME     DURATION   TOKENS   LLM $    VOICE $   TWILIO $
+h1     Hotel A   declined       1m 40s   12,100   0.0105   0.133     0.010
+h3     Hotel C   BOOKED         3m 30s   21,700   0.0188   0.280     0.020
+...
+Tokens per booking: 60,060 · Tokens on calls that lost: 52% · All-in run cost: $1.12</code></pre>
+      <p>The last line feeds the Learnings pitch directly. It shows how much the parallel fan-out cost in tokens compared with calling one hotel at a time, and where a faster or cheaper run would cut, for example ending losing calls sooner or using a smaller in-call model.</p>
     </section>
 
     <section id="risks" aria-labelledby="h-risks">
-      <h2 id="h-risks">8 · Open questions and risks</h2>
+      <h2 id="h-risks">9 · Open questions and risks</h2>
       <ul>
         <li><strong>Card guarantee.</strong> Real hotels will ask for a card. The agent must never speak card numbers. Ask the organizers what to say: "pay at check-in", or a test card they provide.</li>
         <li><strong>"No ready-made agents".</strong> We write the prompt, tools and orchestration ourselves, and ElevenLabs is a sponsor, so this should be fine. Confirm with the organizers anyway. Don't use Backboard's R-CLI in the pipeline, since it is a ready-made agent.</li>
@@ -475,6 +564,7 @@ async def report_confirmation(r: Confirmation):
         <li><a href="https://elevenlabs.io/docs/eleven-agents/workflows/post-call-webhooks">Post-call webhooks</a></li>
         <li><a href="https://elevenlabs.io/docs/eleven-agents/guides/burst-pricing">Burst pricing</a></li>
         <li><a href="https://elevenlabs.io/pricing/agents">ElevenAgents pricing</a></li>
+        <li><a href="https://elevenlabs.io/docs/eleven-agents/api-reference/conversations/get">Get conversation details</a></li>
         <li><a href="https://docs.backboard.io">Backboard docs</a></li>
         <li><a href="https://backboard-docs.docsalot.dev/concepts/architecture">Backboard architecture</a></li>
         <li><a href="https://backboard-docs.docsalot.dev/concepts/memory">Backboard memory</a></li>

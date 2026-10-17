@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "elevenlabs": {
+      "type": "http",
+      "url": "https://api.elevenlabs.io/v1/mcp"
+    },
+    "elevenlabs-docs": {
+      "type": "http",
+      "url": "https://elevenlabs.io/docs/_mcp/server"
+    },
+    "backboard-docs": {
+      "type": "http",
+      "url": "https://backboard-docs.docsalot.dev/api/mcp"
+    }
+  }
+}
