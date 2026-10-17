@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Agent config lives in the repo; ElevenLabs CLI syncs it, branch first
+tags: decision, elevenlabs, telephony, process
+- Decision: `agent_configs/Alex.json` is the source of truth, synced with `elevenlabs agents pull/push`. Pushes go to Alex's `repo-sync` branch (0% live). Main is changed only by merging after test calls. Alex's 3-step workflow is removed in favour of one prompt. Coordinator webhook tools are written but not attached until the tunnel exists. A copy, "Alex (repo config)", carries the same config as a standalone agent.
+- Why: Push has no merge or drift check (last writer wins), so branches protect Davide's live Main. A single prompt avoids the workflow's conflicting step prompts and undefined variables, and saves the LLM checks between steps (spec: time and cost). Attaching tools before our service exists would make calls fail.
+- Alternatives: Use the ElevenLabs MCP (needs OAuth in an interactive session; not available to us); push straight to Main; keep the workflow and rewrite its steps.
+
 ## 2026-10-17 — Backend is Node.js, not Python + FastAPI
 tags: decision, architecture, stack
 - Decision: Our service (dialer, coordinator, webhook receiver, emailer) is a single Node.js process. FastAPI/uvicorn and the Python scripts are dropped from the architecture docs.
