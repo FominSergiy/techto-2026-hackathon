@@ -69,7 +69,7 @@ board = {"run_id": "...", "winner": None,
 | `report_quote(price, available)` | The hotel gives a price | Store the quote | `booking_open`, best price seen |
 | `claim_booking(price)` | It is about to say "yes, book it" | Take the lock; apply the booking policy | `BOOK`, or `DECLINE` + a polite line |
 | `check_status()` | At checkpoints, or while waiting | Read the board | Keep going / wrap up |
-| `report_confirmation(conf, price, dates, address)` | The hotel gives a confirmation number | Send the email, mark done, wind down other calls | `ok` |
+| `report_confirmation(type, reservation_id?, receptionist_name?, price, dates, address)` | The hotel confirms the booking (with or without an ID) | Send the email, mark done, wind down other calls | `ok`, or "ask once for a reservation number" |
 | `POST /webhooks/elevenlabs` | ElevenLabs, after each call | Verify HMAC; log tokens and fields | — |
 
 **Booking policy.** Quotes commit to nothing; bookings reserve a real room. Choosing the best price therefore has to happen at the quote stage, before anyone books.
@@ -98,12 +98,25 @@ board = {"run_id": "...", "winner": None,
   - a soft-timeout filler ("one sec…")
   - tool call sounds on
 - **Call setting:** `ringing_timeout_secs` 25 (default 60).
-- **Data collection (backup extraction):** `booked`, `confirmation_number`, `total_price`, `currency`, `stay_dates`, `hotel_address`.
+- **Data collection (backup extraction):** `booked`, `confirmation_type`, `reservation_id`, `receptionist_name`, `total_price`, `currency`, `stay_dates`, `hotel_address`.
 - **Dynamic variables, not overrides.** Overrides must first be enabled in the agent's security settings.
 - **Prompt rules:**
   - Say yes if asked whether it's an AI.
-  - Never give card numbers; follow `{{payment_policy}}`.
-  - Read the confirmation number back digit by digit.
+  - **No payment, ever.** Never ask for, accept or give card or payment details. If the hotel wants a card to hold the room, ask to book with payment at the hotel instead.
+  - If the hotel still won't book without a card, get a verbal confirmation that the room is available on the requested date at the quoted price, plus the receptionist's name. That counts as the confirmation (spec, "Booking Goal").
+  - Always ask for a reservation number. If one is given, read it back digit by digit.
+
+## Confirmation Types
+
+The spec accepts a verbal confirmation, a reservation ID, or both. `report_confirmation` carries a `type`:
+
+| `type` | When | What goes in the email's confirmation field |
+|---|---|---|
+| `reservation_id` | The hotel gives a reservation or confirmation number | The number |
+| `verbal_booking` | The hotel says it's booked but gives no number | "Verbal confirmation", the receptionist's name, the hotel, the call time |
+| `verbal_availability` | The hotel won't book without payment but confirms the room is available on the date at the quoted price | "Verbal confirmation of availability", the receptionist's name, the hotel, the call time |
+
+The two verbal formats follow the spec's proposed answer to its open question on verbal-only confirmations, which isn't settled yet. Before accepting a verbal type, the coordinator replies once with "ask for a reservation number", so the agent always asks for an ID first.
 
 ## Backboard's Role
 
@@ -112,7 +125,7 @@ board = {"run_id": "...", "winner": None,
 **Optional, best first:**
 
 1. **Lessons across runs.** Store per-hotel facts after each call ("press 2 for reservations, holds ~40 s"). Before the next run, search memory and pass the hits in as `{{hotel_notes}}`.
-2. **Checks and reports.** Have a model double-check the winning transcript's four fields, and write the Learnings summary from the ledger.
+2. **Checks and reports.** Have a model double-check the winning transcript's four fields (confirmation, price, date, address), and write the Learnings summary from the ledger.
 3. **In-call LLM via a custom-LLM proxy.** Our server answers ElevenLabs' OpenAI-style LLM requests and forwards them to Backboard. This adds latency on every turn. Use it only if deep sponsor use earns points.
 **Not for the live race state.** Memory writes are asynchronous and there is no atomic lock.
 
@@ -139,7 +152,7 @@ Every token-spending step appends a line to `runs/<run_id>/ledger.jsonl`. `tally
 |---|---|---|---|
 | 0. Setup | Accounts and plumbing | Redeem the Creator coupon; buy a Twilio number; import it into ElevenLabs; verify teammates' phones (trial); start the tunnel; create the agent | `outbound-call` returns a `conversation_id` |
 | 1. Single call | One call end to end | Call one teammate's phone; receptionist books right away | Email arrives with all 4 fields; ledger has the call's tokens |
-| 2. Scenarios | Call handling (10 pts) | One call at a time: a 45 s hold with music, a menu ("press 1 for reservations"), a request for a card, no rooms, voicemail | Each scenario handled without talking over the receptionist or hanging up early |
+| 2. Scenarios | Call handling (10 pts) | One call at a time: a 45 s hold with music; a menu ("press 1 for reservations"); a receptionist who demands a card and won't book without one; a booking with no reservation number; no rooms; voicemail | Each scenario handled without talking over the receptionist or hanging up early. The card case never mentions payment details, asks for pay-at-hotel, then gets verbal availability. Both verbal cases produce the right email. |
 | 3. Fan-out | Coordination | 5 calls at once to 5 teammates, with different prices and speeds | Exactly one `BOOK`; the others decline politely; one email |
 | 4. Policy A/B | Speed vs price | Repeat run 3 with "first success" and then "best price" | Timings and costs compared; choice logged in decisions.md |
 | 5. Dress rehearsal | Competition timing | Full run with timing on, upgraded Twilio account (no trial notice), the real email address format | Race time and tally report produced; nothing set up by hand during the run |
@@ -149,7 +162,7 @@ Twilio trial accounts can only call verified numbers and play a notice before co
 
 ## Open Questions
 
-- What should the agent say when asked for a card guarantee? Ask the organizers.
+- What goes in the confirmation field when there is no reservation ID? See the spec's open question; [Confirmation Types](#confirmation-types) uses its proposed answer for now.
 - Is the ElevenLabs Agents platform fine under "no ready-made agents"? We write the prompt, tools and orchestration ourselves, but confirm.
 - Are the hotels real or simulated by the organizers?
 - Which email provider? Which hotel data source, once search is back in scope?

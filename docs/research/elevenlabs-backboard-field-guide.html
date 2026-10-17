@@ -222,7 +222,7 @@ claude mcp add --scope project --transport http backboard-docs https://backboard
             <li><strong>Outbound call API</strong>: <code>POST /v1/convai/twilio/outbound-call</code> with per-call dynamic variables. Returns <code>conversation_id</code> and <code>callSid</code>.</li>
             <li><strong>System tools</strong>: <code>end_call</code>, <code>skip_turn</code> (stay quiet on hold), <code>play_keypad_touch_tone</code> (phone menus), <code>voicemail_detection</code>, <code>update_state</code>, transfer.</li>
             <li><strong>Webhook tools</strong>: the agent calls our HTTP endpoints during the call.</li>
-            <li><strong>Data collection</strong>: pulls typed fields (confirmation number, price, date, address) out of the transcript after the call.</li>
+            <li><strong>Data collection</strong>: pulls typed fields (confirmation type, reservation number, price, date, address) out of the transcript after the call.</li>
             <li><strong>Post-call webhooks</strong>: transcript, analysis, cost metadata and call-failure events. Signed with HMAC.</li>
             <li><strong>Batch calling</strong> exists, but on our plan it is capped (see Limits). Individual parallel calls work better.</li>
           </ul>
@@ -321,7 +321,7 @@ results = await asyncio.gather(*(place_call(h) for h in top5))</code></pre>
             <tr><td>Turn-taking speed</td><td><code>turn.turn_eagerness</code></td><td><code>normal</code>. Try <code>patient</code> if the agent cuts people off.</td></tr>
             <tr><td>Agent busy calling our server</td><td>Tool call sounds</td><td>Soft ambient sound while webhook tools run.</td></tr>
             <tr><td>Hotel names misheard</td><td>ASR <code>keywords</code> override</td><td>Hotel name and street name.</td></tr>
-            <tr><td>Done</td><td><code>end_call</code></td><td>After reading back the confirmation number and thanking the receptionist.</td></tr>
+            <tr><td>Done</td><td><code>end_call</code></td><td>After reading back the reservation number (or confirming verbally) and thanking the receptionist.</td></tr>
           </tbody>
         </table>
       </div>
@@ -334,13 +334,18 @@ Flow:
 1. Ask for the best available rate for those dates. Call report_quote(price, currency, available).
 2. Before agreeing to book, call claim_booking(price). Do what the result says:
    BOOK -> confirm the booking. DECLINE -> thank them, say you'll call back, end_call.
-3. Get the confirmation number, total price, dates and the hotel's street address. Read the
-   confirmation number back digit by digit. Call report_confirmation(...). Then end_call.
+3. Get the total price, dates and the hotel's street address, and always ask for a reservation
+   number. If one is given, read it back digit by digit. Call report_confirmation(...). Then end_call.
+No payment, ever: never ask for, accept or give card or payment details. If they want a card to
+hold the room, ask to book with payment at the hotel. If they still refuse, ask them to confirm
+the room is available on {{check_in}} at the quoted price, get their name, and report it as
+verbal_availability.
 Phone menus: use play_keypad_touch_tone to reach reservations or the front desk.
-On hold: say "Sure, I'll hold" once, then skip_turn until a person speaks.
-Card requested: {{payment_policy}}</code></pre>
+On hold: say "Sure, I'll hold" once, then skip_turn until a person speaks.</code></pre>
+      <h3>Confirmation types</h3>
+      <p>The spec accepts a verbal confirmation, a reservation ID, or both, and the agent never handles payment. <code>report_confirmation</code> carries a <code>type</code>: <code>reservation_id</code> (the hotel gave a number), <code>verbal_booking</code> (booked, but no number), or <code>verbal_availability</code> (won't book without payment, but confirmed the room at the quoted price and date). With no number, the email's confirmation field says "Verbal confirmation" with the receptionist's name, the hotel and the call time. That follows the spec's proposed answer, which isn't settled yet.</p>
       <h3>Data collection fields (backup extraction)</h3>
-      <p><code>booked</code> (boolean), <code>confirmation_number</code> (string), <code>total_price</code> (number), <code>currency</code> (string), <code>stay_dates</code> (string), <code>hotel_address</code> (string). The limit is 25 fields per agent on our plan.</p>
+      <p><code>booked</code> (boolean), <code>confirmation_type</code> (string), <code>reservation_id</code> (string), <code>receptionist_name</code> (string), <code>total_price</code> (number), <code>currency</code> (string), <code>stay_dates</code> (string), <code>hotel_address</code> (string). The limit is 25 fields per agent on our plan.</p>
     </section>
 
     <section id="coordination" aria-labelledby="h-coord">
@@ -417,7 +422,7 @@ async def report_confirmation(r: Confirmation):
             <tr><td>Teammate 1</td><td>Easy receptionist, books right away</td><td>Happy path. All 4 fields reach the email.</td></tr>
             <tr><td>Teammate 2</td><td>"Please hold" for 45 s with music from a laptop</td><td><code>skip_turn</code>, no talking over the hold, recovers when a person returns.</td></tr>
             <tr><td>Teammate 3</td><td>Reads a menu: "press 1 for reservations"</td><td><code>play_keypad_touch_tone</code> sends the right digit.</td></tr>
-            <tr><td>Teammate 4</td><td>Asks for a credit card, then cheaper rate than #1</td><td>Payment policy line, price guard, DECLINE path.</td></tr>
+            <tr><td>Teammate 4</td><td>Demands a card and won't book without one; quotes a cheaper rate than #1</td><td>Never mentions payment details, asks to pay at the hotel, then gets verbal availability; price guard and DECLINE path.</td></tr>
             <tr><td>Teammate 5</td><td>Lets it go to voicemail</td><td><code>voicemail_detection</code> ends the call and the board marks it no-answer.</td></tr>
           </tbody>
         </table>
@@ -534,7 +539,7 @@ Tokens per booking: 60,060 · Tokens on calls that lost: 52% · All-in run cost:
     <section id="risks" aria-labelledby="h-risks">
       <h2 id="h-risks">9 · Open questions and risks</h2>
       <ul>
-        <li><strong>Card guarantee.</strong> Real hotels will ask for a card. The agent must never speak card numbers. Ask the organizers what to say: "pay at check-in", or a test card they provide.</li>
+        <li><strong>No payment (now in the spec).</strong> The agent never handles card details. When a hotel insists on a card, the agent asks to pay at the hotel, and otherwise settles for a verbal confirmation of availability. Still open in the spec: what goes in the confirmation field when there's no reservation ID. This guide uses its proposed answer.</li>
         <li><strong>"No ready-made agents".</strong> We write the prompt, tools and orchestration ourselves, and ElevenLabs is a sponsor, so this should be fine. Confirm with the organizers anyway. Don't use Backboard's R-CLI in the pipeline, since it is a ready-made agent.</li>
         <li><strong>Double-booking real hotels.</strong> The booking lock limits us to one booking. The other 4 calls must end without committing to anything.</li>
         <li><strong>AI disclosure.</strong> The agent answers truthfully if asked whether it's an AI. That's better for judging and for compliance.</li>

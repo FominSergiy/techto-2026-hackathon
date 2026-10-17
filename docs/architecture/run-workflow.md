@@ -119,7 +119,7 @@ python start.py "Book the cheapest hotel in Toronto for Oct 24, one night, two a
 ### Stage 4 · Dial
 
 - **Owner:** our service, calling ElevenLabs.
-- **How:** 5 `POST /v1/convai/twilio/outbound-call` requests fired together with `asyncio.gather`. All 5 use the same `agent_id` and `agent_phone_number_id`; each has its own `to_number` and dynamic variables (`run_id`, `candidate_id`, `hotel_name`, `listed_price`, `check_in`, `nights`, `guests`, `guest_name`, `payment_policy`, `hotel_notes`).
+- **How:** 5 `POST /v1/convai/twilio/outbound-call` requests fired together with `asyncio.gather`. All 5 use the same `agent_id` and `agent_phone_number_id`; each has its own `to_number` and dynamic variables (`run_id`, `candidate_id`, `hotel_name`, `listed_price`, `check_in`, `nights`, `guests`, `guest_name`, `hotel_notes`). The no-payment rule is fixed in the agent prompt, not passed per call.
 - **Result:** each request returns within about a second with `conversation_id` and `callSid`. Both go on the board, and the call's status becomes `ringing`.
 - **After dialing,** our service doesn't drive the calls. It waits for check-ins.
 
@@ -134,9 +134,10 @@ python start.py "Book the cheapest hotel in Toronto for Oct 24, one night, two a
 | `report_quote(price, available)` | Hotel gave a rate | Save the quote on the board | `booking_open`, best price seen |
 | `claim_booking(price)` | About to say "yes, book it" | **This is the confirm-or-not step.** Take the lock; the first valid claim at or under the ceiling wins | `BOOK`, or `DECLINE` + a polite line |
 | `check_status()` | While waiting or on hold | Read the board | Keep going / wrap up |
-| `report_confirmation(conf, price, dates, address)` | Hotel gave a confirmation number and the agent read it back | Check the 4 fields; trigger the email (Stage 6) | `ok`, or "ask for X" if a field is missing |
+| `report_confirmation(type, reservation_id?, receptionist_name?, price, dates, address)` | Hotel confirmed the booking: with a reservation number (read back), verbally, or by confirming availability when it won't book without payment | Check the 4 fields; trigger the email (Stage 6) | `ok`, "ask once for a reservation number", or "ask for X" if a field is missing |
 
-- **Board state per call:** `ringing → talking → quoted → claimed | declined → booked | ended | no_answer`.
+- **No payment, ever.** The agent never asks for, accepts or gives card details. If the hotel wants a card, the agent asks to pay at the hotel. If the hotel still refuses, the agent gets a verbal confirmation of availability at the quoted price and date. The confirmation types are listed in [architecture-plan.md](architecture-plan.md#confirmation-types).
+- **Board state per call:** `ringing → talking → quoted → claimed | declined → booked (id | verbal | availability) | ended | no_answer`.
 - **The board is a dict in our process.** Every change also goes to the ledger, so a crash can be replayed.
 - **Calls only learn things when they check in.** A losing call finds out on its next check-in, so the prompt makes it check in at those fixed points.
 
@@ -145,10 +146,11 @@ python start.py "Book the cheapest hotel in Toronto for Oct 24, one night, two a
 - **Owner:** our service, calling the email provider.
 - **When:** at the **first `report_confirmation`**, before that call hangs up. With the booking lock, only one call can get there.
 - **The handler:**
-  1. **Checks** all 4 required fields: confirmation number, price, date, hotel address. The address falls back to the search result if the call didn't capture it.
-  2. **If one is missing,** replies "ask for the confirmation number again" (or whichever field) and doesn't send yet.
-  3. **Sends the email in the background**, so the agent's tool call returns at once, and records `t_email`. That timestamp is our race time.
-  4. **Moves the run to `EMAILED`.** The other calls get "wrap up" on their next check-in. After a 30 s grace period, any straggler is hung up through Twilio using its `callSid`.
+  1. **Checks** all 4 required fields: confirmation, price, date, hotel address. The address falls back to the search result if the call didn't capture it.
+  2. **If there's no reservation number on the first report,** it replies "ask once for a reservation number" and waits for a second report. If the hotel has none, the second report is accepted as `verbal_booking` or `verbal_availability`. The confirmation field then reads "Verbal confirmation", with the receptionist's name, the hotel and the call time (the spec's proposed answer).
+  3. **If another field is missing,** it replies "ask for X" and doesn't send yet.
+  4. **Sends the email in the background**, so the agent's tool call returns at once, and records `t_email`. That timestamp is our race time.
+  5. **Moves the run to `EMAILED`.** The other calls get "wrap up" on their next check-in. After a 30 s grace period, any straggler is hung up through Twilio using its `callSid`.
 - **Why here and not after the call:** the post-call webhook arrives only after ElevenLabs finishes analysis, which can be minutes later. Waiting for it would add that time to our score.
 
 ### Stage 7 · Settle and Verify
@@ -163,7 +165,7 @@ python start.py "Book the cheapest hotel in Toronto for Oct 24, one night, two a
 
 - **Owner:** our service, using Backboard, ElevenLabs and Twilio usage data.
 - **Tally:** when all 5 conversations report `done`, the service writes `runs/<run_id>/report.md` with tokens, cost and stage timings. See [Token and Cost Tally](architecture-plan.md#token-and-cost-tally).
-- **Lessons (optional):** per-hotel facts are written to Backboard memory, e.g. "press 2 for reservations, holds ~40 s, asks for a card". The next run reads them into `hotel_notes`.
+- **Lessons (optional):** per-hotel facts are written to Backboard memory, e.g. "press 2 for reservations, holds ~40 s, won't book without a card". The next run reads them into `hotel_notes`.
 
 ## Run States
 
