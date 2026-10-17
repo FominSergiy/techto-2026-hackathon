@@ -1,7 +1,7 @@
 // Hotels.com prices via the Apify Hotels.com Scraper - https://apify.com/jeremy_frost/hotels-com-scraper
 // The actor drives a browser on Apify's servers - check this against the "no browser automation" rule.
 const settings = require("./settings");
-const { runApifyActor, countryName, passesFilters, cheapest, runIfMain } = require("./hotel-utils");
+const { runApifyActor, normalizeHotel, countryName, passesFilters, cheapest, runIfMain } = require("./hotel-utils");
 
 const ACTOR = "jeremy_frost~hotels-com-scraper";
 
@@ -18,18 +18,19 @@ function buildInput() {
     };
 }
 
-// Output fields are unconfirmed until a real run: see test/fixtures
-function toHotels(items) {
-    return items.map(item => ({
+// One dataset item -> the common hotel shape. NOT CONFIRMED: this actor returned an empty dataset in both live runs
+// (2026-10-17, Burlington, ON; it exits cleanly with no error), so its real field names are unknown. These are guesses
+// from its README ("Hotel name, Place, Quality, Reviews, Reviews number, Price, Hotel stars, Link").
+function normalize(item) {
+    return normalizeHotel({
         name: item.name || item.hotel_name,
-        nightlyPrice: item.price ?? null,
+        nightlyPrice: item.price,
         currency: settings.currency,
-        rating: null,
-        reviews: null,
-        address: null,
-        url: item.link || null
-    }));
+        url: item.link
+    });
 }
+
+const toHotels = items => items.map(normalize);
 
 async function search() {
     const items = await runApifyActor(ACTOR, buildInput());
@@ -38,5 +39,5 @@ async function search() {
     return cheapest(hotels.filter(passesFilters));
 }
 
-module.exports = { search, buildInput, toHotels };
+module.exports = { search, buildInput, toHotels, normalize };
 runIfMain(module, "Apify Hotels.com", search);

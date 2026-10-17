@@ -13,7 +13,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { chromium } = require("playwright");
 const settings = require("./settings");
-const { passesFilters, cheapest, collectPages, runIfMain } = require("./hotel-utils");
+const { normalizeHotel, passesFilters, cheapest, collectPages, runIfMain } = require("./hotel-utils");
 
 // ---------------------------------------------------------------------------------------------
 // Everything that depends on Expedia's markup lives in these two blocks
@@ -137,7 +137,7 @@ function parseCardText(raw, { nights = settings.nights, currency = settings.curr
     return {
         soldOut,
         currencyMarker: marker,
-        hotel: {
+        hotel: normalizeHotel({
             name: raw.name,
             nightlyPrice,
             totalPrice,
@@ -146,9 +146,12 @@ function parseCardText(raw, { nights = settings.nights, currency = settings.curr
             reviews: reviews != null ? parseAmount(reviews) : null,
             address: null,  // cards show a neighbourhood, not a street address - Google Places supplies it
             url: raw.href ? raw.href.split("?")[0] : null
-        }
+        })
     };
 }
+
+// One raw page card -> the common hotel shape (the Expedia normalizer: parseCardText also reports sold-out cards)
+const normalize = (raw, options) => parseCardText(raw, options).hotel;
 
 function currencyFromMarker(marker, fallback) {
     if (!marker) return fallback;
@@ -325,6 +328,6 @@ async function search() {
     return hotels;
 }
 
-module.exports = { search, parseCardText, extractRawCards, buildSearchUrl, parseAmount, SELECTORS, PATTERNS };
+module.exports = { search, normalize, parseCardText, extractRawCards, buildSearchUrl, parseAmount, SELECTORS, PATTERNS };
 
 runIfMain(module, "Expedia", search);

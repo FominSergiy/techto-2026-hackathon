@@ -2,7 +2,7 @@
 // The whole flow lives here, through Xotelo's RapidAPI listing (/search is only offered there; needs RAPID_API_KEY):
 //   /search finds the city's location key, /list pages through its hotels, /rates gives each hotel's live price.
 const settings = require("./settings");
-const { sleep, getJson, requireEnv, normalizeName, passesFilters, cheapest, runIfMain } = require("./hotel-utils");
+const { sleep, getJson, requireEnv, normalizeName, normalizeHotel, passesFilters, cheapest, runIfMain } = require("./hotel-utils");
 const { cached } = require("./locations");
 
 // RapidAPI hosts are "<api-slug>.p.rapidapi.com"; this one is a guess from the listing's slug, override it if the
@@ -47,18 +47,19 @@ function locationKey() {
     });
 }
 
-function toHotel(item, nightlyPrice) {
-    return {
+// One /list item plus its live nightly rate (from /rates) -> the common hotel shape
+function normalize(item, nightlyPrice) {
+    return normalizeHotel({
         name: item.name,
         nightlyPrice,
         totalPrice: nightlyPrice != null ? nightlyPrice * settings.nights : null,
         currency: settings.currency,
-        rating: item.review_summary?.rating ?? null,
-        reviews: item.review_summary?.count ?? null,
+        rating: item.review_summary?.rating,
+        reviews: item.review_summary?.count,
         address: null,  // Xotelo only has coordinates - the street address comes from Google Places
-        location: item.geo || null,
+        location: item.geo,
         url: item.url
-    };
+    });
 }
 
 // Cheapest live nightly rate across OTAs, or null when nothing is available
@@ -122,7 +123,7 @@ async function search() {
     // (private rooms, rentals) drop out here; TripAdvisor types real hotels inconsistently
     // ("Hotel", "Limited Service Property", ...), so the type isn't used.
     const candidates = listed
-        .filter(item => passesFilters(toHotel(item, item.price_ranges?.minimum ?? null)))
+        .filter(item => passesFilters(normalize(item, item.price_ranges?.minimum ?? null)))
         .sort((a, b) => a.price_ranges.minimum - b.price_ranges.minimum);
 
     // 3. Check live rates in batches until enough hotels match
@@ -134,7 +135,7 @@ async function search() {
             return null;
         })));
 
-        matches.push(...batch.map((item, index) => toHotel(item, rates[index])).filter(passesFilters));
+        matches.push(...batch.map((item, index) => normalize(item, rates[index])).filter(passesFilters));
         const noRates = rates.filter(rate => rate == null).length;
         console.log(`Xotelo rates checked for ${i + batch.length} hotels (${noRates} with no live rates), ${matches.length} match filters`);
     }
@@ -142,5 +143,5 @@ async function search() {
     return cheapest(matches);
 }
 
-module.exports = { search, listPage, locationKey };
+module.exports = { search, listPage, locationKey, normalize };
 runIfMain(module, "Xotelo", search);

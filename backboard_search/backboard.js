@@ -123,6 +123,7 @@ function toHotel(raw, settings) {
     return {
         name: String(raw.name).trim(),
         city: settings.city,
+        location: null,   // the model gives no coordinates (keeps the same fields as the hotel_search sources)
         nightlyPrice: priced ? Math.round(nightlyPrice) : null,
         // "quoted" = the rate for these dates, "from" = the lowest nightly rate a page showed, "none" = no price found
         priceType: !priced ? "none" : raw.priceType === "from" ? "from" : "quoted",

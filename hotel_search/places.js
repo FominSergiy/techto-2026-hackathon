@@ -145,7 +145,7 @@ async function enrichWithPlaces(hotels) {
                 regionCode: location.regionCode,
                 country: location.country,
                 address: place?.formattedAddress || hotel.address,
-                phone: place?.internationalPhoneNumber || null,
+                phone: place?.internationalPhoneNumber || hotel.phone || null,   // Places first, else what the source itself gave
                 website: place?.websiteUri || null,
                 mapsUrl: place?.googleMapsUri || null
             };

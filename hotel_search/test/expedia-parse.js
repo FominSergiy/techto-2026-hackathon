@@ -23,7 +23,7 @@ async function main() {
         const [alpha, beta, gamma, delta, epsilon] = cards;
         assert.equal(cards.length, 5);
 
-        assert.deepEqual(alpha.hotel, { name: "Alpha Inn & Suites", nightlyPrice: 149, totalPrice: 298, currency: "CAD", rating: 4.3, reviews: 1234, address: null, url: "https://example.test/Hotel-Information/h1" });
+        assert.deepEqual(alpha.hotel, { name: "Alpha Inn & Suites", nightlyPrice: 149, totalPrice: 298, currency: "CAD", rating: 4.3, reviews: 1234, address: null, url: "https://example.test/Hotel-Information/h1", city: null, phone: null, location: null });
         assert.equal(beta.hotel.nightlyPrice, 620);   // only a total: 1240 / 2 nights
         assert.equal(beta.hotel.totalPrice, 1240);
         assert.equal(beta.hotel.rating, 4.6);         // from visually-hidden text

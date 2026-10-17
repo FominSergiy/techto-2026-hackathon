@@ -85,6 +85,11 @@ function stub(answers) {
         const [noSpot] = await enrichWithPlaces([{ name: "Comfort Inn" }]);
         assert.strictEqual(noSpot.phone, "+1 905 555 0202");
 
+        // 4b. A phone the source already had survives when Places finds no match
+        stub({});
+        const [kept] = await enrichWithPlaces([{ name: "Ghost Motel", phone: "+1 905 555 0404", location: { latitude: here.lat, longitude: here.lng } }]);
+        assert.strictEqual(kept.phone, "+1 905 555 0404");
+
         // 5. A 500 from Places is retried instead of silently leaving the hotel without a phone
         stub({ "Days Inn Burlington": ["5xx", [place("Days Inn Burlington", near.lat, near.lng, "+1 905 555 0303")]] });
         const [retried] = await enrichWithPlaces([{ name: "Days Inn Burlington", location: { latitude: here.lat, longitude: here.lng } }]);

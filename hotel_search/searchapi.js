@@ -1,6 +1,6 @@
 // Google Hotels prices via SearchApi - https://www.searchapi.io/docs/google-hotels-api
 const settings = require("./settings");
-const { requireEnv, getJson, collectPages, runIfMain } = require("./hotel-utils");
+const { requireEnv, getJson, normalizeHotel, collectPages, runIfMain } = require("./hotel-utils");
 
 // SearchApi's rating filter only accepts 3.5+, 4.0+ or 4.5+
 function ratingParam(minRating) {
@@ -8,6 +8,22 @@ function ratingParam(minRating) {
     if (minRating >= 4.0) return "8";
     if (minRating >= 3.5) return "7";
     return null;
+}
+
+// One Google Hotels property from SearchApi -> the common hotel shape
+function normalize(property) {
+    return normalizeHotel({
+        name: property.name,
+        city: property.city,
+        location: property.gps_coordinates,
+        nightlyPrice: property.price_per_night?.extracted_price,
+        totalPrice: property.total_price?.extracted_price,
+        currency: settings.currency,
+        rating: property.rating,
+        reviews: property.reviews,
+        address: [property.city, property.country].filter(Boolean).join(", "),
+        url: property.link
+    });
 }
 
 async function search() {
@@ -40,22 +56,11 @@ async function search() {
 
         const data = await getJson(`https://www.searchapi.io/api/v1/search?${params}`);
         return {
-            hotels: (data.properties || []).map(property => ({
-                name: property.name,
-                city: property.city || null,
-                location: property.gps_coordinates || null,
-                nightlyPrice: property.price_per_night?.extracted_price ?? null,
-                totalPrice: property.total_price?.extracted_price ?? null,
-                currency: settings.currency,
-                rating: property.rating ?? null,
-                reviews: property.reviews ?? null,
-                address: [property.city, property.country].filter(Boolean).join(", ") || null,
-                url: property.link || null
-            })),
+            hotels: (data.properties || []).map(normalize),
             next: data.pagination?.next_page_token ?? null
         };
     });
 }
 
-module.exports = { search };
+module.exports = { search, normalize };
 runIfMain(module, "SearchApi", search);

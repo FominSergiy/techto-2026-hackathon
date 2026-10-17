@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — One hotel shape from every source (per-source normalizers)
+tags: feature, search, architecture
+- Feature: `normalizeHotel()` in `hotel-utils.js` defines the single output (name, city, address, phone, nightlyPrice, totalPrice, currency, rating out of 5, reviews, url, location), always with every field (null when unknown, numbers as numbers). Each source (Xotelo, SearchApi, LiteAPI, Hotelbeds, Apify Booking / Google Hotels / Hotels.com, Expedia) now has its own exported `normalize` that maps one raw API item through it; Backboard's `toHotel` has the same fields. `test/normalize.js` runs all of them and checks the shape. Also: Places keeps a phone the source already had, and the Booking actor now gets "City, Region, Country" instead of just the city.
+- Status: done for the shape; offline tests only.
+- Notes: The Hotels.com actor (`jeremy_frost/hotels-com-scraper`) returned an empty dataset in two live runs (Burlington, ON: `place` "Burlington Ontario Canada" with `min_stars` "1", then the docs-shaped "Burlington" with "3"). Its Apify log shows a Chrome WebDriver starting and exiting with code 0 after ~13s, no error and no results, so it probably can't read Hotels.com any more. It is unticked and labelled not working, and its `normalize` is still a guess. Its README lists no phone field either. Raw responses are in `output/raw/apify-hotelscom/`.
+
 ## 2026-10-17 — Raw API responses saved per source, and a sturdier Places match
 tags: feature, search, places, learnings
 - Feature: (1) Every source's raw JSON responses are saved unchanged to `output/raw/<source>/<UTC timestamp>-<city>.json` (an array, one entry per response, retries and error bodies included), plus a `places` folder and `backboard`. So an odd result can be checked against what the API actually said. (2) Google Places matching now retries 429/5xx, strips ", ON" / "(Downtown)" from names, runs a second search by name + city when the first (by name around the source's coordinates) finds nothing, and logs why each hotel got no match.

@@ -1,7 +1,6 @@
 // Helpers shared by the hotel source scripts.
-// Every source returns hotels shaped as:
-// { name, nightlyPrice, totalPrice, currency, rating (out of 5), reviews, address, url,
-//   city (optional), location (optional { latitude, longitude }) }
+// Every source has its own `normalize` function that turns one raw API item into the single hotel shape below,
+// by way of normalizeHotel(), so all sources return the same fields (the rest of the suite only knows this shape).
 const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -110,6 +109,32 @@ function hotelbedsHeaders(apiKey, secret) {
     };
 }
 
+// The one hotel shape every source returns. Every field is always present (null when the source doesn't know it),
+// numbers are numbers, rating is out of 5, prices are per night / whole stay in `currency`:
+// { name, city, address, phone, nightlyPrice, totalPrice, currency, rating, reviews, url, location: { latitude, longitude } | null }
+// Sources fill in what they have; none of the price APIs give phones, so `phone` is usually filled later from Google Places.
+const HOTEL_FIELDS = ["name", "city", "address", "phone", "nightlyPrice", "totalPrice", "currency", "rating", "reviews", "url", "location"];
+
+function normalizeHotel(fields) {
+    const number = value => (value == null || value === "" || !Number.isFinite(Number(value)) ? null : Number(value));
+    const latitude = number(fields.location?.latitude);
+    const longitude = number(fields.location?.longitude);
+
+    return {
+        name: fields.name ? String(fields.name).trim() : null,
+        city: fields.city || null,
+        address: fields.address || null,
+        phone: fields.phone || null,
+        nightlyPrice: number(fields.nightlyPrice),
+        totalPrice: number(fields.totalPrice),
+        currency: fields.currency || settings.currency,
+        rating: number(fields.rating),
+        reviews: number(fields.reviews),
+        url: fields.url || null,
+        location: latitude != null && longitude != null ? { latitude, longitude } : null
+    };
+}
+
 // Converts a whole-stay price to a nightly one
 function perNight(total) {
     return total != null ? Math.round(total / settings.nights) : null;
@@ -202,4 +227,4 @@ function runIfMain(mod, label, search) {
         });
 }
 
-module.exports = { sleep, requireEnv, getJson, withRawCapture, countryName, runApifyActor, hotelbedsHeaders, normalizeName, perNight, passesFilters, cheapest, collectPages, printHotels, runIfMain };
+module.exports = { sleep, requireEnv, getJson, withRawCapture, HOTEL_FIELDS, normalizeHotel, countryName, runApifyActor, hotelbedsHeaders, normalizeName, perNight, passesFilters, cheapest, collectPages, printHotels, runIfMain };

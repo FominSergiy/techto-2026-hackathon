@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Each source normalizes its own output into one shared shape
+tags: decision, search, architecture
+- Decision: Every source script owns a `normalize(rawItem)` built on the shared `normalizeHotel()`, instead of each building its hotel object inline. The rest of the suite (merge, Places, report, UI) only knows the one shape.
+- Why: The sources' raw outputs differ a lot (rating out of 10 or 5, price per night or per stay, nested or flat), and a field missing in one source (phone, city, location) silently became `undefined` downstream. One function guarantees every field exists, with the right type and `null` for unknown.
+- Alternatives: A single mapper module that knows every API (couples all sources in one file; each source is easier to change next to its own API code).
+
 ## 2026-10-17 — Prompt-only settings have no default in settings.js
 tags: decision, search, settings
 - Decision: `settings.js` no longer defaults `city`, `checkIn`/`checkOut` (dates are still derived: next Saturday), `minRating`, `minReviews` or the TripAdvisor/Hotelbeds location codes, and the price cap is 200. They are still accepted as `--flags` (`PROMPT_ONLY` in `settings.js`). A request with no city gets a warning in the review panel, and rating/review minimums stay off unless the request asks for them.
