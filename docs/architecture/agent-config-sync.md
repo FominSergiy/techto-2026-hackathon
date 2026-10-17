@@ -22,15 +22,15 @@ ElevenLabs targets:
 
 | Target | ID | Config | Live traffic |
 |---|---|---|---|
-| Alex · `Main` branch | `agtbrch_7801m552vbmxf77ankk22ex5hy1v` | This repo as of PR #4 (version `agtvrsn_5001m55ckw38fsgvgsds10nr3nq0`) | 100% |
-| Alex · `repo-sync` branch | `agtbrch_6701m55bzx57f3d97smmefs2tv86` | This repo, newest; may be ahead of Main | 0% |
+| Alex · `Main` branch | `agtbrch_7801m552vbmxf77ankk22ex5hy1v` | This repo: callback/dates/Luke voice (version `agtvrsn_6701m55m4p53ea9as0hw7rghm45t`). It replaced Davide's dashboard prompt `agtvrsn_5901m55h5xt7et3tzm1n9vjpayns` ("Refine agent prompt…"), which is still in the version history. | 100% |
+| Alex · `repo-sync` branch | `agtbrch_6701m55bzx57f3d97smmefs2tv86` | Same config as Main (version `agtvrsn_3001m55ma733e9rrnsf0rd7xnck9`) | 0% |
 | Alex · `main-backup-2026-10-17` branch | `agtbrch_1301m55ck5zaf1dsh4yen1wxy07j` | Davide's original Main, from before the sync (same as git `e324d67`) | 0% |
 | Alex · `Alex - Experiment` branch | `agtbrch_6601m552vbzye7fayn8rqbx9nm7a` | Davide's | 0% |
 | Agent **Alex (repo config)** (a copy) | `agent_3301m55c1j1xfap8y08jjvcj3g23` | This repo as of PR #4 | Its own agent; no phone number assigned |
 
 **Rollback:** merge `main-backup-2026-10-17` into Main, or push `git show e324d67:agent_configs/Alex.json` to Main.
 
-`agents.json` points at the `repo-sync` branch, so a plain `elevenlabs agents push` goes there, not to Main.
+`agents.json` records the `repo-sync` branch, but **CLI 1.6.1 ignores that field and a plain `elevenlabs agents push` goes to Main**. Always pass the branch: `elevenlabs agents push --branch agtbrch_6701m55bzx57f3d97smmefs2tv86`.
 
 ## How Sync Works
 
@@ -43,7 +43,7 @@ ElevenLabs targets:
 ## When to Sync
 
 1. **Before editing:** `elevenlabs agents pull --agent agent_2501m552v9ayegsrycv3hb092dw4 --branch repo-sync --yes`. Commit any diff it shows; that's someone's UI edit.
-2. **After editing, to test:** `elevenlabs agents push --version-description "<what changed>"`. That goes to `repo-sync`. To test that branch, place a call to `POST /v1/convai/twilio/outbound-call` with `agent_id` = Alex and `conversation_initiation_client_data.branch_id` = the `repo-sync` ID. Or use the copy's `agent_id`.
+2. **After editing, to test:** `elevenlabs agents push --branch agtbrch_6701m55bzx57f3d97smmefs2tv86 --version-description "<what changed>"`. Without `--branch` it goes to Main. To test that branch, place a call to `POST /v1/convai/twilio/outbound-call` with `agent_id` = Alex and `conversation_initiation_client_data.branch_id` = the `repo-sync` ID. Or use the copy's `agent_id`.
 3. **After test calls pass:** merge `repo-sync` into Main. Only one person merges; tell the team first, since Davide may have UI edits on Main. Preview with `elevenlabs agents branches preview_merge`.
 4. **After a merge in the UI:** pull Main into the repo and commit, so git matches what's live.
 
@@ -56,9 +56,33 @@ jq --indent 4 '.name = "Alex (repo config)"' <repo>/agent_configs/Alex.json > ag
 elevenlabs agents push --agent agent_3301m55c1j1xfap8y08jjvcj3g23
 ```
 
+## Personal Copies in Your Own Workspace
+
+Teammates without access to Davide's workspace test on their own copy, built from the same `agent_configs/Alex.json`. Keep the copy's registry and key outside the repo so the repo's `agents.json` and `.env` stay untouched.
+
+| Owner | Workspace agent | Sync folder |
+|---|---|---|
+| Sergiy | `agent_3001m55j894cfm4bavqabbnjgc54` (no phone number yet) | `~/project-space/alex-sergiy` |
+
+Setup (once):
+
+```bash
+mkdir -p ~/project-space/alex-<you>/agent_configs && cd ~/project-space/alex-<you>
+echo "ELEVENLABS_API_KEY=<your key>" > .env    # the CLI reads .env from the current folder
+echo '{"agents": []}' > agents.json            # `agents add` fails without it
+cp <repo>/agent_configs/Alex.json agent_configs/
+set -a; . ./.env; set +a
+elevenlabs agents add "Alex" --from-file agent_configs/Alex.json
+# `add` writes a duplicate Alex-1.json; delete it and point agents.json at Alex.json
+```
+
+To sync: copy the newest `Alex.json` in, then `elevenlabs agents push --version-description "<what changed>"`. To make calls, import a Twilio number into your workspace and assign it to the copy. The voice (Luke, `RNnkVeW25AwKYxZgnHBH`) is a library voice, so add it to your workspace first: `POST /v1/voices/add/32b8dada727cfb7bb57cd138caa6325977eb85dceae264884bab126701e502bd/RNnkVeW25AwKYxZgnHBH`.
+
 ## Gotchas
 
 - **The CLI reads `.env` in the current folder.** In this repo it uses `ELEVENLABS_API_KEY`, which is Davide's key, so every push and branch shows up as Davide. In a folder without `.env` it falls back to your own `elevenlabs auth login`, which may lack edit rights on agents Davide created.
+- **A plain `push` targets Main** (CLI 1.6.1), whatever `branch_id` says in `agents.json`. This overwrote Main once on 2026-10-17. Always pass `--branch`, and check `agents.json` after a push: the CLI rewrites `branch_id` to the branch it actually pushed to.
+- **`pull --branch X` without `--update` skips** an agent that already exists. With `--update` it writes a second file, `Alex.<branch>.json`, and a `branches` block in `agents.json`.
 - **`pull --dry-run` still writes an empty `agents.json`.**
 - **An empty workflow is rejected** ("Dictionary should have at least 1 item"). To have no workflow, keep only `start_node` with an empty `edge_order`.
 - **`elevenlabs agents update --json` validates against an older schema** and rejects a pulled config. Use `agents push`.

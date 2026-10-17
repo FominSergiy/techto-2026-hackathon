@@ -19,6 +19,20 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Alex: callback refusal, spoken dates, quote-or-exit, human-sounding voice
+tags: feature, elevenlabs, call-handling
+- Feature:
+  - **Callbacks:** if the hotel offers to call back, Alex says we're calling several hotels and asks for the rate now. If they still can't give one, Alex thanks them and hangs up.
+  - **Dates:** they arrive as ISO and are spoken as "October 17th". The opener no longer contains dates.
+  - **Quote or exit:** if there's still no price after asking twice, Alex ends the call. Max call length is now 480 s (was 900).
+  - **Voice:** Luke (a library voice, added to both workspaces), stability 0.3, speed 1.05, with occasional "um"/"so" fillers and varied soft-timeout fillers.
+- Status: live on Main, `repo-sync` and Sergiy's copy. No test call yet.
+- Notes:
+  - **The opener is spoken word for word.** `first_message` doesn't go through the LLM, so a prompt rule can't reformat `{{check_in_date}}` there. Keep variables that need formatting out of `first_message`.
+  - **Natural voice:** lower stability (0.3) plus disfluencies written into the text ("um", "uh") sounded far more human on `eleven_v3_conversational` than any voice swap alone. Compare voices with the same script.
+  - **Library voices** can be sampled with TTS before adding them, but an agent can only use them once they're added (`POST /v1/voices/add/{owner}/{voice_id}`). The voice ID stays the same.
+  - **LLM left as is:** on 4 recent calls `deepseek-v41-flash` (reasoning `null`) had LLM time to first byte of 70–225 ms on average and no reasoning tokens, so changing reasoning wasn't worth it.
+
 ## 2026-10-17 — Confirmation email service
 tags: feature, email
 - Feature: Standalone sender, `Davide_test/email_service.py`: `send_confirmation(payload)` in Python, or `--send payload.json` from any language. It checks the spec's 4 fields (confirmation, price, date, address) and fails if any is missing. With no reservation number it falls back to the verbal formats (`type: verbal_booking | verbal_availability`). It sends via Gmail SMTP or Resend, retries once, and returns `{provider, id, to, ms}`. `main.py` uses it, and its "email sent" log line marks the race time. Wiring guide: [email-service.md](../architecture/email-service.md).
