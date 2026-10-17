@@ -26,10 +26,14 @@ function buildInput() {
 
 // One property -> the common hotel shape. The phone and address are only there when the run returned them (a plain
 // search run does not, a manual run with phone numbers did); when missing they stay null and come from Google Places.
+// "Markham, ON, Canada" -> "Markham". A street address ("135 Carlingview Dr") doesn't say which city, so it gives none.
+const cityOf = address => address?.match(/^([^,\d][^,]*),\s*[A-Z]{2},\s*[A-Za-z .]+$/)?.[1].trim() ?? null;
+
 function normalize(property) {
     const totalPrice = property.total_rate?.extracted_lowest;
     return normalizeHotel({
         name: property.name,
+        city: cityOf(property.address),
         location: property.gps_coordinates,
         nightlyPrice: property.rate_per_night?.extracted_lowest ?? perNight(totalPrice ?? null),
         totalPrice,

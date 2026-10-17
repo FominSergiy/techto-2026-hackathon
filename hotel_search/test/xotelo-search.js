@@ -40,6 +40,28 @@ const list = [
         global.fetch = async () => assert.fail("must not call the API");
         assert.strictEqual(await locationKey(), "g155019");
 
+        // Seen live: "Toronto Ontario" answers 400 "No results found"; the bare city name is then tried and its region checked
+        Object.assign(settings, { city: "Toronto", region: "Ontario", tripadvisorLocationKey: null });
+        const queries = [];
+        global.fetch = async url => {
+            const query = new URL(url).searchParams.get("query");
+            queries.push(query);
+            if (query === "Toronto Ontario") {
+                return { ok: true, status: 200, json: async () => ({ error: { status_code: 400, message: "No results found for query: Toronto Ontario" }, result: null }) };
+            }
+            return { ok: true, status: 200, json: async () => ({ error: null, result: { list: [
+                { name: "Toronto", location_key: "g155019", place_name: "Toronto, Ontario, Canada" },
+                { name: "Toronto", location_key: "g99", place_name: "Toronto, Ohio, United States" }
+            ] } }) };
+        };
+        assert.strictEqual(await locationKey(), "g155019");
+        assert.deepStrictEqual(queries, ["Toronto Ontario", "Toronto"], "no retries on the 400, then the bare city name");
+
+        // Both queries failing says why
+        settings.city = "Nowhereville";
+        global.fetch = async () => ({ ok: true, status: 200, json: async () => ({ error: { status_code: 400, message: "No results found" }, result: null }) });
+        await assert.rejects(() => locationKey(), /found no place named "Nowhereville" in Ontario \(.*No results found\)/);
+
         console.log("xotelo-search: all tests passed");
     } finally {
         if (before) fs.writeFileSync(CACHE_FILE, before); else fs.rmSync(CACHE_FILE, { force: true });

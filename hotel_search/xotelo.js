@@ -32,18 +32,29 @@ function locationKey() {
     }
 
     return cached("tripadvisorLocationKey", async () => {
-        const params = new URLSearchParams({ query: [settings.city, settings.region].filter(Boolean).join(" "), location_type: "geo" });
-        const { result } = await getJson(`${BASE_URL}/search?${params}`, { headers: headers() }, RATE_RETRIES);
-
         // Several cities share a name (Aurora, ON vs Aurora, IL), so the place must name our city and region
         const city = normalizeName(settings.city);
         const region = settings.region ? normalizeName(settings.region) : "";
-        const named = (result.list || []).filter(item => item.location_key && normalizeName(item.name) === city);
-        const match = named.find(item => normalizeName(item.place_name || "").includes(region)) || (region ? null : named[0]);
-        if (!match) {
-            throw new Error(`Xotelo /search found no place named "${settings.city}"${region ? ` in ${settings.region}` : ""} - pass --tripadvisor-location-key`);
+
+        // "Toronto Ontario" and "Etobicoke Ontario" both got HTTP 400 "No results found" live, so after the city +
+        // region query the bare city name is tried too (the region is then checked on the result, as above)
+        const queries = [...new Set([[settings.city, settings.region].filter(Boolean).join(" "), settings.city])];
+        let failure;
+        for (const query of queries) {
+            let list;
+            try {
+                // "No results" is a 400, not a blip, so no retries
+                const params = new URLSearchParams({ query, location_type: "geo" });
+                list = (await getJson(`${BASE_URL}/search?${params}`, { headers: headers() })).result?.list;
+            } catch (error) {
+                failure = error;
+                continue;
+            }
+            const named = (list || []).filter(item => item.location_key && normalizeName(item.name) === city);
+            const match = named.find(item => normalizeName(item.place_name || "").includes(region)) || (region ? null : named[0]);
+            if (match) return match.location_key;
         }
-        return match.location_key;
+        throw new Error(`Xotelo /search found no place named "${settings.city}"${region ? ` in ${settings.region}` : ""}${failure ? ` (${failure.message})` : ""} - pass --tripadvisor-location-key`);
     });
 }
 

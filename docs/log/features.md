@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — City check without Google Places; Xotelo search falls back to the bare city name
+tags: feature, search, places, xotelo, learnings
+- Feature: (1) A Toronto search showed hotels from Markham and Richmond Hill: the Google actor returns nearby towns, and the only thing that removed them was the Places city check, which did not run (no `places` raw file in three browser runs). Now, when Places is off, `index.js` still drops hotels a source places in another city (`dropKnownOtherCities`); the Google normalizer reads the city from addresses like "Markham, ON, Canada". (2) Xotelo `/search` for "Toronto Ontario", "Etobicoke Ontario" and "Humber Bay Ontario" all answered 400 "No results found" live, so `locationKey` now also tries the bare city name (no retries on the 400).
+- Status: wip. Offline tests (`test/city-check.js` replays real Toronto data, `test/xotelo-search.js`); neither tried live, and whether `/search "Toronto"` works is unknown (the result format `place_name` is still an assumption).
+- Notes: The new check is weaker than Places: it only drops hotels the source gives a city for. In the real Toronto response 18 of 76 hotels had an address and only 6 of those named another town; 12 had a street address and 58 had none, so those stay. Only the Places check verifies those. Searching "Toronto" also drops hotels in districts like North York or Etobicoke if a source names them (Places does the same). With the 150 cap the Google actor returned phones for the first 18 hotels (page 1) and none for the rest.
+
 ## 2026-10-17 — Price cap no longer switched off by the prompt parser; warning when Google Places is off
 tags: feature, search, prompt, learnings
 - Feature: (1) The prompt parser told the model `maxNightlyPrice` could be "null for no limit", and models answered null for requests that named no price, so no cap reached the actors (the saved Google request for Humber Bay had no `max_price`, and the 150 default never applied). Now the model is told to omit the key, and a null is dropped unless the request says "no limit / any price / unlimited" (`test/prompt-llm.js`). (2) The results page shows a red note when a run had `--enrich-phones=false`, so a table with empty City / Address / Phone columns says why.

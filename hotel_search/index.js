@@ -69,6 +69,17 @@ function filterToCity(hotels) {
     return kept;
 }
 
+// The city check Google Places does is skipped when Places is unticked, but a source may still say where a hotel is
+// (the Google actor's "Markham, ON, Canada"). Drop hotels a source places in another city, keep the ones it says
+// nothing about. Weaker than the Places check, which also verifies the hotels that have no city.
+function dropKnownOtherCities(hotels) {
+    const kept = hotels.filter(hotel => !hotel.city || normalizeName(hotel.city) === normalizeName(settings.city));
+    const dropped = hotels.filter(hotel => !kept.includes(hotel));
+    console.log(`Source city check (${settings.city}): dropped ${dropped.length} hotels a source places in other cities, ${kept.filter(hotel => !hotel.city).length} have no city to check`);
+    dropped.forEach(hotel => console.log(`  other place: ${hotel.name} (${hotel.city})`));
+    return kept;
+}
+
 async function search() {
     const started = Date.now();
     const results = await Promise.allSettled(settings.sources.map(runSource));
@@ -95,11 +106,12 @@ async function search() {
             console.error(`Skipping phone numbers and the city check: ${error.message}`);
         }
     } else if (settings.strictCity) {
-        console.warn("strictCity needs enrichPhones - results may include nearby cities");
+        console.warn("strictCity needs enrichPhones (Google Places) for the full city check - only hotels a source places in another city are dropped");
+        hotels = dropKnownOtherCities(merged).slice(0, settings.targetCount);
     }
 
     console.log(`Search took ${((Date.now() - started) / 1000).toFixed(1)}s`);
     return hotels;
 }
 
-module.exports = { search };
+module.exports = { search, dropKnownOtherCities };
