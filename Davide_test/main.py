@@ -206,15 +206,18 @@ def hang_up(call_sid):
 ACTIVE = {}
 
 
-# TEST_NUMBER: comma-separated phones; entries without 10+ digits (e.g. a leftover "+" or ",") are ignored
-TEST = ["+" + d for d in (re.sub(r"\D", "", x) for x in E.get("TEST_NUMBER", "").split(",")) if len(d) >= 10]
+def to_number(h):
+    """TEST_NUMBER overrides the hotel's phone, but only if its first entry is a real number (a bad one dialed "+")."""
+    digits = re.sub(r"\D", "", E.get("TEST_NUMBER", "").split(",")[0])
+    if len(digits) < 10:
+        return h["phone"]
+    return "+" + (digits if len(digits) > 10 else "1" + digits)  # same NANP rule as load_hotels_json
 
 
-def call_hotel(h, q, i=0):
-    to = TEST[i % len(TEST)] if TEST else h["phone"]  # TEST_NUMBER may hold several numbers: one per hotel
+def call_hotel(h, q):
     r = requests.post("https://api.elevenlabs.io/v1/convai/twilio/outbound-call", headers=XI, timeout=20, json={
         "agent_id": E["ELEVENLABS_AGENT_ID"], "agent_phone_number_id": E["ELEVENLABS_PHONE_NUMBER_ID"],
-        "to_number": to,
+        "to_number": to_number(h),
         "conversation_initiation_client_data": {"dynamic_variables": {
             "hotel_name": h["name"], "guest_name": E["GUEST_NAME"], "number_of_guests": str(q["guests"]),
             "check_in_date": q["check_in"], "check_out_date": q["check_out"], "contact_email": E["CONTACT_EMAIL"]}}})
@@ -234,90 +237,25 @@ def call_hotel(h, q, i=0):
         hang_up(sid)
         raise RuntimeError(f"{h['name']}: timeout")
     ACTIVE.pop(cid, None)
+    LOG.append({"conv": cid, "hotel": h["name"], "metadata": c.get("metadata")})  # cost/duration for Learnings
+    return result_from(c, h, q)
 
-    ALIAS = {"confirmation_number": "reservation_number", "room_rate": "price", "address": "hotel_address"}
 
-    def extracted(conv):
-        return {ALIAS.get(k, k): (v or {}).get("value") for k, v in
-                ((conv.get("analysis") or {}).get("data_collection_results") or {}).items()}
+VERBAL = ("verbal_booking", "verbal_availability")
 
-    d = extracted(c)
-    for _ in range(4):  # analysis can lag a few seconds behind status=done
-        if d.get("reservation_number"):
-            break
-        time.sleep(2)
-        c = requests.get(f"https://api.elevenlabs.io/v1/convai/conversations/{cid}", headers=XI, timeout=15).json()
-        d = extracted(c)
-    json.dump(c, open(f"conv_{cid}.json", "w"), indent=1)  # transcript + analysis for debugging
-    LOG.append({"conv": cid, "hotel": h["name"], "extracted": d, "cost_credits": (c.get("metadata") or {}).get("cost"),
-                "secs": (c.get("metadata") or {}).get("call_duration_secs")})
-    meta = c.get("metadata") or {}
-    # name/address/phone come from Google data (reliable); number + price can only come from the call
-    return {"hotel": h["name"] or d.get("hotel_name"), "address": h["address"] or d.get("hotel_address"),
+
+def result_from(c, h, q):
+    """Booking from a finished conversation. Spec: a reservation ID or a verbal confirmation (name + price) counts."""
+    d = {k: (v or {}).get("value") for k, v in (c.get("analysis", {}).get("data_collection_results") or {}).items()}
+    verbal = d.get("confirmation_type") in VERBAL and d.get("price")
+    if not d.get("reservation_number") and not verbal:
+        raise RuntimeError(f"{h['name']}: no reservation ({c.get('status')})")
+    start = (c.get("metadata") or {}).get("start_time_unix_secs") or time.time()
+    return {"hotel": d.get("hotel_name") or h["name"], "address": d.get("hotel_address") or h["address"],
             "phone": h["phone"], "number": d.get("reservation_number"),
-            "price": d.get("price"), "google_price": h["price"], "date": q["check_in"],
-            "status": "booked" if d.get("reservation_number") else "no_reservation",
-            "conversation_id": cid, "call_secs": meta.get("call_duration_secs"), "cost_credits": meta.get("cost")}
-
-
-# ---------- 4. Email (also usable alone to re-send a saved result.json) ----------
-def build_email(res, to):
-    m = EmailMessage()
-    m["Subject"] = f"Team # {E.get('TEAM_NUMBER', '?')} - Hotel Reservation Confirmed!"
-    m["From"], m["To"] = E.get("SMTP_USER", ""), to
-    m.set_content(f"Hotel Name: {res.get('hotel', '')}\nAddress: {res.get('address', '')}\n"
-                  f"Phone: {res.get('phone', '')}\nReservation #: {res.get('number', '')}\n"
-                  f"Reservation Date: {res.get('date', '')}\nPrice: {res.get('price', '')}\n")
-    return m
-
-
-def send_email(res, to=None, dry_run=False):
-    to = to or E.get("RESULT_EMAIL", "")
-    m = build_email(res, to)
-    if dry_run:
-        print(f"To: {m['To']}\nFrom: {m['From']}\nSubject: {m['Subject']}\n\n{m.get_content()}")
-        return
-    if not to:
-        raise RuntimeError("RESULT_EMAIL missing in .env (or pass --to address)")
-    errors = []
-    # 1) Gmail SMTP (needs SMTP_USER + SMTP_APP_PASSWORD), two tries per port
-    if E.get("SMTP_USER") and E.get("SMTP_APP_PASSWORD"):
-        pwd = E["SMTP_APP_PASSWORD"].replace(" ", "")
-        for attempt in range(2):
-            for port in (465, 587):
-                try:
-                    if port == 465:
-                        s = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15)
-                    else:
-                        s = smtplib.SMTP("smtp.gmail.com", 587, timeout=15)
-                        s.starttls()
-                    with s:
-                        s.login(E["SMTP_USER"], pwd)
-                        s.send_message(m)
-                    print(f"email sent to {to} (gmail smtp:{port})")
-                    return
-                except Exception as e:
-                    errors.append(f"smtp:{port}: {type(e).__name__}: {e}")
-            time.sleep(1)
-    else:
-        errors.append("SMTP_USER / SMTP_APP_PASSWORD missing")
-    # 2) HTTPS fallback (works on any network): SendGrid, sender = SMTP_USER or EMAIL_FROM verified there
-    if E.get("SENDGRID_API_KEY"):
-        sender = E.get("EMAIL_FROM") or E.get("SMTP_USER")
-        try:
-            r = requests.post("https://api.sendgrid.com/v3/mail/send", timeout=20,
-                              headers={"Authorization": f"Bearer {E['SENDGRID_API_KEY']}"},
-                              json={"personalizations": [{"to": [{"email": to}]}], "from": {"email": sender},
-                                    "subject": m["Subject"], "content": [{"type": "text/plain", "value": m.get_content()}]})
-            if r.status_code < 300:
-                print(f"email sent to {to} (sendgrid)")
-                return
-            errors.append(f"sendgrid: HTTP {r.status_code} {r.text[:200]}")
-        except Exception as e:
-            errors.append(f"sendgrid: {type(e).__name__}: {e}")
-    raise RuntimeError("EMAIL FAILED. " + " | ".join(errors) +
-                       "  -> the result is saved in result.json: run `python main.py --send-email` later, "
-                       "or copy the text below into any mail client:\n" + m.get_content())
+            "type": d.get("confirmation_type"), "receptionist": d.get("receptionist_name"),
+            "call_time": dt.datetime.fromtimestamp(start).strftime("%Y-%m-%d %H:%M"),
+            "price": d.get("price") or h["price"], "date": q["check_in"], "check_out": q["check_out"]}
 
 
 def main():

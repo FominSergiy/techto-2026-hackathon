@@ -19,11 +19,31 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
-## 2026-10-17 — Reservation AI service page (/reservation)
-tags: feature, ui, search, places, backboard
-- Feature: A separate, clean page at `/reservation`: title "Reservation AI service", one input, one table (hotel, price / night, phone, address). One prompt runs the Google Maps search (5 Places searches plus the Backboard expected-price ranking) and the Backboard web search at the same time, merges them into one list and sorts it cheapest first.
-- Status: wip - handler checked end to end with Places and Backboard faked (no live calls); merge tested offline; never run live.
-- Notes: One search costs 5 Places calls + 2 Backboard calls (ranking, search) + 1 prompt-parsing call. Prices come in three kinds: found by Backboard on a page (shown as is, or "from" for a page's lowest rate) beats the model's estimate (shown "~"). The same hotel is matched across the two lists by name overlap, and two different local phone numbers stop a merge ("Holiday Inn" vs "Holiday Inn Express"); toll-free numbers are ignored because Backboard returns each chain's central booking line (1-800-454-3213 for Super 8). A hotel only Backboard found has not been city-checked.
+## 2026-10-17 — main.py: verbal bookings count; TEST_NUMBER guard
+tags: feature, workflow, email, telephony
+- Feature: `result_from()` in `Davide_test/main.py` accepts a reservation number or a verbal confirmation with a price, and passes `type`, `receptionist` and `call_time` to `email_service`. `to_number()` uses `TEST_NUMBER` only if its first comma-separated entry has 10+ digits; otherwise it dials the hotel.
+- Status: done. Checked offline against saved conversations: Rodd Moncton (verbal) builds a full receipt, a reservation-ID call keeps its number, voicemail and wrong-line calls still fail. Not yet tried in a live run.
+- Notes (from the 15:08 and 15:11 Moncton runs):
+  - **No real hotel gave a reservation number.** Rodd quoted $282 all-in, wanted a 25% deposit, and confirmed availability at pay-at-hotel. Verbal is the realistic outcome.
+  - **A bad `TEST_NUMBER` dials "+".** All 3 calls at 15:08 failed with "number is not valid". An earlier comma-separated value got glued into one 21-digit number.
+  - **Read-back mixed up guest and receptionist:** Alex said the booking was "under the name Hamza" (the receptionist), not the guest. Needs a prompt fix on `repo-sync`.
+  - **Wrong line:** the Motel 6 number from search reached the bar. Alex got the front desk number but had no tool to use it, so the call was lost.
+  - **Call address can be short:** the call gave "434 Main Street" with no city, and it overrides the fuller scraper address.
+
+## 2026-10-17 — Alex: callback refusal, spoken dates, quote-or-exit, human-sounding voice
+tags: feature, elevenlabs, call-handling
+- Feature:
+  - **Callbacks:** if the hotel offers to call back, Alex says we're calling several hotels and asks for the rate now. If they still can't give one, Alex thanks them and hangs up.
+  - **Dates:** they arrive as ISO and are spoken as "October 17th". The opener no longer contains dates.
+  - **Quote or exit:** if there's still no price after asking twice, Alex ends the call. Max call length is now 480 s (was 900).
+  - **Voice:** Luke (a library voice, added to both workspaces), stability 0.3, speed 1.05, with occasional "um"/"so" fillers and varied soft-timeout fillers.
+- Status: live on Main, `repo-sync` and Sergiy's copy. Test call 1 (`conv_1301m55mgr15e7za05bm2gba353m`, 77 s) passed for dates ("October 17th, checking out October 18th", no year), fillers, and a polite exit when the hotel refused. LLM time to first byte averaged 110 ms. The callback and refuse-to-quote cases are not tested yet.
+  - Seen: Alex never said "I'll take it" before collecting details, and asked about taxes twice when the answer only covered currency.
+- Notes:
+  - **The opener is spoken word for word.** `first_message` doesn't go through the LLM, so a prompt rule can't reformat `{{check_in_date}}` there. Keep variables that need formatting out of `first_message`.
+  - **Natural voice:** lower stability (0.3) plus disfluencies written into the text ("um", "uh") sounded far more human on `eleven_v3_conversational` than any voice swap alone. Compare voices with the same script.
+  - **Library voices** can be sampled with TTS before adding them, but an agent can only use them once they're added (`POST /v1/voices/add/{owner}/{voice_id}`). The voice ID stays the same.
+  - **LLM left as is:** on 4 recent calls `deepseek-v41-flash` (reasoning `null`) had LLM time to first byte of 70–225 ms on average and no reasoning tokens, so changing reasoning wasn't worth it.
 
 ## 2026-10-17 — Backboard free-text card: ask for a minimum number of hotels
 tags: feature, search, backboard, learnings

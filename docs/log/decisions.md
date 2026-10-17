@@ -19,11 +19,17 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
-## 2026-10-17 — Google Maps card covers all of Canada: no province filter, no Ontario pinning
-tags: decision, search, places, scope
-- Decision: The Google Maps card (`places-search.js`, `POST /api/places`) no longer filters by province or pins the region to Ontario. A hotel is kept when it is in the searched city and in Canada (the country check stays so "Sudbury, MA" is dropped). A province named in the request ("London, Ontario") goes into the Maps query text and into the ranking prompt to tell same-named cities apart; without one the queries name only the city.
-- Why: The brief now covers the whole country. The old queries ("hotels in Vancouver, Ontario") would have been wrong outside Ontario.
-- Not changed: the main search (`settings.js` region default Ontario, `pinRegion` in the server, `filterToCity`'s region check, `prompt_refine.js`) and the Backboard card's wording still assume Ontario. `--region=null` switches the region off for the main search, but the prompt pinning and the UI hints still say Ontario.
+## 2026-10-17 — Accept a verbal confirmation (name + price) as a booking
+tags: decision, email, workflow
+- Decision: `main.py` treats a call as booked when it has a reservation number, **or** when `confirmation_type` is `verbal_booking`/`verbal_availability` and a price was given. The email's Reservation # then reads "Verbal confirmation from <receptionist> at <hotel>, call at <time>".
+- Why: The spec counts "a verbal confirmation from the hotel, a reservation ID, or both" (brief, Booking Goal). The 15:11 Moncton run got Rodd Moncton verbally ($282 CAD, confirmed by Hamza), but the old reservation-number-only check threw it away, so no email went out.
+- Alternatives: Keep requiring a number (real hotels won't give one by phone without a card).
+
+## 2026-10-17 — Alex on Main: repo prompt + Luke voice; LLM unchanged
+tags: decision, elevenlabs, call-handling
+- Decision: Main, `repo-sync` and Sergiy's copy all run the repo prompt plus the callback, date, quote-or-exit and style rules, with the Luke voice (stability 0.3, speed 1.05) and a 480 s cap. The LLM stays `deepseek-v41-flash` with reasoning `null`. This replaced Davide's dashboard prompt on Main (`agtvrsn_5901m55h5xt7et3tzm1n9vjpayns`, shorter, reads back only when unclear). A plain CLI push hit Main by mistake, and Sergiy chose to keep it there rather than roll back.
+- Why: The spec judges call handling, time and cost. Calls must end with a quote or a fast exit, never a callback. Latency data showed no gain from changing reasoning. The new voice is meant to sound less like AI.
+- Alternatives: Roll Main back to Davide's version and test on `repo-sync` first (rejected by Sergiy). Build on Davide's shorter prompt (rejected; kept the full read-back).
 
 ## 2026-10-17 — Rank Google Maps hotels by a Backboard model's expected price
 tags: decision, search, places, backboard, tokens
