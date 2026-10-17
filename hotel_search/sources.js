@@ -16,8 +16,13 @@ const SOURCES = {
         cost: { kind: "free", label: "Free", note: "Hotel rates search is free under a reasonable look-to-book policy; only the price-index and places endpoints are charged. Your key is a sandbox key." } },
     hotelbeds: { label: "Hotelbeds", detail: "wholesale rates", module: "./hotelbeds", env: ["HOTELBEDS_API_KEY", "HOTELBEDS_SECRET"],
         cost: { kind: "tier", label: "Test keys: 50/day", note: "Evaluation keys allow 50 requests per day. Hotelbeds' page does not say whether this is free or what production access costs." } },
-    booking: { label: "Booking.com", detail: "via Apify", module: "./apify-booking", env: ["APIFY_TOKEN"],
+    booking: { label: "Booking.com", detail: "via Apify", module: "./apify-booking", env: ["APIFY_KEY"],
         cost: { kind: "tier", label: "$5 free credit/month", note: "Apify free plan: $5 of usage a month, no card. This scraper's own per-result price was not checked." } },
+    apifygoogle: { label: "Google Hotels (Apify)", detail: "Google Hotels via Apify", module: "./apify-google-hotels", env: ["APIFY_KEY"],
+        cost: { kind: "tier", label: "~$0.02/page", note: "Pay per event: $0.02 per run plus $0.02 per results page (about 20 listings), paid from Apify credit." } },
+    // Unticked: the actor must first be approved for full account access on Apify, and its output fields were never confirmed by a run
+    apifyhotelscom: { label: "Hotels.com (Apify)", detail: "needs one-time approval on Apify", module: "./apify-hotelscom", env: ["APIFY_KEY"], defaultOn: false,
+        cost: { kind: "tier", label: "Apify usage", note: "Free actor, you pay Apify platform usage only (listing says about $5 per 1,000 results). Not yet run: Apify asks for full account access before its first run." } },
     // Drives a real browser against Expedia's site. Slow, and Expedia's bot check needs a human in a visible
     // window (HEADLESS=false); headless it reports an error and the other sources still run.
     expedia: { label: "Expedia", detail: "opens a browser window (set HEADLESS=false)", module: "./expedia", env: [],

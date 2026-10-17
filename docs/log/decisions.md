@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Apify sources: johnvc Google Hotels actor and jeremy_frost Hotels.com actor
+tags: decision, search, apify
+- Decision: Google Hotels via `johnvc/google-hotels-search-scraper` (the exact "Google Hotels Search Scraper" title, $0.02 per run + $0.02 per page) and Hotels.com via `jeremy_frost/hotels-com-scraper`. The key is `APIFY_KEY`, matching `.env`, for every Apify source.
+- Why: Both take a city and dates directly, so no search URL has to be built, and both are pay-per-use rather than monthly rentals. The Google actor gives structured prices and links like SearchApi does, from a second quota.
+- Alternatives: `easyapi/hotels-com-scraper` (needs Hotels.com search URLs), `automation-lab/google-hotels-search-scraper` (its Apify page returned 404).
+
 ## 2026-10-17 — Xotelo runs its whole flow through RapidAPI, inside xotelo.js
 tags: decision, search, xotelo
 - Decision: `xotelo.js` calls `/search` (city -> TripAdvisor location key, cached), `/list` (hotels) and `/rates` (live prices) on Xotelo's RapidAPI listing with `RAPID_API_KEY`. The lookup moved out of `locations.js`, so ticking the Xotelo box runs the full source on its own.

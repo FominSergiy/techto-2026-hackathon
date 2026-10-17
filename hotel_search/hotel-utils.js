@@ -44,6 +44,17 @@ async function getJson(url, options = {}, retries = 0, attempt = 0) {
     return data;
 }
 
+// Runs an Apify actor and returns its dataset items. The call waits for the run to finish (Apify cuts it off after 5 minutes).
+async function runApifyActor(actor, input) {
+    const [token] = requireEnv("APIFY_KEY");
+    console.log(`Running Apify actor ${actor} (this can take a few minutes)...`);
+    return getJson(`https://api.apify.com/v2/acts/${actor}/run-sync-get-dataset-items?token=${token}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input)
+    });
+}
+
 // Hotelbeds auth: X-Signature = SHA256(apiKey + secret + unix timestamp in seconds)
 function hotelbedsHeaders(apiKey, secret) {
     const timestamp = Math.floor(Date.now() / 1000);
@@ -147,4 +158,4 @@ function runIfMain(mod, label, search) {
         });
 }
 
-module.exports = { sleep, requireEnv, getJson,hotelbedsHeaders, normalizeName, perNight, passesFilters, cheapest, collectPages, printHotels, runIfMain };
+module.exports = { sleep, requireEnv, getJson, runApifyActor, hotelbedsHeaders, normalizeName, perNight, passesFilters, cheapest, collectPages, printHotels, runIfMain };
