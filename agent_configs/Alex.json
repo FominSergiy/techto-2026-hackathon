@@ -930,7 +930,17 @@
     "tags": [],
     "workflow": {
         "edges": {},
-        "nodes": {},
+        "nodes": {
+            "start_node": {
+                "edge_order": [],
+                "parent_subgraph_id": null,
+                "position": {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                "type": "start"
+            }
+        },
         "prevent_subagent_loops": false,
         "subgraphs": {}
     }
