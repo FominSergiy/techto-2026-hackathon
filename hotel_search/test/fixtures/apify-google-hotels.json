@@ -1,0 +1,119 @@
+[
+  {
+    "search_type": "search",
+    "page_number": 1,
+    "properties": [
+      {
+        "type": "vacation rental",
+        "name": "Cozy basement apartment in Newmarket - One-Bedroom Apartment",
+        "gps_coordinates": {
+          "latitude": 44.04875183105469,
+          "longitude": -79.44615173339844
+        },
+        "rate_per_night": {
+          "lowest": "$117",
+          "extracted_lowest": 117
+        },
+        "total_rate": {
+          "lowest": "$117",
+          "extracted_lowest": 117
+        },
+        "overall_rating": 4.35,
+        "reviews": 38
+      },
+      {
+        "type": "vacation rental",
+        "name": "Cozy Private Rooms in Basement - Standard Queen Room",
+        "gps_coordinates": {
+          "latitude": 43.85055923461914,
+          "longitude": -79.40441131591797
+        },
+        "rate_per_night": {
+          "lowest": "$93",
+          "extracted_lowest": 93
+        },
+        "total_rate": {
+          "lowest": "$93",
+          "extracted_lowest": 93
+        },
+        "link": "https://www.freecancellations.com/search/F2cjQQEGHXoHV1BVXlkEEggLD08zFARC?lat=43.85056&lng=-79.40441&language=en"
+      },
+      {
+        "type": "hotel",
+        "name": "Best Western Parkway Hotel Toronto North",
+        "gps_coordinates": {
+          "latitude": 43.8459454,
+          "longitude": -79.3817206
+        },
+        "rate_per_night": {
+          "lowest": "$128",
+          "extracted_lowest": 128
+        },
+        "total_rate": {
+          "lowest": "$128",
+          "extracted_lowest": 128
+        },
+        "overall_rating": 3.9,
+        "reviews": 1354,
+        "link": "https://www.bestwestern.com/en_US/book/hotel-rooms.66054.html?iata=00171880&ssob=BLBWI0004G&cid=BLBWI0004G:google:gmb:66054"
+      },
+      {
+        "type": "hotel",
+        "name": "Holiday Inn Express & Suites Aurora by IHG",
+        "gps_coordinates": {
+          "latitude": 44.007156200000004,
+          "longitude": -79.4068207
+        },
+        "rate_per_night": {
+          "lowest": "$307",
+          "extracted_lowest": 307
+        },
+        "total_rate": {
+          "lowest": "$307",
+          "extracted_lowest": 307
+        },
+        "overall_rating": 4.4,
+        "reviews": 390,
+        "link": "https://www.ihg.com/holidayinnexpress/hotels/us/en/aurora/ytora/hoteldetail?cm_mmc=GoogleMaps-_-EX-_-CA-_-YTORA"
+      },
+      {
+        "type": "hotel",
+        "name": "Microtel Inn & Suites by Wyndham Aurora",
+        "gps_coordinates": {
+          "latitude": 44.0067076,
+          "longitude": -79.4132139
+        },
+        "rate_per_night": {
+          "lowest": "$235",
+          "extracted_lowest": 235
+        },
+        "total_rate": {
+          "lowest": "$235",
+          "extracted_lowest": 235
+        },
+        "overall_rating": 4.3,
+        "reviews": 509,
+        "link": "https://www.wyndhamhotels.com/en-ca/microtel/aurora-ontario/microtel-inn-and-suites-aurora/overview?CID=LC:5b3ss9kd80xe5ox:51125&iata=00093796"
+      },
+      {
+        "type": "hotel",
+        "name": "Staybridge Suites Aurora East by IHG",
+        "gps_coordinates": {
+          "latitude": 44.00705,
+          "longitude": -79.40632
+        },
+        "rate_per_night": {
+          "lowest": "$267",
+          "extracted_lowest": 267
+        },
+        "total_rate": {
+          "lowest": "$267",
+          "extracted_lowest": 267
+        },
+        "overall_rating": 4.8,
+        "reviews": 55,
+        "link": "https://www.ihg.com/staybridge/hotels/us/en/aurora/ytoau/hoteldetail?cm_mmc=GoogleMaps-_-SB-_-CA-_-YTOAU"
+      }
+    ]
+  }
+]

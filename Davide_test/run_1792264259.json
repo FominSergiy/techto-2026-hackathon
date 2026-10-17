@@ -1,0 +1,142 @@
+[
+ {
+  "t": 0.0,
+  "msg": "parsed",
+  "city": "Toronto",
+  "check_in": "2026-10-17",
+  "check_out": "2026-10-18",
+  "guests": 1
+ },
+ {
+  "t": 0.0,
+  "msg": "config",
+  "n_calls": 3,
+  "test_numbers": "REAL HOTEL PHONES"
+ },
+ {
+  "t": 0.0,
+  "msg": "WARNING: TEST_NUMBER is set but has no valid phone number, ignoring it -> calls go to the REAL hotels"
+ },
+ {
+  "t": 0.0,
+  "msg": "reading saved search",
+  "file": "D:\\techTO hackaton\\techto-2026-hackathon\\output\\hotels-toronto-2026-10-17.json"
+ },
+ {
+  "t": 0.0,
+  "msg": "hotel",
+  "name": "Motel 6 Moncton",
+  "price": 61,
+  "address": "1905 Main St, Moncton, NB E1E 1H9, Canada",
+  "phone": "+15068301666",
+  "_us": false
+ },
+ {
+  "t": 0.0,
+  "msg": "hotel",
+  "name": "Hotel Moncton",
+  "price": 75,
+  "address": "2779 Mountain Rd, Moncton, NB E1G 2W5, Canada",
+  "phone": "+15063843554",
+  "_us": false
+ },
+ {
+  "t": 0.0,
+  "msg": "hotel",
+  "name": "Rodd Moncton",
+  "price": 84,
+  "address": "434 Main St, Moncton, NB E1C 1B9, Canada",
+  "phone": "+15063821664",
+  "_us": false
+ },
+ {
+  "t": 0.0,
+  "msg": "strategy",
+  "strategy": "cheapest"
+ },
+ {
+  "t": 0.3,
+  "msg": "calling Motel 6 Moncton",
+  "conv": "conv_8401m55mch77f5ztekx8h3qq9n1y"
+ },
+ {
+  "t": 0.4,
+  "msg": "calling Rodd Moncton",
+  "conv": "conv_4901m55mch7qf82tq0ywp0exrdwy"
+ },
+ {
+  "t": 0.4,
+  "msg": "calling Hotel Moncton",
+  "conv": "conv_1501m55mch7rfhnsq1qfgkznmtzg"
+ },
+ {
+  "conv": "conv_1501m55mch7rfhnsq1qfgkznmtzg",
+  "hotel": "Hotel Moncton",
+  "extracted": {
+   "confirmation_type": "none",
+   "hotel_address": null,
+   "hotel_name": "Hotel Moncton",
+   "price": null,
+   "receptionist_name": null,
+   "reservation_number": null,
+   "stay_dates": null
+  },
+  "cost_credits": 108,
+  "secs": 12
+ },
+ {
+  "t": 58.0,
+  "msg": "NO_RESERVATION",
+  "hotel": "Hotel Moncton",
+  "number": null,
+  "price": null
+ },
+ {
+  "conv": "conv_8401m55mch77f5ztekx8h3qq9n1y",
+  "hotel": "Motel 6 Moncton",
+  "extracted": {
+   "confirmation_type": "none",
+   "hotel_address": null,
+   "hotel_name": null,
+   "price": null,
+   "receptionist_name": null,
+   "reservation_number": null,
+   "stay_dates": null
+  },
+  "cost_credits": 488,
+  "secs": 56
+ },
+ {
+  "t": 126.5,
+  "msg": "NO_RESERVATION",
+  "hotel": "Motel 6 Moncton",
+  "number": null,
+  "price": null
+ },
+ {
+  "conv": "conv_4901m55mch7qf82tq0ywp0exrdwy",
+  "hotel": "Rodd Moncton",
+  "extracted": {
+   "confirmation_type": "verbal_booking",
+   "hotel_address": "434 Main Street",
+   "hotel_name": null,
+   "price": 282.0,
+   "receptionist_name": "Hamza",
+   "reservation_number": null,
+   "stay_dates": "October 17th to the 18th"
+  },
+  "cost_credits": 1537,
+  "secs": 186
+ },
+ {
+  "t": 217.5,
+  "msg": "NO_RESERVATION",
+  "hotel": "Rodd Moncton",
+  "number": null,
+  "price": 282.0
+ },
+ {
+  "t": 217.5,
+  "msg": "no booking obtained"
+ }
+]

@@ -1,0 +1,3033 @@
+{
+ "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+ "agent_name": "Alex",
+ "conversation_product": "agent",
+ "status": "done",
+ "user_id": "+16477785978",
+ "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+ "version_id": "agtvrsn_5901m55h5xt7et3tzm1n9vjpayns",
+ "metadata": {
+  "start_time_unix_secs": 1792261159,
+  "accepted_time_unix_secs": 1792261159,
+  "call_duration_secs": 104,
+  "queue_wait_secs": null,
+  "cost": 880,
+  "deletion_settings": {
+   "deletion_time_unix_secs": null,
+   "deleted_logs_at_time_unix_secs": null,
+   "deleted_audio_at_time_unix_secs": null,
+   "deleted_transcript_at_time_unix_secs": null,
+   "delete_transcript_and_pii": false,
+   "delete_audio": false
+  },
+  "feedback": {
+   "type": null,
+   "overall_score": null,
+   "likes": 0,
+   "dislikes": 0,
+   "rating": null,
+   "comment": null
+  },
+  "authorization_method": "signed_url",
+  "charging": {
+   "dev_discount": false,
+   "is_burst": false,
+   "tier": "creator",
+   "llm_usage": {
+    "irreversible_generation": {
+     "model_usage": {
+      "deepseek-v41-flash": {
+       "input": {
+        "tokens": 978,
+        "price": 0.0005379
+       },
+       "input_cache_read": {
+        "tokens": 29440,
+        "price": 0.008095999999999999
+       },
+       "input_cache_write": {
+        "tokens": 2624,
+        "price": 0.0014432000000000002
+       },
+       "output_total": {
+        "tokens": 334,
+        "price": 0.0050100000000000006
+       }
+      }
+     },
+     "detailed_model_usage": [
+      {
+       "config": {
+        "model": "deepseek-v41-flash",
+        "service_tier": "standard"
+       },
+       "usage": {
+        "input": {
+         "tokens": 978,
+         "price": 0.0005379
+        },
+        "input_cache_read": {
+         "tokens": 29440,
+         "price": 0.008095999999999999
+        },
+        "input_cache_write": {
+         "tokens": 2624,
+         "price": 0.0014432000000000002
+        },
+        "output_total": {
+         "tokens": 334,
+         "price": 0.0050100000000000006
+        }
+       }
+      }
+     ]
+    },
+    "initiated_generation": {
+     "model_usage": {
+      "deepseek-v41-flash": {
+       "input": {
+        "tokens": 1134,
+        "price": 0.0006237000000000001
+       },
+       "input_cache_read": {
+        "tokens": 43220,
+        "price": 0.011885499999999998
+       },
+       "input_cache_write": {
+        "tokens": 2880,
+        "price": 0.0015840000000000001
+       },
+       "output_total": {
+        "tokens": 471,
+        "price": 0.007065
+       }
+      }
+     },
+     "detailed_model_usage": [
+      {
+       "config": {
+        "model": "deepseek-v41-flash",
+        "service_tier": "standard"
+       },
+       "usage": {
+        "input": {
+         "tokens": 1134,
+         "price": 0.0006237000000000001
+        },
+        "input_cache_read": {
+         "tokens": 43220,
+         "price": 0.011885499999999998
+        },
+        "input_cache_write": {
+         "tokens": 2880,
+         "price": 0.0015840000000000001
+        },
+        "output_total": {
+         "tokens": 471,
+         "price": 0.007065
+        }
+       }
+      }
+     ]
+    }
+   },
+   "llm_price": 0.0211582,
+   "llm_charge": 116,
+   "call_charge": 764,
+   "platform_charge": 764,
+   "platform_usage": {
+    "category_usage": {
+     "voice": {
+      "credits": 764,
+      "price": 0.13818162845690368,
+      "quantity": 1.736361264802205
+     }
+    }
+   },
+   "platform_price": 0.13818162845690368,
+   "free_minutes_consumed": 0.0,
+   "free_llm_dollars_consumed": 0.0,
+   "tts_usage": {
+    "primary_tts_model": "eleven_v3_conversational",
+    "total_audio_output_seconds": 71.92400000000004,
+    "total_characters": 1454,
+    "per_voice_usage": [
+     {
+      "voice_id": "cjVigY5qzO86Huf0OWal",
+      "audio_output_seconds": 71.92400000000004
+     }
+    ]
+   },
+   "asr_usage": {
+    "asr_model": "scribe_realtime",
+    "total_transcription_calls": 288,
+    "total_audio_input_seconds": 51.2079999999997
+   },
+   "analysis": {
+    "total": {
+     "price": 0.0,
+     "charge": 0,
+     "runs": 1,
+     "price_per_feature": {},
+     "charge_per_feature": {}
+    },
+    "last_run": {
+     "price": 0.0,
+     "charge": 0,
+     "price_per_feature": {},
+     "charge_per_feature": {}
+    }
+   },
+   "subagent_charge": 0
+  },
+  "phone_call": {
+   "direction": "outbound",
+   "phone_number_id": "phnum_0801m5586g2fe13rdezjnb0gnqdc",
+   "agent_number": "+14316008232",
+   "external_number": "+16477785978",
+   "call_result": "answered",
+   "type": "twilio",
+   "stream_sid": "MZ3b953bba2d08a51e728427849aa1bd32",
+   "call_sid": "CAd784fab902a1ea95881eee47f3b7fac8"
+  },
+  "batch_call": null,
+  "termination_reason": "end_call tool was called.",
+  "error": null,
+  "warnings": [],
+  "main_language": "en",
+  "rag_usage": null,
+  "text_only": false,
+  "features_usage": {
+   "language_detection": {
+    "enabled": true,
+    "used": false
+   },
+   "transfer_to_agent": {
+    "enabled": false,
+    "used": false
+   },
+   "transfer_to_number": {
+    "enabled": false,
+    "used": false
+   },
+   "multivoice": {
+    "enabled": false,
+    "used": false
+   },
+   "dtmf_tones": {
+    "enabled": true,
+    "used": false
+   },
+   "external_mcp_servers": {
+    "enabled": false,
+    "used": false
+   },
+   "pii_zrm_workspace": false,
+   "pii_zrm_agent": false,
+   "tool_dynamic_variable_updates": {
+    "enabled": false,
+    "used": false
+   },
+   "is_livekit": false,
+   "voicemail_detection": {
+    "enabled": true,
+    "used": false
+   },
+   "dtmf_input": {
+    "enabled": false,
+    "used": false
+   },
+   "workflow": {
+    "enabled": false,
+    "tool_node": {
+     "enabled": false,
+     "used": false
+    },
+    "standalone_agent_node": {
+     "enabled": false,
+     "used": false
+    },
+    "phone_number_node": {
+     "enabled": false,
+     "used": false
+    },
+    "end_node": {
+     "enabled": false,
+     "used": false
+    },
+    "override_agent_node": {
+     "enabled": false,
+     "used": false
+    },
+    "say_node": {
+     "enabled": false,
+     "used": false
+    },
+    "update_state_node": {
+     "enabled": false,
+     "used": false
+    },
+    "subgraph_node": {
+     "enabled": false,
+     "used": false
+    },
+    "transfer_to_genesys_node": {
+     "enabled": false,
+     "used": false
+    }
+   },
+   "agent_testing": {
+    "enabled": true,
+    "tests_ran_after_last_modification": false,
+    "tests_ran_in_last_7_days": false
+   },
+   "versioning": {
+    "enabled": true,
+    "used": false
+   },
+   "file_input": {
+    "enabled": true,
+    "used": false
+   },
+   "freeform_procedure": {
+    "enabled": false,
+    "used": false
+   },
+   "structured_procedure": {
+    "enabled": false,
+    "used": false
+   }
+  },
+  "eleven_assistant": {
+   "is_eleven_assistant": false
+  },
+  "initiator_id": null,
+  "conversation_initiation_source": "twilio",
+  "conversation_initiation_source_version": null,
+  "timezone": null,
+  "async_metadata": null,
+  "whatsapp": null,
+  "sms": null,
+  "agent_created_from": "ui",
+  "agent_last_updated_from": "ui",
+  "stream_state": null,
+  "voice_rewards": [],
+  "cost_fiat": 0.15933982845690367
+ },
+ "analysis": {
+  "evaluation_criteria_results": {
+   "booking_successful": {
+    "criteria_id": "booking_successful",
+    "result": "success",
+    "rationale": "The agent confirmed the booking details (room, dates, price, reservation number, and name) with the user, who then confirmed with \"Mm-hmm. Yes.\" The call ended with the agent stating the booking was confirmed.",
+    "scoring_mode": "binary",
+    "score": null,
+    "max_score": null
+   },
+   "confirmation_number_obtained": {
+    "criteria_id": "confirmation_number_obtained",
+    "result": "success",
+    "rationale": "The agent repeatedly asked for a reservation number and eventually received \"67896\" which was included in the final summary and confirmed by the user.",
+    "scoring_mode": "binary",
+    "score": null,
+    "max_score": null
+   },
+   "no_payment_details": {
+    "criteria_id": "no_payment_details",
+    "result": "success",
+    "rationale": "The agent did not ask for, accept, or give any card or payment details during the call. Only the total price was discussed.",
+    "scoring_mode": "binary",
+    "score": null,
+    "max_score": null
+   }
+  },
+  "data_collection_results": {
+   "confirmation_type": {
+    "data_collection_id": "confirmation_type",
+    "name": null,
+    "value": "reservation_id",
+    "json_schema": {
+     "type": "string",
+     "description": "How the booking was confirmed.",
+     "enum": [
+      "reservation_id",
+      "verbal_booking",
+      "verbal_availability",
+      "none"
+     ],
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "The agent explicitly asks for and receives a 'reservation number' which is then confirmed, indicating the booking was confirmed via a reservation ID."
+   },
+   "hotel_address": {
+    "data_collection_id": "hotel_address",
+    "name": null,
+    "value": null,
+    "json_schema": {
+     "type": "string",
+     "description": "Full street address of the hotel as stated by the receptionist. Empty if not said.",
+     "enum": null,
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "The conversation transcript does not contain any mention of the hotel's street address."
+   },
+   "hotel_name": {
+    "data_collection_id": "hotel_name",
+    "name": null,
+    "value": null,
+    "json_schema": {
+     "type": "string",
+     "description": "The name of the hotel where the booking was attempted.",
+     "enum": null,
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "The conversation transcript does not contain any mention of the hotel's name."
+   },
+   "price": {
+    "data_collection_id": "price",
+    "name": null,
+    "value": 100.0,
+    "json_schema": {
+     "type": "number",
+     "description": "Total price quoted by the hotel, with currency. Empty if not said.",
+     "enum": null,
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "The user states, 'the total price will be 100 Canadian dollars,' and the agent later confirms 'one hundred Canadian dollars total.'"
+   },
+   "receptionist_name": {
+    "data_collection_id": "receptionist_name",
+    "name": null,
+    "value": "Eric",
+    "json_schema": {
+     "type": "string",
+     "description": "The name of the hotel staff member who confirmed the booking or availability. Empty if not said.",
+     "enum": null,
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "The agent asks, 'Could I also get the name of the person I'm speaking with?' and the user replies, 'Eric.'"
+   },
+   "reservation_number": {
+    "data_collection_id": "reservation_number",
+    "name": null,
+    "value": "67896",
+    "json_schema": {
+     "type": "string",
+     "description": "The reservation confirmation number, if booking was successful.",
+     "enum": null,
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "After several attempts, the agent confirms the reservation number as 'six seven eight nine six' at the end of the conversation."
+   },
+   "stay_dates": {
+    "data_collection_id": "stay_dates",
+    "name": null,
+    "value": "October seventeenth to eighteenth",
+    "json_schema": {
+     "type": "string",
+     "description": "The check-in and check-out dates the hotel confirmed. Empty if not said.",
+     "enum": null,
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "The agent initially requests 'October seventeenth to the eighteenth' and later confirms the booking for 'October seventeenth to eighteenth'."
+   }
+  },
+  "evaluation_criteria_results_list": [
+   {
+    "criteria_id": "booking_successful",
+    "result": "success",
+    "rationale": "The agent confirmed the booking details (room, dates, price, reservation number, and name) with the user, who then confirmed with \"Mm-hmm. Yes.\" The call ended with the agent stating the booking was confirmed.",
+    "scoring_mode": "binary",
+    "score": null,
+    "max_score": null
+   },
+   {
+    "criteria_id": "confirmation_number_obtained",
+    "result": "success",
+    "rationale": "The agent repeatedly asked for a reservation number and eventually received \"67896\" which was included in the final summary and confirmed by the user.",
+    "scoring_mode": "binary",
+    "score": null,
+    "max_score": null
+   },
+   {
+    "criteria_id": "no_payment_details",
+    "result": "success",
+    "rationale": "The agent did not ask for, accept, or give any card or payment details during the call. Only the total price was discussed.",
+    "scoring_mode": "binary",
+    "score": null,
+    "max_score": null
+   }
+  ],
+  "data_collection_results_list": [
+   {
+    "data_collection_id": "confirmation_type",
+    "name": null,
+    "value": "reservation_id",
+    "json_schema": {
+     "type": "string",
+     "description": "How the booking was confirmed.",
+     "enum": [
+      "reservation_id",
+      "verbal_booking",
+      "verbal_availability",
+      "none"
+     ],
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "The agent explicitly asks for and receives a 'reservation number' which is then confirmed, indicating the booking was confirmed via a reservation ID."
+   },
+   {
+    "data_collection_id": "hotel_address",
+    "name": null,
+    "value": null,
+    "json_schema": {
+     "type": "string",
+     "description": "Full street address of the hotel as stated by the receptionist. Empty if not said.",
+     "enum": null,
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "The conversation transcript does not contain any mention of the hotel's street address."
+   },
+   {
+    "data_collection_id": "hotel_name",
+    "name": null,
+    "value": null,
+    "json_schema": {
+     "type": "string",
+     "description": "The name of the hotel where the booking was attempted.",
+     "enum": null,
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "The conversation transcript does not contain any mention of the hotel's name."
+   },
+   {
+    "data_collection_id": "price",
+    "name": null,
+    "value": 100.0,
+    "json_schema": {
+     "type": "number",
+     "description": "Total price quoted by the hotel, with currency. Empty if not said.",
+     "enum": null,
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "The user states, 'the total price will be 100 Canadian dollars,' and the agent later confirms 'one hundred Canadian dollars total.'"
+   },
+   {
+    "data_collection_id": "receptionist_name",
+    "name": null,
+    "value": "Eric",
+    "json_schema": {
+     "type": "string",
+     "description": "The name of the hotel staff member who confirmed the booking or availability. Empty if not said.",
+     "enum": null,
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "The agent asks, 'Could I also get the name of the person I'm speaking with?' and the user replies, 'Eric.'"
+   },
+   {
+    "data_collection_id": "reservation_number",
+    "name": null,
+    "value": "67896",
+    "json_schema": {
+     "type": "string",
+     "description": "The reservation confirmation number, if booking was successful.",
+     "enum": null,
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "After several attempts, the agent confirms the reservation number as 'six seven eight nine six' at the end of the conversation."
+   },
+   {
+    "data_collection_id": "stay_dates",
+    "name": null,
+    "value": "October seventeenth to eighteenth",
+    "json_schema": {
+     "type": "string",
+     "description": "The check-in and check-out dates the hotel confirmed. Empty if not said.",
+     "enum": null,
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "The agent initially requests 'October seventeenth to the eighteenth' and later confirms the booking for 'October seventeenth to eighteenth'."
+   }
+  ],
+  "call_successful": "success",
+  "call_success_score": 100.0,
+  "transcript_summary": "The agent requested to book the cheapest room for October 17-18. The user confirmed the total price would be 100 Canadian dollars. The agent then requested a reservation number and the name for the booking. After some clarification, the user provided \"67896\" as the reservation number and \"Eric\" as the name. The agent confirmed all details and concluded the call.",
+  "call_summary_title": "Book Hotel Room",
+  "scoped": [],
+  "sentiment_analysis": {
+   "overall_label": "neutral",
+   "overall_sentiment_score": 0.0,
+   "overall_frustration_score": 0.2,
+   "min_user_sentiment_score": -0.3,
+   "max_user_frustration_score": 0.3,
+   "num_scored_user_turns": 8
+  }
+ },
+ "visited_agents": [
+  {
+   "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+   "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v"
+  }
+ ],
+ "conversation_initiation_client_data": {
+  "conversation_config_override": {
+   "asr": null,
+   "turn": null,
+   "tts": null,
+   "conversation": null,
+   "agent": null
+  },
+  "custom_llm_extra_body": {},
+  "user_id": null,
+  "source_info": {
+   "source": null,
+   "version": null
+  },
+  "branch_id": null,
+  "environment": null,
+  "starting_workflow_node_id": null,
+  "experiments": [],
+  "procedure_ids": null,
+  "dynamic_variables": {
+   "hotel_name": "Novotel Toronto Vaughan",
+   "guest_name": "Davide",
+   "number_of_guests": "1",
+   "check_in_date": "2026-10-17",
+   "check_out_date": "2026-10-18",
+   "contact_email": "galluzzodavide01@gmail.com",
+   "system__agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+   "system__agent_turns": 14,
+   "system__current_agent_turns": 14,
+   "system__current_subagent_turns": 14,
+   "system__current_agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+   "system__conversation_id": "conv_1501m55hdregeqga9xz6r9w79bv0",
+   "system__call_duration_secs": 104,
+   "system__time_utc": "2026-10-17T18:21:03.687261+00:00",
+   "system__timezone": null,
+   "system__time": "Saturday, 18:21 17 October 2026",
+   "system__time_hour": 18,
+   "system__time_minute": 21,
+   "system__time_second": 3,
+   "system__is_text_only": false,
+   "system__channel": "twilio",
+   "system__caller_id": "+14316008232",
+   "system__called_number": "+16477785978",
+   "system__call_sid": "CAd784fab902a1ea95881eee47f3b7fac8",
+   "system__call_id": null,
+   "system__conversation_history": "{\"x-elevenlabs-history\": true, \"entries\": [{\"role\": \"agent\", \"message\": \"Hi, I'd like to book your cheapest room, 2026-10-17 to 2026-10-18, under the name ...\"}, {\"role\": \"user\", \"message\": \"Yeah.\"}, {\"role\": \"agent\", \"message\": \"Hi there, I'd like to book your cheapest room for October seventeenth to the eighteenth, for one guest.\"}, {\"role\": \"user\", \"message\": \"Yeah, we have the cheapest option is 60.\"}, {\"role\": \"agent\", \"message\": \"...\"}, {\"role\": \"user\", \"message\": \"Dollars?\"}, {\"role\": \"agent\", \"message\": \"Could you confirm that's the total price with taxes for the seventeenth to the eighteenth?\"}, {\"role\": \"user\", \"message\": \"No, I mean the total price will be 100, sorry, 100 Canadian dollars.\"}, {\"role\": \"agent\", \"message\": \"Thanks, I'll take it. Could you give me a reservation number?\"}, {\"role\": \"user\", \"message\": \"Yeah, 647-444-4444.\"}, {\"role\": \"agent\", \"message\": \"That sounds like a phone number. Could you give me the reservation number, or if there isn't...\"}, {\"role\": \"user\", \"message\": \"676789666. 666.\"}, {\"role\": \"agent\", \"message\": \"Got it, thank you. Just to confirm, that's the reservation number, correct?\"}, {\"role\": \"user\", \"message\": \"So, like, I'm sorry, I'm guessing. So, the people like, you know, okay, it's AI, but it's- Yes.\"}, {\"role\": \"agent\", \"message\": \"No ...\"}, {\"role\": \"user\", \"message\": \"... system?\"}, {\"role\": \"agent\", \"message\": \"Sorry, I didn't catch that. Could you confirm the reservation number for me?\"}, {\"role\": \"user\", \"message\": \"Okay, 1SD.\"}, {\"role\": \"agent\", \"message\": \"Thanks. And...\"}, {\"role\": \"user\", \"message\": \"Dipender.\"}, {\"role\": \"agent\", \"message\": \"Sorry, could you repeat that? I want to make sure I have the right name for the reservation.\"}, {\"role\": \"user\", \"message\": \"Like, uh, 67896.\"}, {\"role\": \"agent\", \"message\": \"Thanks for that. Could I also get the name of the person I'm speaking with?\"}, {\"role\": \"user\", \"message\": \"Eric.\"}, {\"role\": \"agent\", \"message\": \"Thanks, Eric. So that's the cheapest room for October seventeenth to eighteenth at one hundred Canadian dollars total, reservation number six seven eight nine six, under Eric. Is that all correct?\"}, {\"role\": \"user\", \"message\": \"Yes.\"}, {\"role\": \"agent\", \"message\": \"Great, thank you so much for your help, Eric. Have a good day.\\n\"}, {\"role\": \"agent\", \"tool_requests\": [{\"tool_name\": \"end_call\", \"params_as_json\": {\"reason\": \"Booking confirmed with total price, reservation number, and contact name; conversation reached a natural conclusion.\", \"system__message_to_speak\": \"Thanks again, Eric. Goodbye.\"}}]}, {\"role\": \"agent\", \"tool_results\": [{\"tool_name\": \"end_call\", \"result_value\": \"{\\\"result_type\\\":\\\"end_call_success\\\",\\\"status\\\":\\\"success\\\",\\\"reason\\\":\\\"Booking confirmed with total price, reservation number, and contact name; conversation reached a natural conclusion.\\\",\\\"message\\\":null}\"}]}]}",
+   "system__user_id": "+16477785978",
+   "system__initiator_id": null,
+   "system__environment": "production"
+  },
+  "tool_mock_config": {
+   "mocking_strategy": "none",
+   "fallback_strategy": "raise_error",
+   "mocked_tool_names": []
+  },
+  "tool_mock_overrides": {}
+ },
+ "environment": "production",
+ "experiment_assignments": null,
+ "hiding_reason": null,
+ "smb_metadata": null,
+ "conversation_id": "conv_1501m55hdregeqga9xz6r9w79bv0",
+ "has_audio": true,
+ "has_user_audio": true,
+ "has_response_audio": true,
+ "has_auxiliary_audio": false,
+ "transcript": [
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_5901m55h5xt7et3tzm1n9vjpayns"
+   },
+   "message": "Hi, I'd like to book your cheapest room, 2026-10-17 to 2026-10-18, under the name ...",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": "deepseek-v41-flash",
+   "time_in_call_secs": 0,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_tts_service_ttfb": {
+      "elapsed_time": 0.1349182389676571
+     },
+     "convai_ttf_audio_since_silence": {
+      "elapsed_time": 0.137115519028157
+     },
+     "convai_turn_silence_before_initiation": {
+      "elapsed_time": 0.0
+     }
+    },
+    "convai_asr_provider": null,
+    "convai_tts_model": "eleven_v3_conversational",
+    "convai_tts_cascade": null,
+    "voice_id": "cjVigY5qzO86Huf0OWal"
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": true,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": "Hi, I'd like to book your cheapest room, 2026-10-17 to 2026-10-18, under the name Davide. What's the rate?",
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 1,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "user",
+   "agent_metadata": null,
+   "message": "Yeah.",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": null,
+   "time_in_call_secs": 8,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_asr_trailing_service_latency": {
+      "elapsed_time": 0.0188752100802958
+     }
+    },
+    "convai_asr_provider": "Scribe v2 Realtime",
+    "convai_tts_model": null,
+    "convai_tts_cascade": null,
+    "voice_id": null
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": "audio",
+   "source_event_id": 57,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_5901m55h5xt7et3tzm1n9vjpayns"
+   },
+   "message": "Hi there, I'd like to book your cheapest room for October seventeenth to the eighteenth, for one guest.",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": "deepseek-v41-flash",
+   "time_in_call_secs": 9,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_llm_service_ttf_sentence": {
+      "elapsed_time": 0.5361726833507419
+     },
+     "convai_llm_service_ttfb": {
+      "elapsed_time": 0.49284470407292247
+     },
+     "convai_llm_service_tt_last_sentence": {
+      "elapsed_time": 0.5808940031565726
+     },
+     "convai_tts_service_ttfb": {
+      "elapsed_time": 0.12504794914275408
+     },
+     "convai_ttf_audio_since_silence": {
+      "elapsed_time": 1.2692425322011114
+     },
+     "convai_turn_silence_before_initiation": {
+      "elapsed_time": 0.576
+     },
+     "convai_turn_asr_latency": {
+      "elapsed_time": 0.0188752100802958
+     },
+     "convai_turn_asr_excess": {
+      "elapsed_time": 0.0188752100802958
+     }
+    },
+    "convai_asr_provider": null,
+    "convai_tts_model": "eleven_v3_conversational",
+    "convai_tts_cascade": null,
+    "voice_id": "cjVigY5qzO86Huf0OWal"
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": {
+    "model_usage": {
+     "deepseek-v41-flash": {
+      "input": {
+       "tokens": 104,
+       "price": 5.72e-05
+      },
+      "input_cache_read": {
+       "tokens": 128,
+       "price": 3.52e-05
+      },
+      "input_cache_write": {
+       "tokens": 2336,
+       "price": 0.0012848000000000002
+      },
+      "output_total": {
+       "tokens": 23,
+       "price": 0.000345
+      }
+     }
+    },
+    "detailed_model_usage": [
+     {
+      "config": {
+       "model": "deepseek-v41-flash",
+       "service_tier": "standard"
+      },
+      "usage": {
+       "input": {
+        "tokens": 104,
+        "price": 5.72e-05
+       },
+       "input_cache_read": {
+        "tokens": 128,
+        "price": 3.52e-05
+       },
+       "input_cache_write": {
+        "tokens": 2336,
+        "price": 0.0012848000000000002
+       },
+       "output_total": {
+        "tokens": 23,
+        "price": 0.000345
+       }
+      }
+     }
+    ]
+   },
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 57,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "user",
+   "agent_metadata": null,
+   "message": "Yeah, we have the cheapest option is 60.",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": null,
+   "time_in_call_secs": 14,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_asr_trailing_service_latency": {
+      "elapsed_time": 0.048372730147093534
+     }
+    },
+    "convai_asr_provider": "Scribe v2 Realtime",
+    "convai_tts_model": null,
+    "convai_tts_cascade": null,
+    "voice_id": null
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": "audio",
+   "source_event_id": 125,
+   "used_static_kb_document_ids": [],
+   "analysis": {
+    "user_sentiment_score": 0.0,
+    "user_frustration_score": 0.0
+   },
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_5901m55h5xt7et3tzm1n9vjpayns"
+   },
+   "message": "...",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": "deepseek-v41-flash",
+   "time_in_call_secs": 20,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_llm_service_ttf_sentence": {
+      "elapsed_time": 0.15212504798546433
+     },
+     "convai_llm_service_ttfb": {
+      "elapsed_time": 0.10082079796120524
+     },
+     "convai_llm_service_tt_last_sentence": {
+      "elapsed_time": 0.17357597686350346
+     },
+     "convai_tts_service_ttfb": {
+      "elapsed_time": 0.1475280779413879
+     },
+     "convai_ttf_audio_since_silence": {
+      "elapsed_time": 0.6827222562208772
+     },
+     "convai_turn_silence_before_initiation": {
+      "elapsed_time": 0.32
+     },
+     "convai_turn_asr_latency": {
+      "elapsed_time": 0.048372730147093534
+     },
+     "convai_turn_asr_excess": {
+      "elapsed_time": 0.048372730147093534
+     }
+    },
+    "convai_asr_provider": null,
+    "convai_tts_model": "eleven_v3_conversational",
+    "convai_tts_cascade": null,
+    "voice_id": "cjVigY5qzO86Huf0OWal"
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": {
+    "model_usage": {
+     "deepseek-v41-flash": {
+      "input": {
+       "tokens": 45,
+       "price": 2.4750000000000002e-05
+      },
+      "input_cache_read": {
+       "tokens": 2560,
+       "price": 0.000704
+      },
+      "input_cache_write": {
+       "tokens": 0,
+       "price": 0.0
+      },
+      "output_total": {
+       "tokens": 22,
+       "price": 0.00033
+      }
+     }
+    },
+    "detailed_model_usage": [
+     {
+      "config": {
+       "model": "deepseek-v41-flash",
+       "service_tier": "standard"
+      },
+      "usage": {
+       "input": {
+        "tokens": 45,
+        "price": 2.4750000000000002e-05
+       },
+       "input_cache_read": {
+        "tokens": 2560,
+        "price": 0.000704
+       },
+       "input_cache_write": {
+        "tokens": 0,
+        "price": 0.0
+       },
+       "output_total": {
+        "tokens": 22,
+        "price": 0.00033
+       }
+      }
+     }
+    ]
+   },
+   "interrupted": true,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": "Great, I'll take it. Could you tell me the total price with",
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 125,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "user",
+   "agent_metadata": null,
+   "message": "Dollars?",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": null,
+   "time_in_call_secs": 20,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_asr_trailing_service_latency": {
+      "elapsed_time": 0.03451752895489335
+     }
+    },
+    "convai_asr_provider": "Scribe v2 Realtime",
+    "convai_tts_model": null,
+    "convai_tts_cascade": null,
+    "voice_id": null
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": "audio",
+   "source_event_id": 133,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_5901m55h5xt7et3tzm1n9vjpayns"
+   },
+   "message": "Could you confirm that's the total price with taxes for the seventeenth to the eighteenth?",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": "deepseek-v41-flash",
+   "time_in_call_secs": 21,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_llm_service_ttf_sentence": {
+      "elapsed_time": 0.11248364904895425
+     },
+     "convai_llm_service_ttfb": {
+      "elapsed_time": 0.07982464926317334
+     },
+     "convai_llm_service_tt_last_sentence": {
+      "elapsed_time": 0.135360989253968
+     },
+     "convai_tts_service_ttfb": {
+      "elapsed_time": 0.14893309818580747
+     },
+     "convai_ttf_audio_since_silence": {
+      "elapsed_time": 0.7896982762217521
+     },
+     "convai_turn_silence_before_initiation": {
+      "elapsed_time": 0.48
+     },
+     "convai_turn_asr_latency": {
+      "elapsed_time": 0.03451752895489335
+     },
+     "convai_turn_asr_excess": {
+      "elapsed_time": 0.03451752895489335
+     }
+    },
+    "convai_asr_provider": null,
+    "convai_tts_model": "eleven_v3_conversational",
+    "convai_tts_cascade": null,
+    "voice_id": "cjVigY5qzO86Huf0OWal"
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": {
+    "model_usage": {
+     "deepseek-v41-flash": {
+      "input": {
+       "tokens": 54,
+       "price": 2.9700000000000004e-05
+      },
+      "input_cache_read": {
+       "tokens": 2560,
+       "price": 0.000704
+      },
+      "input_cache_write": {
+       "tokens": 0,
+       "price": 0.0
+      },
+      "output_total": {
+       "tokens": 18,
+       "price": 0.00027
+      }
+     }
+    },
+    "detailed_model_usage": [
+     {
+      "config": {
+       "model": "deepseek-v41-flash",
+       "service_tier": "standard"
+      },
+      "usage": {
+       "input": {
+        "tokens": 54,
+        "price": 2.9700000000000004e-05
+       },
+       "input_cache_read": {
+        "tokens": 2560,
+        "price": 0.000704
+       },
+       "input_cache_write": {
+        "tokens": 0,
+        "price": 0.0
+       },
+       "output_total": {
+        "tokens": 18,
+        "price": 0.00027
+       }
+      }
+     }
+    ]
+   },
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 133,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "user",
+   "agent_metadata": null,
+   "message": "No, I mean the total price will be 100, sorry, 100 Canadian dollars.",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": null,
+   "time_in_call_secs": 27,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_asr_trailing_service_latency": {
+      "elapsed_time": 0.025520170107483864
+     }
+    },
+    "convai_asr_provider": "Scribe v2 Realtime",
+    "convai_tts_model": null,
+    "convai_tts_cascade": null,
+    "voice_id": null
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": "audio",
+   "source_event_id": 194,
+   "used_static_kb_document_ids": [],
+   "analysis": {
+    "user_sentiment_score": -0.1,
+    "user_frustration_score": 0.1
+   },
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_5901m55h5xt7et3tzm1n9vjpayns"
+   },
+   "message": "Thanks, I'll take it. Could you give me a reservation number?",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": "deepseek-v41-flash",
+   "time_in_call_secs": 31,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_llm_service_ttf_sentence": {
+      "elapsed_time": 0.13211733801290393
+     },
+     "convai_llm_service_ttfb": {
+      "elapsed_time": 0.06866145879030228
+     },
+     "convai_llm_service_tt_last_sentence": {
+      "elapsed_time": 0.13210947811603546
+     },
+     "convai_tts_service_ttfb": {
+      "elapsed_time": 0.09668663889169693
+     },
+     "convai_ttf_audio_since_silence": {
+      "elapsed_time": 0.6197135169506073
+     },
+     "convai_turn_silence_before_initiation": {
+      "elapsed_time": 0.352
+     },
+     "convai_turn_asr_latency": {
+      "elapsed_time": 0.025520170107483864
+     },
+     "convai_turn_asr_excess": {
+      "elapsed_time": 0.025520170107483864
+     }
+    },
+    "convai_asr_provider": null,
+    "convai_tts_model": "eleven_v3_conversational",
+    "convai_tts_cascade": null,
+    "voice_id": "cjVigY5qzO86Huf0OWal"
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": {
+    "model_usage": {
+     "deepseek-v41-flash": {
+      "input": {
+       "tokens": 94,
+       "price": 5.17e-05
+      },
+      "input_cache_read": {
+       "tokens": 2560,
+       "price": 0.000704
+      },
+      "input_cache_write": {
+       "tokens": 0,
+       "price": 0.0
+      },
+      "output_total": {
+       "tokens": 16,
+       "price": 0.00024
+      }
+     }
+    },
+    "detailed_model_usage": [
+     {
+      "config": {
+       "model": "deepseek-v41-flash",
+       "service_tier": "standard"
+      },
+      "usage": {
+       "input": {
+        "tokens": 94,
+        "price": 5.17e-05
+       },
+       "input_cache_read": {
+        "tokens": 2560,
+        "price": 0.000704
+       },
+       "input_cache_write": {
+        "tokens": 0,
+        "price": 0.0
+       },
+       "output_total": {
+        "tokens": 16,
+        "price": 0.00024
+       }
+      }
+     }
+    ]
+   },
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 194,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "user",
+   "agent_metadata": null,
+   "message": "Yeah, 647-444-4444.",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": null,
+   "time_in_call_secs": 35,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_asr_trailing_service_latency": {
+      "elapsed_time": 0.06356430891901255
+     }
+    },
+    "convai_asr_provider": "Scribe v2 Realtime",
+    "convai_tts_model": null,
+    "convai_tts_cascade": null,
+    "voice_id": null
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": "audio",
+   "source_event_id": 245,
+   "used_static_kb_document_ids": [],
+   "analysis": {
+    "user_sentiment_score": 0.0,
+    "user_frustration_score": 0.0
+   },
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_5901m55h5xt7et3tzm1n9vjpayns"
+   },
+   "message": "That sounds like a phone number. Could you give me the reservation number, or if there isn't...",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": "deepseek-v41-flash",
+   "time_in_call_secs": 39,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_llm_service_ttf_sentence": {
+      "elapsed_time": 0.13056110823526978
+     },
+     "convai_llm_service_ttfb": {
+      "elapsed_time": 0.09208634914830327
+     },
+     "convai_llm_service_tt_last_sentence": {
+      "elapsed_time": 0.18343704799190164
+     },
+     "convai_tts_service_ttfb": {
+      "elapsed_time": 0.11224975902587175
+     },
+     "convai_ttf_audio_since_silence": {
+      "elapsed_time": 0.6403072361648083
+     },
+     "convai_turn_silence_before_initiation": {
+      "elapsed_time": 0.32
+     },
+     "convai_turn_asr_latency": {
+      "elapsed_time": 0.06356430891901255
+     },
+     "convai_turn_asr_excess": {
+      "elapsed_time": 0.06356430891901255
+     }
+    },
+    "convai_asr_provider": null,
+    "convai_tts_model": "eleven_v3_conversational",
+    "convai_tts_cascade": null,
+    "voice_id": "cjVigY5qzO86Huf0OWal"
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": {
+    "model_usage": {
+     "deepseek-v41-flash": {
+      "input": {
+       "tokens": 123,
+       "price": 6.765e-05
+      },
+      "input_cache_read": {
+       "tokens": 2560,
+       "price": 0.000704
+      },
+      "input_cache_write": {
+       "tokens": 0,
+       "price": 0.0
+      },
+      "output_total": {
+       "tokens": 33,
+       "price": 0.000495
+      }
+     }
+    },
+    "detailed_model_usage": [
+     {
+      "config": {
+       "model": "deepseek-v41-flash",
+       "service_tier": "standard"
+      },
+      "usage": {
+       "input": {
+        "tokens": 123,
+        "price": 6.765e-05
+       },
+       "input_cache_read": {
+        "tokens": 2560,
+        "price": 0.000704
+       },
+       "input_cache_write": {
+        "tokens": 0,
+        "price": 0.0
+       },
+       "output_total": {
+        "tokens": 33,
+        "price": 0.000495
+       }
+      }
+     }
+    ]
+   },
+   "interrupted": true,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": "That sounds like a phone number. Could you give me the reservation number, or if there isn't one, the name of the person I'm speaking with?",
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 245,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "user",
+   "agent_metadata": null,
+   "message": "676789666. 666.",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": null,
+   "time_in_call_secs": 44,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_asr_trailing_service_latency": {
+      "elapsed_time": 0.06889658886939287
+     }
+    },
+    "convai_asr_provider": "Scribe v2 Realtime",
+    "convai_tts_model": null,
+    "convai_tts_cascade": null,
+    "voice_id": null
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": "audio",
+   "source_event_id": 311,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_5901m55h5xt7et3tzm1n9vjpayns"
+   },
+   "message": "Got it, thank you. Just to confirm, that's the reservation number, correct?",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": "deepseek-v41-flash",
+   "time_in_call_secs": 49,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_llm_service_ttf_sentence": {
+      "elapsed_time": 0.11530463770031929
+     },
+     "convai_llm_service_ttfb": {
+      "elapsed_time": 0.07446210877969861
+     },
+     "convai_llm_service_tt_last_sentence": {
+      "elapsed_time": 0.13678962783887982
+     },
+     "convai_tts_service_ttfb": {
+      "elapsed_time": 0.1299365391023457
+     },
+     "convai_ttf_audio_since_silence": {
+      "elapsed_time": 0.9074230861142277
+     },
+     "convai_turn_silence_before_initiation": {
+      "elapsed_time": 0.576
+     },
+     "convai_turn_asr_latency": {
+      "elapsed_time": 0.06889658886939287
+     },
+     "convai_turn_asr_excess": {
+      "elapsed_time": 0.06889658886939287
+     }
+    },
+    "convai_asr_provider": null,
+    "convai_tts_model": "eleven_v3_conversational",
+    "convai_tts_cascade": null,
+    "voice_id": "cjVigY5qzO86Huf0OWal"
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": {
+    "model_usage": {
+     "deepseek-v41-flash": {
+      "input": {
+       "tokens": 27,
+       "price": 1.4850000000000002e-05
+      },
+      "input_cache_read": {
+       "tokens": 2560,
+       "price": 0.000704
+      },
+      "input_cache_write": {
+       "tokens": 128,
+       "price": 7.04e-05
+      },
+      "output_total": {
+       "tokens": 19,
+       "price": 0.000285
+      }
+     }
+    },
+    "detailed_model_usage": [
+     {
+      "config": {
+       "model": "deepseek-v41-flash",
+       "service_tier": "standard"
+      },
+      "usage": {
+       "input": {
+        "tokens": 27,
+        "price": 1.4850000000000002e-05
+       },
+       "input_cache_read": {
+        "tokens": 2560,
+        "price": 0.000704
+       },
+       "input_cache_write": {
+        "tokens": 128,
+        "price": 7.04e-05
+       },
+       "output_total": {
+        "tokens": 19,
+        "price": 0.000285
+       }
+      }
+     }
+    ]
+   },
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 311,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "user",
+   "agent_metadata": null,
+   "message": "So, like, I'm sorry, I'm guessing. So, the people like, you know, okay, it's AI, but it's- Yes.",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": null,
+   "time_in_call_secs": 53,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_asr_trailing_service_latency": {
+      "elapsed_time": 0.1059169489890337
+     }
+    },
+    "convai_asr_provider": "Scribe v2 Realtime",
+    "convai_tts_model": null,
+    "convai_tts_cascade": null,
+    "voice_id": null
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": "audio",
+   "source_event_id": 374,
+   "used_static_kb_document_ids": [],
+   "analysis": {
+    "user_sentiment_score": -0.3,
+    "user_frustration_score": 0.3
+   },
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_5901m55h5xt7et3tzm1n9vjpayns"
+   },
+   "message": "No ...",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": "deepseek-v41-flash",
+   "time_in_call_secs": 60,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_llm_service_ttf_sentence": {
+      "elapsed_time": 0.11042287899181247
+     },
+     "convai_llm_service_ttfb": {
+      "elapsed_time": 0.06831122003495693
+     },
+     "convai_llm_service_tt_last_sentence": {
+      "elapsed_time": 0.15027786931023002
+     },
+     "convai_tts_service_ttfb": {
+      "elapsed_time": 0.14569670800119638
+     },
+     "convai_ttf_audio_since_silence": {
+      "elapsed_time": 1.0317744951322676
+     },
+     "convai_turn_silence_before_initiation": {
+      "elapsed_time": 0.64
+     },
+     "convai_turn_asr_latency": {
+      "elapsed_time": 0.1059169489890337
+     },
+     "convai_turn_asr_excess": {
+      "elapsed_time": 0.1059169489890337
+     }
+    },
+    "convai_asr_provider": null,
+    "convai_tts_model": "eleven_v3_conversational",
+    "convai_tts_cascade": null,
+    "voice_id": "cjVigY5qzO86Huf0OWal"
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": {
+    "model_usage": {
+     "deepseek-v41-flash": {
+      "input": {
+       "tokens": 82,
+       "price": 4.51e-05
+      },
+      "input_cache_read": {
+       "tokens": 2688,
+       "price": 0.0007392000000000001
+      },
+      "input_cache_write": {
+       "tokens": 0,
+       "price": 0.0
+      },
+      "output_total": {
+       "tokens": 17,
+       "price": 0.000255
+      }
+     }
+    },
+    "detailed_model_usage": [
+     {
+      "config": {
+       "model": "deepseek-v41-flash",
+       "service_tier": "standard"
+      },
+      "usage": {
+       "input": {
+        "tokens": 82,
+        "price": 4.51e-05
+       },
+       "input_cache_read": {
+        "tokens": 2688,
+        "price": 0.0007392000000000001
+       },
+       "input_cache_write": {
+        "tokens": 0,
+        "price": 0.0
+       },
+       "output_total": {
+        "tokens": 17,
+        "price": 0.000255
+       }
+      }
+     }
+    ]
+   },
+   "interrupted": true,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": "No problem. Could I get the name of the person I'm speaking with?",
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 374,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "user",
+   "agent_metadata": null,
+   "message": "... system?",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": null,
+   "time_in_call_secs": 60,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_asr_trailing_service_latency": {
+      "elapsed_time": 0.023485879879444838
+     }
+    },
+    "convai_asr_provider": "Scribe v2 Realtime",
+    "convai_tts_model": null,
+    "convai_tts_cascade": null,
+    "voice_id": null
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": "audio",
+   "source_event_id": 395,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_5901m55h5xt7et3tzm1n9vjpayns"
+   },
+   "message": "Sorry, I didn't catch that. Could you confirm the reservation number for me?",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": "deepseek-v41-flash",
+   "time_in_call_secs": 63,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_llm_service_ttf_sentence": {
+      "elapsed_time": 0.10134167922660708
+     },
+     "convai_llm_service_ttfb": {
+      "elapsed_time": 0.06992020038887858
+     },
+     "convai_llm_service_tt_last_sentence": {
+      "elapsed_time": 0.1124473293311894
+     },
+     "convai_tts_service_ttfb": {
+      "elapsed_time": 0.1411953577771783
+     },
+     "convai_ttf_audio_since_silence": {
+      "elapsed_time": 0.5703666562326253
+     },
+     "convai_turn_silence_before_initiation": {
+      "elapsed_time": 0.288
+     },
+     "convai_turn_asr_latency": {
+      "elapsed_time": 0.023485879879444838
+     },
+     "convai_turn_asr_excess": {
+      "elapsed_time": 0.023485879879444838
+     }
+    },
+    "convai_asr_provider": null,
+    "convai_tts_model": "eleven_v3_conversational",
+    "convai_tts_cascade": null,
+    "voice_id": "cjVigY5qzO86Huf0OWal"
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": {
+    "model_usage": {
+     "deepseek-v41-flash": {
+      "input": {
+       "tokens": 90,
+       "price": 4.9500000000000004e-05
+      },
+      "input_cache_read": {
+       "tokens": 2688,
+       "price": 0.0007392000000000001
+      },
+      "input_cache_write": {
+       "tokens": 0,
+       "price": 0.0
+      },
+      "output_total": {
+       "tokens": 18,
+       "price": 0.00027
+      }
+     }
+    },
+    "detailed_model_usage": [
+     {
+      "config": {
+       "model": "deepseek-v41-flash",
+       "service_tier": "standard"
+      },
+      "usage": {
+       "input": {
+        "tokens": 90,
+        "price": 4.9500000000000004e-05
+       },
+       "input_cache_read": {
+        "tokens": 2688,
+        "price": 0.0007392000000000001
+       },
+       "input_cache_write": {
+        "tokens": 0,
+        "price": 0.0
+       },
+       "output_total": {
+        "tokens": 18,
+        "price": 0.00027
+       }
+      }
+     }
+    ]
+   },
+   "interrupted": true,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 395,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "user",
+   "agent_metadata": null,
+   "message": "Okay, 1SD.",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": null,
+   "time_in_call_secs": 63,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_asr_trailing_service_latency": {
+      "elapsed_time": 0.048633099999278784
+     }
+    },
+    "convai_asr_provider": "Scribe v2 Realtime",
+    "convai_tts_model": null,
+    "convai_tts_cascade": null,
+    "voice_id": null
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": "audio",
+   "source_event_id": 405,
+   "used_static_kb_document_ids": [],
+   "analysis": {
+    "user_sentiment_score": 0.0,
+    "user_frustration_score": 0.1
+   },
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_5901m55h5xt7et3tzm1n9vjpayns"
+   },
+   "message": "Thanks. And...",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": "deepseek-v41-flash",
+   "time_in_call_secs": 65,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_llm_service_ttf_sentence": {
+      "elapsed_time": 0.2939358460716903
+     },
+     "convai_llm_service_ttfb": {
+      "elapsed_time": 0.21720094699412584
+     },
+     "convai_llm_service_tt_last_sentence": {
+      "elapsed_time": 0.29392280615866184
+     },
+     "convai_tts_service_ttfb": {
+      "elapsed_time": 0.1231502783484757
+     },
+     "convai_ttf_audio_since_silence": {
+      "elapsed_time": 0.8350885729752481
+     },
+     "convai_turn_silence_before_initiation": {
+      "elapsed_time": 0.352
+     },
+     "convai_turn_asr_latency": {
+      "elapsed_time": 0.048633099999278784
+     },
+     "convai_turn_asr_excess": {
+      "elapsed_time": 0.048633099999278784
+     }
+    },
+    "convai_asr_provider": null,
+    "convai_tts_model": "eleven_v3_conversational",
+    "convai_tts_cascade": null,
+    "voice_id": "cjVigY5qzO86Huf0OWal"
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": {
+    "model_usage": {
+     "deepseek-v41-flash": {
+      "input": {
+       "tokens": 117,
+       "price": 6.435e-05
+      },
+      "input_cache_read": {
+       "tokens": 2688,
+       "price": 0.0007392000000000001
+      },
+      "input_cache_write": {
+       "tokens": 0,
+       "price": 0.0
+      },
+      "output_total": {
+       "tokens": 12,
+       "price": 0.00018
+      }
+     }
+    },
+    "detailed_model_usage": [
+     {
+      "config": {
+       "model": "deepseek-v41-flash",
+       "service_tier": "standard"
+      },
+      "usage": {
+       "input": {
+        "tokens": 117,
+        "price": 6.435e-05
+       },
+       "input_cache_read": {
+        "tokens": 2688,
+        "price": 0.0007392000000000001
+       },
+       "input_cache_write": {
+        "tokens": 0,
+        "price": 0.0
+       },
+       "output_total": {
+        "tokens": 12,
+        "price": 0.00018
+       }
+      }
+     }
+    ]
+   },
+   "interrupted": true,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": "Thanks. And could I get your name, please?",
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 405,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "user",
+   "agent_metadata": null,
+   "message": "Dipender.",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": null,
+   "time_in_call_secs": 65,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_asr_trailing_service_latency": {
+      "elapsed_time": 0.06449988903477788
+     }
+    },
+    "convai_asr_provider": "Scribe v2 Realtime",
+    "convai_tts_model": null,
+    "convai_tts_cascade": null,
+    "voice_id": null
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": "audio",
+   "source_event_id": 416,
+   "used_static_kb_document_ids": [],
+   "analysis": {
+    "user_sentiment_score": 0.0,
+    "user_frustration_score": 0.1
+   },
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_5901m55h5xt7et3tzm1n9vjpayns"
+   },
+   "message": "Sorry, could you repeat that? I want to make sure I have the right name for the reservation.",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": "deepseek-v41-flash",
+   "time_in_call_secs": 66,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_llm_service_ttf_sentence": {
+      "elapsed_time": 0.17477446794509888
+     },
+     "convai_llm_service_ttfb": {
+      "elapsed_time": 0.08832962857559323
+     },
+     "convai_llm_service_tt_last_sentence": {
+      "elapsed_time": 0.20738624688237906
+     },
+     "convai_tts_service_ttfb": {
+      "elapsed_time": 0.18884176714345813
+     },
+     "convai_ttf_audio_since_silence": {
+      "elapsed_time": 0.6391509340219199
+     },
+     "convai_turn_silence_before_initiation": {
+      "elapsed_time": 0.192
+     },
+     "convai_turn_asr_latency": {
+      "elapsed_time": 0.06449988903477788
+     },
+     "convai_turn_asr_excess": {
+      "elapsed_time": 0.06449988903477788
+     }
+    },
+    "convai_asr_provider": null,
+    "convai_tts_model": "eleven_v3_conversational",
+    "convai_tts_cascade": null,
+    "voice_id": "cjVigY5qzO86Huf0OWal"
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": {
+    "model_usage": {
+     "deepseek-v41-flash": {
+      "input": {
+       "tokens": 96,
+       "price": 5.28e-05
+      },
+      "input_cache_read": {
+       "tokens": 2688,
+       "price": 0.0007392000000000001
+      },
+      "input_cache_write": {
+       "tokens": 32,
+       "price": 1.76e-05
+      },
+      "output_total": {
+       "tokens": 22,
+       "price": 0.00033
+      }
+     }
+    },
+    "detailed_model_usage": [
+     {
+      "config": {
+       "model": "deepseek-v41-flash",
+       "service_tier": "standard"
+      },
+      "usage": {
+       "input": {
+        "tokens": 96,
+        "price": 5.28e-05
+       },
+       "input_cache_read": {
+        "tokens": 2688,
+        "price": 0.0007392000000000001
+       },
+       "input_cache_write": {
+        "tokens": 32,
+        "price": 1.76e-05
+       },
+       "output_total": {
+        "tokens": 22,
+        "price": 0.00033
+       }
+      }
+     }
+    ]
+   },
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 416,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "user",
+   "agent_metadata": null,
+   "message": "Like, uh, 67896.",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": null,
+   "time_in_call_secs": 73,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_asr_trailing_service_latency": {
+      "elapsed_time": 0.0652932901866734
+     }
+    },
+    "convai_asr_provider": "Scribe v2 Realtime",
+    "convai_tts_model": null,
+    "convai_tts_cascade": null,
+    "voice_id": null
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": "audio",
+   "source_event_id": 484,
+   "used_static_kb_document_ids": [],
+   "analysis": {
+    "user_sentiment_score": 0.0,
+    "user_frustration_score": 0.2
+   },
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_5901m55h5xt7et3tzm1n9vjpayns"
+   },
+   "message": "Thanks for that. Could I also get the name of the person I'm speaking with?",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": "deepseek-v41-flash",
+   "time_in_call_secs": 77,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_llm_service_ttf_sentence": {
+      "elapsed_time": 0.13360497867688537
+     },
+     "convai_llm_service_ttfb": {
+      "elapsed_time": 0.09184337873011827
+     },
+     "convai_llm_service_tt_last_sentence": {
+      "elapsed_time": 0.14513237867504358
+     },
+     "convai_tts_service_ttfb": {
+      "elapsed_time": 0.15277787810191512
+     },
+     "convai_ttf_audio_since_silence": {
+      "elapsed_time": 1.0344493817985057
+     },
+     "convai_turn_silence_before_initiation": {
+      "elapsed_time": 0.352
+     },
+     "convai_turn_asr_latency": {
+      "elapsed_time": 0.0652932901866734
+     },
+     "convai_turn_asr_excess": {
+      "elapsed_time": 0.0652932901866734
+     }
+    },
+    "convai_asr_provider": null,
+    "convai_tts_model": "eleven_v3_conversational",
+    "convai_tts_cascade": null,
+    "voice_id": "cjVigY5qzO86Huf0OWal"
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": {
+    "model_usage": {
+     "deepseek-v41-flash": {
+      "input": {
+       "tokens": 33,
+       "price": 1.815e-05
+      },
+      "input_cache_read": {
+       "tokens": 2688,
+       "price": 0.0007392000000000001
+      },
+      "input_cache_write": {
+       "tokens": 128,
+       "price": 7.04e-05
+      },
+      "output_total": {
+       "tokens": 19,
+       "price": 0.000285
+      }
+     }
+    },
+    "detailed_model_usage": [
+     {
+      "config": {
+       "model": "deepseek-v41-flash",
+       "service_tier": "standard"
+      },
+      "usage": {
+       "input": {
+        "tokens": 33,
+        "price": 1.815e-05
+       },
+       "input_cache_read": {
+        "tokens": 2688,
+        "price": 0.0007392000000000001
+       },
+       "input_cache_write": {
+        "tokens": 128,
+        "price": 7.04e-05
+       },
+       "output_total": {
+        "tokens": 19,
+        "price": 0.000285
+       }
+      }
+     }
+    ]
+   },
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 484,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "user",
+   "agent_metadata": null,
+   "message": "Eric.",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": null,
+   "time_in_call_secs": 83,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_asr_trailing_service_latency": {
+      "elapsed_time": 0.03736972901970148
+     }
+    },
+    "convai_asr_provider": "Scribe v2 Realtime",
+    "convai_tts_model": null,
+    "convai_tts_cascade": null,
+    "voice_id": null
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": "audio",
+   "source_event_id": 523,
+   "used_static_kb_document_ids": [],
+   "analysis": {
+    "user_sentiment_score": 0.0,
+    "user_frustration_score": 0.0
+   },
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_5901m55h5xt7et3tzm1n9vjpayns"
+   },
+   "message": "Thanks, Eric. So that's the cheapest room for October seventeenth to eighteenth at one hundred Canadian dollars total, reservation number six seven eight nine six, under Eric. Is that all correct?",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": "deepseek-v41-flash",
+   "time_in_call_secs": 84,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_llm_service_ttf_sentence": {
+      "elapsed_time": 0.368213074747473
+     },
+     "convai_llm_service_ttfb": {
+      "elapsed_time": 0.2934549958445132
+     },
+     "convai_llm_service_tt_last_sentence": {
+      "elapsed_time": 0.5196099826134741
+     },
+     "convai_tts_service_ttfb": {
+      "elapsed_time": 0.16724604787304997
+     },
+     "convai_ttf_audio_since_silence": {
+      "elapsed_time": 0.7841962121501564
+     },
+     "convai_turn_silence_before_initiation": {
+      "elapsed_time": 0.192
+     },
+     "convai_turn_asr_latency": {
+      "elapsed_time": 0.03736972901970148
+     },
+     "convai_turn_asr_excess": {
+      "elapsed_time": 0.03736972901970148
+     }
+    },
+    "convai_asr_provider": null,
+    "convai_tts_model": "eleven_v3_conversational",
+    "convai_tts_cascade": null,
+    "voice_id": "cjVigY5qzO86Huf0OWal"
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": {
+    "model_usage": {
+     "deepseek-v41-flash": {
+      "input": {
+       "tokens": 57,
+       "price": 3.135e-05
+      },
+      "input_cache_read": {
+       "tokens": 2816,
+       "price": 0.0007744000000000001
+      },
+      "input_cache_write": {
+       "tokens": 0,
+       "price": 0.0
+      },
+      "output_total": {
+       "tokens": 39,
+       "price": 0.000585
+      }
+     }
+    },
+    "detailed_model_usage": [
+     {
+      "config": {
+       "model": "deepseek-v41-flash",
+       "service_tier": "standard"
+      },
+      "usage": {
+       "input": {
+        "tokens": 57,
+        "price": 3.135e-05
+       },
+       "input_cache_read": {
+        "tokens": 2816,
+        "price": 0.0007744000000000001
+       },
+       "input_cache_write": {
+        "tokens": 0,
+        "price": 0.0
+       },
+       "output_total": {
+        "tokens": 39,
+        "price": 0.000585
+       }
+      }
+     }
+    ]
+   },
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 523,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "user",
+   "agent_metadata": null,
+   "message": "Mm-hmm.",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": null,
+   "time_in_call_secs": 89,
+   "conversation_turn_metrics": null,
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": true,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": "audio",
+   "source_event_id": 561,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "user",
+   "agent_metadata": null,
+   "message": "Yes.",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": null,
+   "time_in_call_secs": 89,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_asr_trailing_service_latency": {
+      "elapsed_time": 0.04542193002998829
+     }
+    },
+    "convai_asr_provider": "Scribe v2 Realtime",
+    "convai_tts_model": null,
+    "convai_tts_cascade": null,
+    "voice_id": null
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": "audio",
+   "source_event_id": 621,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_5901m55h5xt7et3tzm1n9vjpayns"
+   },
+   "message": "Great, thank you so much for your help, Eric. Have a good day.\n",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": "deepseek-v41-flash",
+   "time_in_call_secs": 99,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_llm_service_ttf_sentence": {
+      "elapsed_time": 0.43178865406662226
+     },
+     "convai_llm_service_ttfb": {
+      "elapsed_time": 0.3803520346991718
+     },
+     "convai_llm_service_tt_last_sentence": {
+      "elapsed_time": 0.45304483408108354
+     },
+     "convai_tts_service_ttfb": {
+      "elapsed_time": 0.1546458383090794
+     },
+     "convai_ttf_audio_since_silence": {
+      "elapsed_time": 0.9388437120355666
+     },
+     "convai_turn_silence_before_initiation": {
+      "elapsed_time": 0.288
+     },
+     "convai_turn_asr_latency": {
+      "elapsed_time": 0.04542193002998829
+     },
+     "convai_turn_asr_excess": {
+      "elapsed_time": 0.04542193002998829
+     }
+    },
+    "convai_asr_provider": null,
+    "convai_tts_model": "eleven_v3_conversational",
+    "convai_tts_cascade": null,
+    "voice_id": "cjVigY5qzO86Huf0OWal"
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 621,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_5901m55h5xt7et3tzm1n9vjpayns"
+   },
+   "message": null,
+   "multivoice_message": null,
+   "tool_calls": [
+    {
+     "type": "system",
+     "request_id": "chatcmpl-tool-9512c5a4ad1aabaa",
+     "tool_name": "end_call",
+     "tool_id": null,
+     "params_as_json": "{\"reason\": \"Booking confirmed with total price, reservation number, and contact name; conversation reached a natural conclusion.\", \"system__message_to_speak\": \"Thanks again, Eric. Goodbye.\"}",
+     "tool_has_been_called": true,
+     "tool_details": null
+    }
+   ],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": "deepseek-v41-flash",
+   "time_in_call_secs": 101,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_llm_service_ttf_sentence": {
+      "elapsed_time": 0.43178865406662226
+     },
+     "convai_llm_service_ttfb": {
+      "elapsed_time": 0.3803520346991718
+     },
+     "convai_llm_tool_request_generation_latency": {
+      "elapsed_time": 1.2917338628321886
+     },
+     "convai_llm_service_tt_last_sentence": {
+      "elapsed_time": 0.45304483408108354
+     },
+     "convai_tts_service_ttfb": {
+      "elapsed_time": 0.1546458383090794
+     },
+     "convai_ttf_audio_since_silence": {
+      "elapsed_time": 0.9388437120355666
+     },
+     "convai_turn_silence_before_initiation": {
+      "elapsed_time": 0.288
+     },
+     "convai_turn_asr_latency": {
+      "elapsed_time": 0.04542193002998829
+     },
+     "convai_turn_asr_excess": {
+      "elapsed_time": 0.04542193002998829
+     }
+    },
+    "convai_asr_provider": null,
+    "convai_tts_model": "eleven_v3_conversational",
+    "convai_tts_cascade": null,
+    "voice_id": "cjVigY5qzO86Huf0OWal"
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": {
+    "model_usage": {
+     "deepseek-v41-flash": {
+      "input": {
+       "tokens": 101,
+       "price": 5.555e-05
+      },
+      "input_cache_read": {
+       "tokens": 2816,
+       "price": 0.0007744000000000001
+      },
+      "input_cache_write": {
+       "tokens": 0,
+       "price": 0.0
+      },
+      "output_total": {
+       "tokens": 98,
+       "price": 0.00147
+      }
+     }
+    },
+    "detailed_model_usage": [
+     {
+      "config": {
+       "model": "deepseek-v41-flash",
+       "service_tier": "standard"
+      },
+      "usage": {
+       "input": {
+        "tokens": 101,
+        "price": 5.555e-05
+       },
+       "input_cache_read": {
+        "tokens": 2816,
+        "price": 0.0007744000000000001
+       },
+       "input_cache_write": {
+        "tokens": 0,
+        "price": 0.0
+       },
+       "output_total": {
+        "tokens": 98,
+        "price": 0.00147
+       }
+      }
+     }
+    ]
+   },
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 621,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_5901m55h5xt7et3tzm1n9vjpayns"
+   },
+   "message": null,
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [
+    {
+     "request_id": "chatcmpl-tool-9512c5a4ad1aabaa",
+     "tool_name": "end_call",
+     "result_value": "{\"result_type\":\"end_call_success\",\"status\":\"success\",\"reason\":\"Booking confirmed with total price, reservation number, and contact name; conversation reached a natural conclusion.\",\"message\":null}",
+     "is_error": false,
+     "is_blocked": false,
+     "tool_has_been_called": true,
+     "tool_latency_secs": 0.5018683038651943,
+     "error_type": "",
+     "raw_error_message": "",
+     "dynamic_variable_updates": [],
+     "type": "system",
+     "result": {
+      "result_type": "end_call_success",
+      "status": "success",
+      "reason": "Booking confirmed with total price, reservation number, and contact name; conversation reached a natural conclusion.",
+      "message": null
+     }
+    }
+   ],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": null,
+   "time_in_call_secs": 104,
+   "conversation_turn_metrics": null,
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 621,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  }
+ ],
+ "tag_ids": [],
+ "realtime_config_snapshots": null,
+ "orchestrator": "conversational",
+ "realtime_context": null,
+ "otlp_traces": null
+}

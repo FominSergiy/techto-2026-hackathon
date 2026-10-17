@@ -1,0 +1,148 @@
+[
+ {
+  "t": 0.0,
+  "msg": "parsed",
+  "city": "Toronto",
+  "check_in": "2026-10-17",
+  "check_out": "2026-10-18",
+  "guests": 1
+ },
+ {
+  "t": 0.0,
+  "msg": "config",
+  "n_calls": 3,
+  "test_numbers": [
+   "+16477785978",
+   "+15063817221"
+  ]
+ },
+ {
+  "t": 0.0,
+  "msg": "reading saved search",
+  "file": "D:\\techTO hackaton\\techto-2026-hackathon\\output\\hotels-toronto-2026-10-17.json"
+ },
+ {
+  "t": 0.0,
+  "msg": "hotel",
+  "name": "Check Inn CA",
+  "price": 56,
+  "address": "83 Elm Grove Ave, Toronto, ON M6K 2J2",
+  "phone": "+19423887270",
+  "_us": false
+ },
+ {
+  "t": 0.0,
+  "msg": "hotel",
+  "name": "The Only Backpacker's Inn",
+  "price": 58,
+  "address": "972 Danforth Ave, Toronto, ON M4J 1L9",
+  "phone": "+18554633249",
+  "_us": false
+ },
+ {
+  "t": 0.0,
+  "msg": "hotel",
+  "name": "Nomad Pod Hotel",
+  "price": 95,
+  "address": "347 College St, Toronto, ON M5T 2V8",
+  "phone": "+14374755554",
+  "_us": false
+ },
+ {
+  "t": 0.0,
+  "msg": "strategy",
+  "strategy": "cheapest"
+ },
+ {
+  "t": 0.4,
+  "msg": "calling The Only Backpacker's Inn",
+  "conv": "conv_4701m55kcrdwewzrg9h1hjdep6qm"
+ },
+ {
+  "t": 0.4,
+  "msg": "calling Nomad Pod Hotel",
+  "conv": "conv_6801m55kcredef8a9mh0yq6854ea"
+ },
+ {
+  "t": 0.4,
+  "msg": "calling Check Inn CA",
+  "conv": "conv_9001m55kcre0e0vrde98q7mkr3e2"
+ },
+ {
+  "conv": "conv_9001m55kcre0e0vrde98q7mkr3e2",
+  "hotel": "Check Inn CA",
+  "extracted": {
+   "confirmation_type": "reservation_id",
+   "hotel_address": null,
+   "hotel_name": null,
+   "price": 20.0,
+   "receptionist_name": "Eric",
+   "reservation_number": "5678",
+   "stay_dates": null
+  },
+  "cost_credits": 264,
+  "secs": 31
+ },
+ {
+  "t": 45.3,
+  "msg": "BOOKED",
+  "hotel": "Check Inn CA",
+  "number": "5678",
+  "price": 20.0
+ },
+ {
+  "conv": "conv_4701m55kcrdwewzrg9h1hjdep6qm",
+  "hotel": "The Only Backpacker's Inn",
+  "extracted": {
+   "confirmation_type": "verbal_availability",
+   "hotel_address": null,
+   "hotel_name": null,
+   "price": 173.0,
+   "receptionist_name": "Mike",
+   "reservation_number": null,
+   "stay_dates": "2026-10-17 to 2026-10-18"
+  },
+  "cost_credits": 738,
+  "secs": 90
+ },
+ {
+  "t": 116.7,
+  "msg": "NO_RESERVATION",
+  "hotel": "The Only Backpacker's Inn",
+  "number": null,
+  "price": 173.0
+ },
+ {
+  "conv": "conv_6801m55kcredef8a9mh0yq6854ea",
+  "hotel": "Nomad Pod Hotel",
+  "extracted": {
+   "confirmation_type": "none",
+   "hotel_address": null,
+   "hotel_name": null,
+   "price": null,
+   "receptionist_name": null,
+   "reservation_number": null,
+   "stay_dates": null
+  },
+  "cost_credits": 474,
+  "secs": 102
+ },
+ {
+  "t": 121.9,
+  "msg": "NO_RESERVATION",
+  "hotel": "Nomad Pod Hotel",
+  "number": null,
+  "price": null
+ },
+ {
+  "t": 121.9,
+  "msg": "CHOSEN",
+  "hotel": "Check Inn CA",
+  "number": "5678",
+  "price": 20.0
+ },
+ {
+  "t": 122.5,
+  "msg": "EMAIL FAILED: Connection unexpectedly closed"
+ }
+]

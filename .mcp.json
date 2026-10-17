@@ -11,6 +11,10 @@
     "backboard-docs": {
       "type": "http",
       "url": "https://backboard-docs.docsalot.dev/api/mcp"
+    },
+    "apify": {
+      "type": "http",
+      "url": "https://mcp.apify.com/?tools=actors,docs,voyager/booking-scraper"
     }
   }
 }
