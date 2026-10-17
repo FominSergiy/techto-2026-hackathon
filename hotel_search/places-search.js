@@ -73,10 +73,17 @@ async function textSearch(apiKey, textQuery) {
     return data.places || [];
 }
 
-// True when the place's own address is in the searched city (and region, when both are known)
+// Google files hotels under the amalgamated municipality ("Greater Sudbury", "City of Kawartha Lakes") while people search "Sudbury"
+const MUNICIPALITY_WORDS = /\b(greater|city of|town of|township of|municipality of|regional municipality of|county of)\b/g;
+const bare = name => normalizeName(name).replace(MUNICIPALITY_WORDS, "").replace(/\s+/g, " ").trim();
+
+// True when the place is in the searched city (and region, when both are known). The city matches when the structured
+// address's locality does (ignoring "Greater"/"City of"), or when the formatted address ("1 Main St, Sudbury, ON ...") names it.
 function inCity(hotel, city) {
+    const isCity = name => bare(name) === bare(city);
+    const cityMatches = !hotel.city || isCity(hotel.city) || (hotel.address || "").split(",").some(isCity);
     const same = (a, b) => normalizeName(a) === normalizeName(b);
-    return (!hotel.city || same(hotel.city, city))
+    return cityMatches
         && (!settings.region || !hotel.region || [hotel.region, hotel.regionCode].some(name => same(name, settings.region)));
 }
 
@@ -133,5 +140,5 @@ async function run(city = settings.city) {
 
 const search = async city => (await run(city)).hotels;
 
-module.exports = { run, search, normalize, queriesFor, QUERY_TEMPLATES };
+module.exports = { run, search, normalize, queriesFor, inCity, QUERY_TEMPLATES };
 runIfMain(module, "Google Maps", () => search());
