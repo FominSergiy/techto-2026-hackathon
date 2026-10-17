@@ -27,7 +27,7 @@ tags: decision, search, architecture
 
 ## 2026-10-17 — Prompt-only settings have no default in settings.js
 tags: decision, search, settings
-- Decision: `settings.js` no longer defaults `city`, `checkIn`/`checkOut` (dates are still derived: next Saturday), `minRating`, `minReviews` or the TripAdvisor/Hotelbeds location codes, and the price cap is 200. They are still accepted as `--flags` (`PROMPT_ONLY` in `settings.js`). A request with no city gets a warning in the review panel, and rating/review minimums stay off unless the request asks for them.
+- Decision: `settings.js` no longer defaults `city`, `checkIn`/`checkOut` (dates are still derived: next Saturday), `minRating`, `minReviews` or the TripAdvisor/Hotelbeds location codes, and the price cap is 150 (it was 200; the Google Hotels actor returned phones and addresses in the two runs with a cap of 100 and none in runs with 400 or no cap, so a lower cap may be what triggers it, not yet confirmed). They are still accepted as `--flags` (`PROMPT_ONLY` in `settings.js`). A request with no city gets a warning in the review panel, and rating/review minimums stay off unless the request asks for them.
 - Why: The values only exist once the prompt is parsed, and a default city (Aurora) silently searched the wrong place. Dropping the keys from `defaults` alone made `parseArgs` reject `--city`, so the prompt flow broke.
 - Alternatives: Keep `city: null` etc. in `defaults` (simpler, but it was removed on purpose). The old behaviour of resetting the region for a non-default city went too: the region is always Ontario.
 

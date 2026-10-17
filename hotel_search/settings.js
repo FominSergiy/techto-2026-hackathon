@@ -18,7 +18,7 @@ const defaults = {
     outputDir: "output",    // search.js saves CSV + JSON here; null disables
 
     // Filters (null disables)
-    maxNightlyPrice: 200,
+    maxNightlyPrice: 150,
 
     // Sources search.js runs: xotelo, searchapi, liteapi, hotelbeds, booking
     sources: ["xotelo", "searchapi", "liteapi", "hotelbeds", "booking", "expedia"]
