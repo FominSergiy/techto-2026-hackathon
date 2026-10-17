@@ -44,6 +44,15 @@ async function getJson(url, options = {}, retries = 0, attempt = 0) {
     return data;
 }
 
+// "CA" -> "Canada". Spelled out because a bare "CA" in a free-text query can read as California.
+function countryName(code) {
+    try {
+        return new Intl.DisplayNames(["en"], { type: "region" }).of(code.toUpperCase());
+    } catch {
+        return code;
+    }
+}
+
 // Runs an Apify actor and returns its dataset items. The call waits for the run to finish (Apify cuts it off after 5 minutes).
 async function runApifyActor(actor, input) {
     const [token] = requireEnv("APIFY_KEY");
@@ -158,4 +167,4 @@ function runIfMain(mod, label, search) {
         });
 }
 
-module.exports = { sleep, requireEnv, getJson, runApifyActor, hotelbedsHeaders, normalizeName, perNight, passesFilters, cheapest, collectPages, printHotels, runIfMain };
+module.exports = { sleep, requireEnv, getJson, countryName, runApifyActor, hotelbedsHeaders, normalizeName, perNight, passesFilters, cheapest, collectPages, printHotels, runIfMain };

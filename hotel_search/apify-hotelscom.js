@@ -1,13 +1,15 @@
 // Hotels.com prices via the Apify Hotels.com Scraper - https://apify.com/jeremy_frost/hotels-com-scraper
 // The actor drives a browser on Apify's servers - check this against the "no browser automation" rule.
 const settings = require("./settings");
-const { runApifyActor, passesFilters, cheapest, runIfMain } = require("./hotel-utils");
+const { runApifyActor, countryName, passesFilters, cheapest, runIfMain } = require("./hotel-utils");
 
 const ACTOR = "jeremy_frost~hotels-com-scraper";
 
 function buildInput() {
     return {
-        place: [settings.city, settings.region].filter(Boolean).join(" "),
+        // The actor has no country or region input, only one free-text place (and its docs say no special characters),
+        // so the region and country go in the text: "Hamilton Ontario Canada", not just "Hamilton" (also in NZ, Bermuda, Ohio...)
+        place: [settings.city, settings.region, settings.countryCode && countryName(settings.countryCode)].filter(Boolean).join(" "),
         start_date: settings.checkIn,
         end_date: settings.checkOut,
         min_stars: "1",

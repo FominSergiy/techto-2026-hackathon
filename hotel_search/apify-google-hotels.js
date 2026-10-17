@@ -1,14 +1,15 @@
 // Google Hotels prices via the Apify "Google Hotels Search Scraper" - https://apify.com/johnvc/google-hotels-search-scraper
 // Costs $0.02 per run plus $0.02 per results page.
 const settings = require("./settings");
-const { runApifyActor, perNight, passesFilters, cheapest, runIfMain } = require("./hotel-utils");
+const { runApifyActor, countryName, perNight, passesFilters, cheapest, runIfMain } = require("./hotel-utils");
 
 const ACTOR = "johnvc~google-hotels-search-scraper";
 
 function buildInput() {
     const input = {
         search_type: "search",
-        q: `hotels in ${[settings.city, settings.region, settings.countryCode].filter(Boolean).join(", ")}`,
+        // gl=ca only biases the results, so the query itself names city, region and country
+        q: `hotels in ${[settings.city, settings.region, settings.countryCode && countryName(settings.countryCode)].filter(Boolean).join(", ")}`,
         gl: settings.countryCode.toLowerCase(),
         hl: "en",
         currency: settings.currency,
