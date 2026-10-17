@@ -17,7 +17,7 @@ import os, re, sys, json, time, shlex, smtplib, subprocess, datetime as dt, requ
 from email.message import EmailMessage
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
-from email_service import send_confirmation
+from email_service import build, send_confirmation
 
 load_dotenv(override=True)  # the .env file wins over variables already set in the shell
 E = os.environ
@@ -214,7 +214,10 @@ def to_number(h):
     return "+" + (digits if len(digits) > 10 else "1" + digits)  # same NANP rule as load_hotels_json
 
 
-def call_hotel(h, q):
+TEST = to_number({"phone": None})  # the TEST_NUMBER every call dials, None = real hotel phones
+
+
+def call_hotel(h, q, i=0):
     r = requests.post("https://api.elevenlabs.io/v1/convai/twilio/outbound-call", headers=XI, timeout=20, json={
         "agent_id": E["ELEVENLABS_AGENT_ID"], "agent_phone_number_id": E["ELEVENLABS_PHONE_NUMBER_ID"],
         "to_number": to_number(h),
@@ -251,11 +254,23 @@ def result_from(c, h, q):
     if not d.get("reservation_number") and not verbal:
         raise RuntimeError(f"{h['name']}: no reservation ({c.get('status')})")
     start = (c.get("metadata") or {}).get("start_time_unix_secs") or time.time()
-    return {"hotel": d.get("hotel_name") or h["name"], "address": d.get("hotel_address") or h["address"],
+    return {"status": "booked", "conversation_id": c.get("conversation_id"),  # id -> call recording in the email
+            "hotel": d.get("hotel_name") or h["name"], "address": d.get("hotel_address") or h["address"],
             "phone": h["phone"], "number": d.get("reservation_number"),
             "type": d.get("confirmation_type"), "receptionist": d.get("receptionist_name"),
             "call_time": dt.datetime.fromtimestamp(start).strftime("%Y-%m-%d %H:%M"),
             "price": d.get("price") or h["price"], "date": q["check_in"], "check_out": q["check_out"]}
+
+
+def send_email(res, to=None, dry=False):
+    """Receipt via email_service (attaches the call recording when res has a conversation_id)."""
+    if dry:
+        subject, body = build(res)
+        print(f"to: {to or E.get('RESULT_EMAIL')}\nsubject: {subject}\n"
+              f"recording: {'would be attached if available' if res.get('conversation_id') else 'none (no conversation_id)'}\n\n{body}")
+        return
+    r = send_confirmation(res, to=to)
+    log("email result", **r)
 
 
 def main():

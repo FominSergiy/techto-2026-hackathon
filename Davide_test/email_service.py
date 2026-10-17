@@ -7,17 +7,24 @@ Providers (pick with EMAIL_PROVIDER, else auto: resend if RESEND_API_KEY is set,
 
 Usage:
   python email_service.py --dry-run            # print the sample email, send nothing
-  python email_service.py --test [to@x.com]    # send the sample email (pre-flight check)
+  python email_service.py --test [to@x.com]    # send the sample email (pre-flight check);
+                                               # SAMPLE_CONVERSATION_ID=conv_... also attaches that call
   python email_service.py --send payload.json  # send a real receipt; "-" reads JSON from stdin
                                                # prints the result as JSON; exit 1 + error JSON on failure
+
+Call recording: if the payload has a `conversation_id`, the ElevenLabs recording (mp3) is attached.
+It never blocks the receipt: if the audio can't be fetched (or the send with it fails), the email goes without it.
 """
-import os, sys, json, time, smtplib, datetime as dt, requests
+import os, re, sys, json, time, base64, smtplib, datetime as dt, requests
 from email.message import EmailMessage
 from email.utils import make_msgid
 from dotenv import load_dotenv
 
 load_dotenv()
 E = os.environ
+
+TEAM_MEMBERS = ["Davide - galluzzodavide01@gmail.com", "Mykhailio - babichmichail@gmail.com",
+                "Sergiy - sergiy.fomin@outlook.com"]
 
 VERBAL = {"verbal_booking": "Verbal confirmation",
           "verbal_availability": "Verbal confirmation of availability"}
@@ -41,8 +48,9 @@ def fmt_price(p):
     return str(p) if p else None
 
 
-def build(res):
-    """Returns (subject, body). Raises ValueError if a field the spec requires is missing."""
+def build(res, audio_name=None):
+    """Returns (subject, body). Raises ValueError if a field the spec requires is missing.
+    audio_name: filename of the attached call recording (None = not attached)."""
     fields = {"Reservation #": confirmation_field(res), "Price": fmt_price(res.get("price")),
               "Reservation Date": res.get("date"), "Address": res.get("address")}
     missing = [k for k, v in fields.items() if not v]
@@ -54,28 +62,72 @@ def build(res):
     if res.get("check_out"):
         lines.append(f"Check-out Date: {res['check_out']}")
     lines.append(f"Price: {fields['Price']}")
+    if audio_name:
+        lines.append(f"Call recording: attached ({audio_name})")
+    elif res.get("conversation_id"):
+        lines.append(f"Call recording: unavailable (ElevenLabs conversation {res['conversation_id']})")
+    lines += ["", f"Team members: Team {E.get('TEAM_NUMBER') or 4}", *TEAM_MEMBERS]
     subject = f"Team # {E.get('TEAM_NUMBER', '?')} - Hotel Reservation Confirmed!"
     return subject, "\n".join(lines) + "\n"
 
 
-def _send_smtp(to, subject, body):
+def fetch_call_audio(cid):
+    """ElevenLabs call recording as mp3 bytes, or None. The audio can lag a few seconds behind
+    status "done", so retry (AUDIO_ATTEMPTS, 2 s apart) but never wait past AUDIO_MAX_WAIT seconds."""
+    deadline = time.time() + float(E.get("AUDIO_MAX_WAIT", 10))
+    for i in range(int(E.get("AUDIO_ATTEMPTS", 3))):
+        left = deadline - time.time()
+        if left <= 0:
+            break
+        r = requests.get(f"https://api.elevenlabs.io/v1/convai/conversations/{cid}/audio", timeout=max(left, 1),
+                         headers={"xi-api-key": E["ELEVENLABS_API_KEY"]})
+        if r.ok and r.content:
+            return r.content
+        if r.status_code in (401, 403, 404, 422) or time.time() + 2 > deadline:
+            break
+        time.sleep(2)
+    return None
+
+
+def call_audio(res):
+    """[(filename, bytes)] for the payload's conversation_id, [] if none or on any failure."""
+    cid = res.get("conversation_id")
+    if not cid:
+        return []
+    try:
+        data = fetch_call_audio(cid)
+    except Exception as e:
+        print(f"call recording not attached ({cid}): {e}", file=sys.stderr)
+        return []
+    if not data:
+        print(f"call recording not attached ({cid}): not available", file=sys.stderr)
+        return []
+    slug = re.sub(r"[^a-z0-9]+", "-", (res.get("hotel") or "hotel").lower()).strip("-")
+    return [(f"call-{slug}-{cid}.mp3", data)]
+
+
+def _send_smtp(to, subject, body, attachments=()):
     m = EmailMessage()
     m["Subject"], m["From"], m["To"] = subject, E.get("EMAIL_FROM") or E["SMTP_USER"], to
     m["Message-ID"] = make_msgid()
     if E.get("EMAIL_BCC"):
         m["Bcc"] = E["EMAIL_BCC"]
     m.set_content(body)
+    for name, data in attachments:
+        m.add_attachment(data, maintype="audio", subtype="mpeg", filename=name)
     with smtplib.SMTP_SSL(E.get("SMTP_HOST", "smtp.gmail.com"), int(E.get("SMTP_PORT", 465)), timeout=15) as s:
         s.login(E["SMTP_USER"], E["SMTP_APP_PASSWORD"])
         s.send_message(m)
     return m["Message-ID"]
 
 
-def _send_resend(to, subject, body):
+def _send_resend(to, subject, body, attachments=()):
     payload = {"from": E.get("EMAIL_FROM", "Hotel Agent <onboarding@resend.dev>"), "to": [to],
                "subject": subject, "text": body}
     if E.get("EMAIL_BCC"):
         payload["bcc"] = [E["EMAIL_BCC"]]
+    if attachments:
+        payload["attachments"] = [{"filename": n, "content": base64.b64encode(d).decode()} for n, d in attachments]
     r = requests.post("https://api.resend.com/emails", timeout=15, json=payload,
                       headers={"Authorization": f"Bearer {E['RESEND_API_KEY']}"})
     if not r.ok:
@@ -91,23 +143,36 @@ def provider():
 
 
 def send_confirmation(res, to=None, attempts=2):
-    """Validate, build and send the receipt. Returns {provider, id, to, ms}; raises on final failure."""
+    """Validate, build and send the receipt (with the call recording when it can be fetched).
+    Returns {provider, id, to, ms, audio, audio_ms}; raises on final failure."""
     to = to or E["RESULT_EMAIL"]
-    subject, body = build(res)
+    build(res)  # validate the required fields before spending time on the audio
+    t = time.time()
+    files = call_audio(res)
+    audio_ms = int((time.time() - t) * 1000)
     name, t = provider(), time.time()
-    for i in range(attempts):
+    tries = 0
+    while True:
+        subject, body = build(res, files[0][0] if files else None)
         try:
-            msg_id = SENDERS[name](to, subject, body)
-            return {"provider": name, "id": msg_id, "to": to, "ms": int((time.time() - t) * 1000)}
-        except Exception:
-            if i == attempts - 1:
+            msg_id = SENDERS[name](to, subject, body, files)
+            return {"provider": name, "id": msg_id, "to": to, "ms": int((time.time() - t) * 1000),
+                    "audio": files[0][0] if files else None, "audio_ms": audio_ms}
+        except Exception as e:
+            if files:  # the receipt matters more than the recording: retry without it (doesn't use up a try)
+                print(f"send with recording failed, retrying without it: {e}", file=sys.stderr)
+                files = []
+                continue
+            tries += 1
+            if tries >= attempts:
                 raise
             time.sleep(1)
 
 
 SAMPLE = {"hotel": "Test Hotel Toronto", "address": "123 King St W, Toronto, ON M5H 1A1",
           "phone": "+14165550100", "number": "TEST-12345", "price": 129.0,
-          "date": dt.date.today().isoformat(), "check_out": (dt.date.today() + dt.timedelta(days=1)).isoformat()}
+          "date": dt.date.today().isoformat(), "check_out": (dt.date.today() + dt.timedelta(days=1)).isoformat(),
+          "conversation_id": E.get("SAMPLE_CONVERSATION_ID")}
 
 if __name__ == "__main__":
     args = sys.argv[1:]

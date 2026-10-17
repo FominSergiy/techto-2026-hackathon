@@ -19,6 +19,11 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Attach the call recording as a file, never block the receipt on it
+tags: decision, email, elevenlabs
+- Decision: Attach the mp3 from the ElevenLabs audio endpoint rather than send a link. Any failure to fetch or attach it sends the email without it.
+- Why: ElevenLabs has no public share link (its dashboard needs a login). The receipt is what the spec scores, and the recording is extra.
+
 ## 2026-10-17 — Accept a verbal confirmation (name + price) as a booking
 tags: decision, email, workflow
 - Decision: `main.py` treats a call as booked when it has a reservation number, **or** when `confirmation_type` is `verbal_booking`/`verbal_availability` and a price was given. The email's Reservation # then reads "Verbal confirmation from <receptionist> at <hotel>, call at <time>".
