@@ -246,7 +246,9 @@ async function handleReservation(request, response) {
 
 function serveStatic(request, response) {
     const route = request.url.split("?")[0];
-    const name = route === "/" ? "index.html" : route === "/reservation" ? "reservation.html" : path.basename(route);
+    // The reservation page is the root; the original search page (checkboxes per API, Backboard card, Google Maps card) is at /search
+    const PAGES = { "/": "reservation.html", "/reservation": "reservation.html", "/search": "index.html" };
+    const name = PAGES[route] || path.basename(route);
     const file = path.join(PUBLIC_DIR, name);
     fs.readFile(file, (error, content) => {
         if (error) {
@@ -279,4 +281,4 @@ http.createServer((request, response) => {
         return handleReservation(request, response);
     }
     serveStatic(request, response);
-}).listen(PORT, () => console.log(`Hotel search UI on http://localhost:${PORT}${process.env.DEMO ? " (DEMO mode: saved results, no API calls)" : ""}`));
+}).listen(PORT, () => console.log(`Reservation AI service on http://localhost:${PORT} (original search page: /search)${process.env.DEMO ? " (DEMO mode: saved results, no API calls)" : ""}`));
