@@ -13,6 +13,12 @@ assert.match(request.content, /Aurora, Ontario, CA/);
 assert.match(request.content, /2026-11-20/);
 assert.match(request.content, /at or under 200 CAD/);
 
+// Free-text mode sends the user's words plus a minimum count, because "cheap hotels sudbury" alone got 2 hotels back
+const freeText = buildRequest(resolve({ prompt: "cheap hotels sudbury" }));
+assert.ok(freeText.content.startsWith("cheap hotels sudbury\n"));
+assert.match(freeText.content, /Unless the request above names a number of hotels, list at least 20/);
+assert.match(buildRequest(resolve({ prompt: "top 5 hotels in Aurora", count: 8 })).content, /at least 8/);
+
 // Fenced + prose-wrapped output still parses
 const fenced = 'Here you go:\n```json\n[{"name":"Hotel A","nightlyPrice":112.4,"phone":"+1 905-555-0100"},{"name":"Hotel B","nightlyPrice":"abc"},{"nightlyPrice":90}]\n```';
 const hotels = parseHotels(fenced).map(raw => toHotel(raw, settings)).filter(Boolean);
@@ -50,7 +56,7 @@ assert.match(buildRequest(settings).system_prompt, /plain JSON number/);
 // Free-text mode (the UI's Backboard box): the user's words go through untouched, no assumed nights or currency
 const free = resolve({ prompt: "cheapest hotel in Paris tonight in EUR" });
 const freeRequest = buildRequest(free);
-assert.strictEqual(freeRequest.content, "cheapest hotel in Paris tonight in EUR");
+assert.ok(freeRequest.content.startsWith("cheapest hotel in Paris tonight in EUR\n"), "the user's words come first, unchanged");
 assert.match(freeRequest.system_prompt, /Today is \d{4}-\d{2}-\d{2}/);
 const freeHotel = toHotel({ name: "Hotel C", nightlyPrice: 150, currency: "EUR" }, free);
 assert.deepStrictEqual([freeHotel.currency, freeHotel.totalPrice], ["EUR", null]);
@@ -82,7 +88,7 @@ search({ prompt: "cheapest hotels in Montreal" }).then(found => {
     assert.deepStrictEqual([raw.length, raw[0].content, raw[0].thread_id], [1, reply, "t1"], "the reply is saved as received");
 
     assert.deepStrictEqual(found.map(hotel => [hotel.name, hotel.nightlyPrice]), [["Hotel Three", 95], ["Hotel One", 112], ["Hotel Two", 139], ["Hotel Four", null]]);
-    assert.strictEqual(sent.content, "cheapest hotels in Montreal");
+    assert.ok(sent.content.startsWith("cheapest hotels in Montreal\n") && /list at least 20/.test(sent.content), "the words go over unchanged, followed by the minimum count");
     assert.strictEqual(search.lastRun.returned, 4);
     assert.deepStrictEqual(found[3].priceType, "none");
     assert.deepStrictEqual(search.lastRun.dropped, [], "an unpriced hotel is kept, not dropped");
