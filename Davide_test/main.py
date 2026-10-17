@@ -214,9 +214,7 @@ TEST = ["+" + (d if len(d) > 10 else "1" + d)
         for d in (re.sub(r"\D", "", x) for x in E.get("TEST_NUMBER", "").split(",")) if len(d) >= 10]
 
 
-def to_number(h, i=0):
-    """The number to dial for hotel i: a test number when TEST_NUMBER is set, else the hotel's own phone."""
-    return TEST[i % len(TEST)] if TEST else h["phone"]
+TEST = to_number({"phone": None})  # the TEST_NUMBER every call dials, None = real hotel phones
 
 
 def call_hotel(h, q, i=0):
@@ -258,7 +256,8 @@ def result_from(c, h, q):
     if not booked and not d.get("price"):
         raise RuntimeError(f"{h['name']}: no price, no reservation ({c.get('status')})")
     start = (c.get("metadata") or {}).get("start_time_unix_secs") or time.time()
-    return {"hotel": d.get("hotel_name") or h["name"], "address": d.get("hotel_address") or h["address"],
+    return {"status": "booked", "conversation_id": c.get("conversation_id"),  # id -> call recording in the email
+            "hotel": d.get("hotel_name") or h["name"], "address": d.get("hotel_address") or h["address"],
             "phone": h["phone"], "number": d.get("reservation_number"),
             "type": d.get("confirmation_type"), "receptionist": d.get("receptionist_name"),
             "call_time": dt.datetime.fromtimestamp(start).strftime("%Y-%m-%d %H:%M"),
@@ -276,6 +275,17 @@ def send_email(res, to=None, dry=False):
         print(f"to: {to or E.get('RESULT_EMAIL')}\nsubject: {subject}\n\n{body}")
         return
     send_confirmation(res, to=to)
+
+
+def send_email(res, to=None, dry=False):
+    """Receipt via email_service (attaches the call recording when res has a conversation_id)."""
+    if dry:
+        subject, body = build(res)
+        print(f"to: {to or E.get('RESULT_EMAIL')}\nsubject: {subject}\n"
+              f"recording: {'would be attached if available' if res.get('conversation_id') else 'none (no conversation_id)'}\n\n{body}")
+        return
+    r = send_confirmation(res, to=to)
+    log("email result", **r)
 
 
 def main():

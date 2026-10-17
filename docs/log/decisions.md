@@ -19,11 +19,10 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
-## 2026-10-17 — Keep calling until 3 conversations gave a price, 5 at a time, then email the cheapest booking
-tags: decision, workflow, telephony, email
-- Decision: the reservation page starts one `main.py` process per request with `--calls 5 --want 3 --strategy cheapest`: a pool of 5 live calls refilled from a queue of up to 15 hotels, stopping at 3 prices said on a call (not the search price). The single email goes out at the end, for the cheapest booking among them.
-- Why: many calls end with no answer, voicemail or a wrong line, so a fixed batch of 5 often came back with nothing to compare. Counting only real quotes makes "cheapest" mean something. Strategy `first` would email the first booking and hang up the rest, which is not "the end".
-- Alternatives: a fixed batch of 5 (could end with zero prices); `first` (faster, but not the cheapest); a Node-side call loop (duplicates `main.py`).
+## 2026-10-17 — Attach the call recording as a file, never block the receipt on it
+tags: decision, email, elevenlabs
+- Decision: Attach the mp3 from the ElevenLabs audio endpoint rather than send a link. Any failure to fetch or attach it sends the email without it.
+- Why: ElevenLabs has no public share link (its dashboard needs a login). The receipt is what the spec scores, and the recording is extra.
 
 ## 2026-10-17 — Accept a verbal confirmation (name + price) as a booking
 tags: decision, email, workflow

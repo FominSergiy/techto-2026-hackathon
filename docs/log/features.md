@@ -19,11 +19,11 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
-## 2026-10-17 — Reservation page: Enter searches, calls until 3 prices, emails the result
-tags: feature, workflow, search, telephony, email
-- Feature: one Enter on `/` runs the Maps + Backboard search, then phones hotels from the result (up to 15 with a phone, cheapest first) through `Davide_test/main.py --calls 5 --want 3 --strategy cheapest`, started by `server.js`. 5 calls run at once; when one ends the next hotel is dialed, until 3 conversations gave a price on the call (a quote counts even without a booking: status `priced`). Then the rest are hung up, the cheapest booking is picked and its confirmation emailed. The table gets a live "Call" column and an "N of 3 prices" line.
-- Status: wip. Written, not tested yet (no live calls, no email).
-- Notes: `main`'s `Davide_test/main.py` came out of the `feature/search` merge half-resolved (`TEST` and `send_email` undefined, `call_hotel` called with 3 args but taking 2, no `status` on a booked result), so this branch repairs it first. `load_dotenv(override=True)` lets `.env` beat any env var the server sets, hence the new `--calls` / `--strategy` flags. Set `TEST_NUMBER` or the calls go to the real hotels.
+## 2026-10-17 — Call recording + team footer in the receipt email
+tags: feature, email, elevenlabs
+- Feature: `email_service.py` attaches the booked call's ElevenLabs recording (mp3) when the payload has `conversation_id`, and ends every email with the team footer (Team 4, each member with their email). `main.py` passes `conversation_id` through. The same branch fixes `main.py` after the `b68047a` merge: `send_email`, `TEST`, the `call_hotel` arity and `status` were missing.
+- Status: done. Checked with a stub sender: a real id attaches 887 KB in about 0.3 s, and a bogus id, a missing key or a rejected attachment still send the email without it. Real SMTP send not yet run.
+- Notes: `GET /v1/convai/conversations/{id}/audio` returns `audio/mpeg`. Audio can lag a moment behind status `done`, so the fetch retries, but for at most 10 s.
 
 ## 2026-10-17 — main.py: verbal bookings count; TEST_NUMBER guard
 tags: feature, workflow, email, telephony
