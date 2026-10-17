@@ -79,7 +79,8 @@
         <textarea id="gmPrompt" placeholder="e.g. Hotels in Hamilton (only the city is used; the region is always Ontario)" style="min-height: 52px"></textarea>
         <div class="bar">
             <button id="gmRun">Search Google Maps</button>
-            <span id="gmStatus" class="muted">No price APIs: the city is pulled from your text and 5 fixed Maps searches run for it ("hotels in X", "inns in X", "motels in X", "hotels at X", "cheap hotels in X"). 5 Places calls per run. Ctrl/Cmd+Enter to run.</span>
+            <label class="muted"><input type="checkbox" id="gmRank" checked> Rank by expected price (Backboard, web search, up to 20 hotels)</label>
+            <span id="gmStatus" class="muted">No price APIs: the city is pulled from your text and 5 fixed Maps searches run for it ("hotels in X", "inns in X", "motels in X", "hotels at X", "cheap hotels in X"). 5 Places calls per run, plus one Backboard call when ranking. Ctrl/Cmd+Enter to run.</span>
         </div>
     </div>
 
@@ -107,8 +108,13 @@ function esc(value) {
 
 // The Google Maps card has no price API behind it: Google's price range is a hint that few hotels have, and every
 // row remembers which of the fixed searches found it
+// With ranking on, the table is ordered by the model's expected price (cheapest first); hotels it didn't estimate come last
 const PLACES_COLUMNS = [
     ["Hotel", h => h.name],
+    ["Expected / night", h => h.expectedPrice != null ? `~${h.expectedPrice} ${h.currency}` : "", "num"],
+    ["Class", h => h.priceClass],
+    ["Confidence", h => h.priceConfidence],
+    ["Why", h => h.priceBasis],
     ["City", h => h.city],
     ["Address", h => h.address],
     ["Phone", COLUMNS[3][1], true],
@@ -320,13 +326,13 @@ async function runPlaces() {
     const started = Date.now();
     button.disabled = true;
     $("gmOutput").innerHTML = "";
-    const timer = setInterval(() => $("gmStatus").textContent = `Searching Google Maps… ${Math.round((Date.now() - started) / 1000)}s`, 500);
+    const timer = setInterval(() => $("gmStatus").textContent = `Searching Google Maps${$("gmRank").checked ? " and ranking by expected price (web search, can take a minute or two)" : ""}… ${Math.round((Date.now() - started) / 1000)}s`, 500);
 
     try {
         const response = await fetch("/api/places", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt: $("gmPrompt").value })
+            body: JSON.stringify({ prompt: $("gmPrompt").value, rank: $("gmRank").checked })
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error);
@@ -334,8 +340,12 @@ async function runPlaces() {
         $("gmOutput").innerHTML = `
             <div class="card">
                 <div class="chips">${data.queries.map(q => `<span class="chip">${esc(q.query)}: ${q.error ? `<span class="error">failed (${esc(q.error)})</span>` : `${q.returned} found, ${q.added} new`}</span>`).join("")}</div>
+                ${data.ranking?.error ? `<p class="error">Ranking failed, so the hotels below are unranked: ${esc(data.ranking.error)}</p>` : ""}
                 ${data.hotels.length ? renderTable(data.hotels, PLACES_COLUMNS) : "<p>Google Maps found no hotels.</p>"}
                 <p class="muted">${data.hotels.length} hotels in ${esc(data.city)} · ${data.seconds.toFixed(1)}s · city read by ${esc(data.parser)}${usage}</p>
+                ${data.ranking && !data.ranking.error ? `<p class="muted">Expected prices are model estimates, not rates for any dates. ${data.ranking.ranked} of ${data.ranking.sent} sent hotels estimated${data.hotels.length > data.ranking.sent ? ` (only ${data.ranking.sent} of ${data.hotels.length} are sent, the rest are listed last)` : ""} · ${data.ranking.seconds.toFixed(1)}s · ${esc(data.ranking.model)} · ${data.ranking.inputTokens ?? "?"} in / ${data.ranking.outputTokens ?? "?"} out tokens</p>
+                ${data.ranking.unusable.length ? `<p class="error">Skipped: ${data.ranking.unusable.map(esc).join(", ")}</p>` : ""}
+                <details><summary class="muted">What the model replied</summary><pre>${esc(data.ranking.reply)}</pre></details>` : ""}
                 ${data.dropped.length ? `<p class="muted">Dropped: ${data.dropped.map(entry => `${esc(entry.name ?? "?")} (${esc(entry.reason)})`).join(", ")}</p>` : ""}
             </div>`;
         $("gmStatus").textContent = "Done";
