@@ -1,0 +1,43 @@
+{
+    "type": "webhook",
+    "name": "check_status",
+    "description": "Call while waiting or on hold to learn whether to keep going or wrap up.",
+    "response_timeout_secs": 10,
+    "force_pre_tool_speech": false,
+    "disable_interruptions": false,
+    "api_schema": {
+        "url": "https://REPLACE_WITH_TUNNEL_HOST/tools/check_status",
+        "method": "POST",
+        "request_headers": {
+            "X-Agent-Secret": {
+                "secret_id": "REPLACE_WITH_ELEVENLABS_SECRET_ID"
+            }
+        },
+        "request_body_schema": {
+            "type": "object",
+            "description": "Body for check_status",
+            "properties": {
+                "run_id": {
+                    "type": "string",
+                    "description": "Run ID",
+                    "dynamic_variable": "run_id"
+                },
+                "candidate_id": {
+                    "type": "string",
+                    "description": "Hotel candidate ID",
+                    "dynamic_variable": "candidate_id"
+                },
+                "conversation_id": {
+                    "type": "string",
+                    "description": "ElevenLabs conversation ID",
+                    "dynamic_variable": "system__conversation_id"
+                }
+            },
+            "required": [
+                "run_id",
+                "candidate_id",
+                "conversation_id"
+            ]
+        }
+    }
+}

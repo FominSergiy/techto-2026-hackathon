@@ -1,0 +1,57 @@
+{
+    "type": "webhook",
+    "name": "report_quote",
+    "description": "Call right after the hotel states a price. Reply tells you whether booking is open and the best price seen.",
+    "response_timeout_secs": 10,
+    "force_pre_tool_speech": false,
+    "disable_interruptions": false,
+    "api_schema": {
+        "url": "https://REPLACE_WITH_TUNNEL_HOST/tools/report_quote",
+        "method": "POST",
+        "request_headers": {
+            "X-Agent-Secret": {
+                "secret_id": "REPLACE_WITH_ELEVENLABS_SECRET_ID"
+            }
+        },
+        "request_body_schema": {
+            "type": "object",
+            "description": "Body for report_quote",
+            "properties": {
+                "run_id": {
+                    "type": "string",
+                    "description": "Run ID",
+                    "dynamic_variable": "run_id"
+                },
+                "candidate_id": {
+                    "type": "string",
+                    "description": "Hotel candidate ID",
+                    "dynamic_variable": "candidate_id"
+                },
+                "conversation_id": {
+                    "type": "string",
+                    "description": "ElevenLabs conversation ID",
+                    "dynamic_variable": "system__conversation_id"
+                },
+                "price": {
+                    "type": "number",
+                    "description": "Total price quoted for the stay, number only"
+                },
+                "currency": {
+                    "type": "string",
+                    "description": "3-letter currency code, e.g. CAD"
+                },
+                "available": {
+                    "type": "boolean",
+                    "description": "Whether the hotel has a room for the requested dates"
+                }
+            },
+            "required": [
+                "run_id",
+                "candidate_id",
+                "conversation_id",
+                "price",
+                "available"
+            ]
+        }
+    }
+}

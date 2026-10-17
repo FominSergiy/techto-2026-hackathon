@@ -1,0 +1,48 @@
+{
+    "type": "webhook",
+    "name": "claim_booking",
+    "description": "Call just before you say you'll take the room. Only say yes if the reply is BOOK; on DECLINE, thank them and end the call.",
+    "response_timeout_secs": 10,
+    "force_pre_tool_speech": false,
+    "disable_interruptions": false,
+    "api_schema": {
+        "url": "https://REPLACE_WITH_TUNNEL_HOST/tools/claim_booking",
+        "method": "POST",
+        "request_headers": {
+            "X-Agent-Secret": {
+                "secret_id": "REPLACE_WITH_ELEVENLABS_SECRET_ID"
+            }
+        },
+        "request_body_schema": {
+            "type": "object",
+            "description": "Body for claim_booking",
+            "properties": {
+                "run_id": {
+                    "type": "string",
+                    "description": "Run ID",
+                    "dynamic_variable": "run_id"
+                },
+                "candidate_id": {
+                    "type": "string",
+                    "description": "Hotel candidate ID",
+                    "dynamic_variable": "candidate_id"
+                },
+                "conversation_id": {
+                    "type": "string",
+                    "description": "ElevenLabs conversation ID",
+                    "dynamic_variable": "system__conversation_id"
+                },
+                "price": {
+                    "type": "number",
+                    "description": "The price you are about to accept"
+                }
+            },
+            "required": [
+                "run_id",
+                "candidate_id",
+                "conversation_id",
+                "price"
+            ]
+        }
+    }
+}

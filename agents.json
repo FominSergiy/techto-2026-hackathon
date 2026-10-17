@@ -1,0 +1,10 @@
+{
+    "agents": [
+        {
+            "config": "agent_configs/Alex.json",
+            "id": "agent_2501m552v9ayegsrycv3hb092dw4",
+            "branch_id": "agtbrch_6701m55bzx57f3d97smmefs2tv86",
+            "version_id": "agtvrsn_4001m55c0phhecv8ycw4rqnanb69"
+        }
+    ]
+}
