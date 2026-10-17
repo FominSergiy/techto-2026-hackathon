@@ -28,7 +28,6 @@ function nextSaturday() {
 
 function defaults() {
     return {
-        city: "Aurora",
         region: "Ontario",
         countryCode: "CA",
         checkIn: null,
@@ -71,7 +70,7 @@ function buildRequest(settings) {
             "Search as many times as you need (Google Hotels, Booking.com, Expedia, the hotels' own sites) to list the requested number of hotels. Do not stop after the first result.",
             context,
             "Reply with ONLY a JSON array, no prose and no code fences. Each element:",
-            `{"name": string, "address": string|null, "phone": string|null (international format), "nightlyPrice": number|null (a plain JSON number, no currency symbol; per night, taxes excluded unless only the taxed price is shown; null if no price is shown anywhere), "priceType": "quoted"|"from"|"none" ("quoted" only if you saw the rate for these exact dates, "from" for the lowest nightly rate a page shows, "none" when you found no price), "totalPrice": number|null, "currency": string (ISO code of the prices; ${settings.currency} unless the request asks for another), "rating": number|null (out of 5), "url": string|null (page where you saw the price)}.`,
+            `{"name": string, "address": string|null, "phone": string[required] (international format), "nightlyPrice": number|null (a plain JSON number, no currency symbol; per night, taxes excluded unless only the taxed price is shown; null if no price is shown anywhere), "priceType": "quoted"|"from"|"none" ("quoted" only if you saw the rate for these exact dates, "from" for the lowest nightly rate a page shows, "none" when you found no price), "totalPrice": number|null, "currency": string (ISO code of the prices; ${settings.currency} unless the request asks for another), "rating": number|null (out of 5), "url": string|null (page where you saw the price)}.`,
             "Sort by nightlyPrice ascending, hotels without a price last. Only hotels inside the named city. List every hotel you find, even without a price: never leave a hotel out because its price is unconfirmed (use a \"from\" rate if that is all you can see, or null with priceType \"none\"). Never invent prices or phone numbers; use null when unknown."
         ].filter(Boolean).join("\n"),
         llm_provider: settings.provider,
