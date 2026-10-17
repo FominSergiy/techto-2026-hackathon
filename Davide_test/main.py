@@ -39,32 +39,74 @@ MONTHS = {m: i + 1 for i, m in enumerate(["jan", "feb", "mar", "apr", "may", "ju
 WORD_NUM = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "a": 1, "an": 1, "single": 1}
 
 
+# Full month names or 3-letter abbreviations only, so "decide" or "market" are not dates
+MON = r"(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\b\.?"
+ORD = r"(?:st|nd|rd|th)?"
+YEAR = r"(?:,?\s+(\d{4}))?"
+# In text order: 2026-10-01 | Oct 1(st)(, 2026) | 1(st) (of) Oct(, 2026)
+DATE_RE = re.compile(rf"(\d{{4}})-(\d{{2}})-(\d{{2}})|{MON}\s+(\d{{1,2}}){ORD}\b{YEAR}|\b(\d{{1,2}}){ORD}\s+(?:of\s+)?{MON}{YEAR}")
+RANGE = r"\s*(?:-|–|—|to|through|thru|until|till)\s*"
+NOT_COUNT = r"(?!\s*(?:nights?|guests?|adults?|people|persons?|rooms?)\b)"
+BARE_DAY_AFTER = re.compile(rf"{RANGE}(\d{{1,2}}){ORD}\b{NOT_COUNT}")   # "Oct 1-10", "Oct 1 to 10th"
+BARE_DAY_BEFORE = re.compile(rf"\b(\d{{1,2}}){ORD}{RANGE}$")            # "1-10 October", "1 to 10 Oct"
+
+
+def _dates(t):
+    """Every date in the text, in order, as (year or None, month, day). Fills in a bare day that
+    shares the month of the date next to it: "Oct 1-10" and "1-10 Oct" are two dates."""
+    out = []
+    for m in DATE_RE.finditer(t):
+        g = m.groups()
+        if g[0]:
+            out.append((int(g[0]), int(g[1]), int(g[2])))
+            continue
+        if g[3]:  # month first
+            mon, day, year = MONTHS[g[3][:3]], int(g[4]), g[5]
+            out.append((int(year) if year else None, mon, day))
+            r = BARE_DAY_AFTER.match(t, m.end())
+            if r and not DATE_RE.match(t, r.start(1)):
+                out.append((None, mon, int(r.group(1))))
+        else:  # day first
+            day, mon, year = int(g[6]), MONTHS[g[7][:3]], g[8]
+            r = None if out else BARE_DAY_BEFORE.search(t[:m.start()])  # only when no date came before
+            if r:
+                out.append((None, mon, int(r.group(1))))
+            out.append((int(year) if year else None, mon, day))
+    return out
+
+
+def _on_or_after(y, mon, day, floor):
+    """The date, or the same day next year when no year was given and it falls before floor."""
+    try:
+        d = dt.date(y or floor.year, mon, day)
+        return d.replace(year=d.year + 1) if y is None and d < floor else d
+    except ValueError:  # Feb 30 and the like
+        return None
+
+
 def parse_prompt(text, need_city=True):
+    """check_in = first date (else today, or tomorrow), check_out = second date (the day you leave),
+    else check_in + "N nights" (default 1). "Oct 1 to Oct 10" = 9 nights."""
     t = text.lower()
     today = dt.date.today()
-    check_in = today
-    if "tomorrow" in t:
-        check_in = today + dt.timedelta(days=1)
-    # "October 20", "Oct 20th", "20 October"
-    md = (re.search(r"\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})(?:st|nd|rd|th)?\b", t)
-          or re.search(r"\b(\d{1,2})(?:st|nd|rd|th)?\s+(?:of\s+)?(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b", t))
-    if md:
-        mon, day = (md.group(1), md.group(2)) if md.group(1).isalpha() else (md.group(2), md.group(1))
-        d = dt.date(today.year, MONTHS[mon], int(day))
-        check_in = d if d >= today else d.replace(year=today.year + 1)
-    m = re.search(r"(\d{4}-\d{2}-\d{2})", text)
-    if m:
-        check_in = dt.date.fromisoformat(m.group(1))
+    found = _dates(t)
+    check_in = _on_or_after(*found[0], today) if found else None
+    check_in = check_in or (today + dt.timedelta(days=1) if "tomorrow" in t else today)
+    check_out = _on_or_after(*found[1], check_in + dt.timedelta(days=1)) if len(found) > 1 else None
+    if check_out and check_out <= check_in:  # "2026-11-23 to 2026-11-20": ignore it, use nights
+        check_out = None
     num = r"(\d+|one|two|three|four|five|a|an|single)"
-    n = re.search(num + r"\s*nights?", t)
-    nights = int(WORD_NUM.get(n.group(1), n.group(1))) if n else 1
+    if not check_out:
+        n = re.search(num + r"\s*nights?", t)
+        nights = int(WORD_NUM.get(n.group(1), n.group(1))) if n else 1
+        check_out = check_in + dt.timedelta(days=max(nights, 1))
     g = re.search(num + r"\s*(?:guests?|adults?|people|persons?)", t)
     guests = int(WORD_NUM.get(g.group(1), g.group(1))) if g else 1
     city = re.search(r"\b(?i:in|at)\s+([A-Z][\w'.-]*(?:\s+[A-Z][\w'.-]*)*)", text)
     if not city and need_city:
         raise SystemExit("City not found in prompt. Pass it with a capital letter, e.g. 'in Toronto'.")
     return {"city": city.group(1) if city else "", "check_in": check_in.isoformat(),
-            "check_out": (check_in + dt.timedelta(days=nights)).isoformat(), "guests": guests}
+            "check_out": check_out.isoformat(), "nights": (check_out - check_in).days, "guests": guests}
 
 
 # ---------- 2. Find cheapest hotels ----------
@@ -223,7 +265,8 @@ def call_hotel(h, q, i=0):
         "to_number": to_number(h),
         "conversation_initiation_client_data": {"dynamic_variables": {
             "hotel_name": h["name"], "guest_name": E["GUEST_NAME"], "number_of_guests": str(q["guests"]),
-            "check_in_date": q["check_in"], "check_out_date": q["check_out"], "contact_email": E["CONTACT_EMAIL"]}}})
+            "check_in_date": q["check_in"], "check_out_date": q["check_out"], "nights": str(q["nights"]),
+            "contact_email": E["CONTACT_EMAIL"]}}})
     j = r.json() if r.content else {}
     cid, sid = j.get("conversation_id"), j.get("callSid") or j.get("call_sid")
     if not r.ok or not cid:

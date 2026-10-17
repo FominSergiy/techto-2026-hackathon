@@ -19,6 +19,11 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — A date range's end date is the check-out day
+tags: decision, workflow, telephony
+- Decision: "Oct 1 to Oct 10" means check-in Oct 1 and check-out Oct 10 (9 nights). Alex books every night in that range and asks for the total for the whole stay. A new `{{nights}}` call variable says the count out loud.
+- Why: hotels count nights this way, and so do the search APIs (`checkIn` / `checkOut`). Passing the count saves the model from working it out on the call.
+
 ## 2026-10-17 — Attach the call recording as a file, never block the receipt on it
 tags: decision, email, elevenlabs
 - Decision: Attach the mp3 from the ElevenLabs audio endpoint rather than send a link. Any failure to fetch or attach it sends the email without it.
