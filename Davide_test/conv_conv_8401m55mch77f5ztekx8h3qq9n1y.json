@@ -1,0 +1,2079 @@
+{
+ "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+ "agent_name": "Alex",
+ "conversation_product": "agent",
+ "status": "done",
+ "user_id": "+15068301666",
+ "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+ "version_id": "agtvrsn_6701m55m4p53ea9as0hw7rghm45t",
+ "metadata": {
+  "start_time_unix_secs": 1792264314,
+  "accepted_time_unix_secs": 1792264315,
+  "call_duration_secs": 56,
+  "queue_wait_secs": null,
+  "cost": 488,
+  "deletion_settings": {
+   "deletion_time_unix_secs": null,
+   "deleted_logs_at_time_unix_secs": null,
+   "deleted_audio_at_time_unix_secs": null,
+   "deleted_transcript_at_time_unix_secs": null,
+   "delete_transcript_and_pii": false,
+   "delete_audio": false
+  },
+  "feedback": {
+   "type": null,
+   "overall_score": null,
+   "likes": 0,
+   "dislikes": 0,
+   "rating": null,
+   "comment": null
+  },
+  "authorization_method": "signed_url",
+  "charging": {
+   "dev_discount": false,
+   "is_burst": false,
+   "tier": "creator",
+   "llm_usage": {
+    "irreversible_generation": {
+     "model_usage": {
+      "deepseek-v41-flash": {
+       "input": {
+        "tokens": 509,
+        "price": 0.00027995000000000006
+       },
+       "input_cache_read": {
+        "tokens": 15360,
+        "price": 0.004224
+       },
+       "input_cache_write": {
+        "tokens": 3104,
+        "price": 0.0017072
+       },
+       "output_total": {
+        "tokens": 217,
+        "price": 0.003255
+       }
+      }
+     },
+     "detailed_model_usage": [
+      {
+       "config": {
+        "model": "deepseek-v41-flash",
+        "service_tier": "standard"
+       },
+       "usage": {
+        "input": {
+         "tokens": 509,
+         "price": 0.00027995000000000006
+        },
+        "input_cache_read": {
+         "tokens": 15360,
+         "price": 0.004224
+        },
+        "input_cache_write": {
+         "tokens": 3104,
+         "price": 0.0017072
+        },
+        "output_total": {
+         "tokens": 217,
+         "price": 0.003255
+        }
+       }
+      }
+     ]
+    },
+    "initiated_generation": {
+     "model_usage": {
+      "deepseek-v41-flash": {
+       "input": {
+        "tokens": 787,
+        "price": 0.00043285000000000003
+       },
+       "input_cache_read": {
+        "tokens": 26621,
+        "price": 0.007320775
+       },
+       "input_cache_write": {
+        "tokens": 3264,
+        "price": 0.0017952
+       },
+       "output_total": {
+        "tokens": 353,
+        "price": 0.005295
+       }
+      }
+     },
+     "detailed_model_usage": [
+      {
+       "config": {
+        "model": "deepseek-v41-flash",
+        "service_tier": "standard"
+       },
+       "usage": {
+        "input": {
+         "tokens": 787,
+         "price": 0.00043285000000000003
+        },
+        "input_cache_read": {
+         "tokens": 26621,
+         "price": 0.007320775
+        },
+        "input_cache_write": {
+         "tokens": 3264,
+         "price": 0.0017952
+        },
+        "output_total": {
+         "tokens": 353,
+         "price": 0.005295
+        }
+       }
+      }
+     ]
+    }
+   },
+   "llm_price": 0.014843825000000001,
+   "llm_charge": 81,
+   "call_charge": 407,
+   "platform_charge": 407,
+   "platform_usage": {
+    "category_usage": {
+     "voice": {
+      "credits": 407,
+      "price": 0.07356347073099546,
+      "quantity": 0.924088838682898
+     }
+    }
+   },
+   "platform_price": 0.07356347073099546,
+   "free_minutes_consumed": 0.0,
+   "free_llm_dollars_consumed": 0.0,
+   "tts_usage": {
+    "primary_tts_model": "eleven_v3_conversational",
+    "total_audio_output_seconds": 24.419500000000003,
+    "total_characters": 542,
+    "per_voice_usage": [
+     {
+      "voice_id": "RNnkVeW25AwKYxZgnHBH",
+      "audio_output_seconds": 24.419500000000003
+     }
+    ]
+   },
+   "asr_usage": {
+    "asr_model": "scribe_realtime",
+    "total_transcription_calls": 194,
+    "total_audio_input_seconds": 33.54399999999999
+   },
+   "analysis": {
+    "total": {
+     "price": 0.0,
+     "charge": 0,
+     "runs": 1,
+     "price_per_feature": {},
+     "charge_per_feature": {}
+    },
+    "last_run": {
+     "price": 0.0,
+     "charge": 0,
+     "price_per_feature": {},
+     "charge_per_feature": {}
+    }
+   },
+   "subagent_charge": 0
+  },
+  "phone_call": {
+   "direction": "outbound",
+   "phone_number_id": "phnum_0801m5586g2fe13rdezjnb0gnqdc",
+   "agent_number": "+14316008232",
+   "external_number": "+15068301666",
+   "call_result": "answered",
+   "type": "twilio",
+   "stream_sid": "MZ1b419df31d628f680e44bdb26f5bb042",
+   "call_sid": "CA6d1d8797ba43066a1f2f9672ca737039"
+  },
+  "batch_call": null,
+  "termination_reason": "end_call tool was called.",
+  "error": null,
+  "warnings": [],
+  "main_language": "en",
+  "rag_usage": null,
+  "text_only": false,
+  "features_usage": {
+   "language_detection": {
+    "enabled": true,
+    "used": false
+   },
+   "transfer_to_agent": {
+    "enabled": false,
+    "used": false
+   },
+   "transfer_to_number": {
+    "enabled": false,
+    "used": false
+   },
+   "multivoice": {
+    "enabled": false,
+    "used": false
+   },
+   "dtmf_tones": {
+    "enabled": true,
+    "used": false
+   },
+   "external_mcp_servers": {
+    "enabled": false,
+    "used": false
+   },
+   "pii_zrm_workspace": false,
+   "pii_zrm_agent": false,
+   "tool_dynamic_variable_updates": {
+    "enabled": false,
+    "used": false
+   },
+   "is_livekit": false,
+   "voicemail_detection": {
+    "enabled": true,
+    "used": false
+   },
+   "dtmf_input": {
+    "enabled": false,
+    "used": false
+   },
+   "workflow": {
+    "enabled": false,
+    "tool_node": {
+     "enabled": false,
+     "used": false
+    },
+    "standalone_agent_node": {
+     "enabled": false,
+     "used": false
+    },
+    "phone_number_node": {
+     "enabled": false,
+     "used": false
+    },
+    "end_node": {
+     "enabled": false,
+     "used": false
+    },
+    "override_agent_node": {
+     "enabled": false,
+     "used": false
+    },
+    "say_node": {
+     "enabled": false,
+     "used": false
+    },
+    "update_state_node": {
+     "enabled": false,
+     "used": false
+    },
+    "subgraph_node": {
+     "enabled": false,
+     "used": false
+    },
+    "transfer_to_genesys_node": {
+     "enabled": false,
+     "used": false
+    }
+   },
+   "agent_testing": {
+    "enabled": true,
+    "tests_ran_after_last_modification": false,
+    "tests_ran_in_last_7_days": false
+   },
+   "versioning": {
+    "enabled": true,
+    "used": false
+   },
+   "file_input": {
+    "enabled": true,
+    "used": false
+   },
+   "freeform_procedure": {
+    "enabled": false,
+    "used": false
+   },
+   "structured_procedure": {
+    "enabled": false,
+    "used": false
+   }
+  },
+  "eleven_assistant": {
+   "is_eleven_assistant": false
+  },
+  "initiator_id": null,
+  "conversation_initiation_source": "twilio",
+  "conversation_initiation_source_version": null,
+  "timezone": null,
+  "async_metadata": null,
+  "whatsapp": null,
+  "sms": null,
+  "agent_created_from": "ui",
+  "agent_last_updated_from": "cli",
+  "stream_state": null,
+  "voice_rewards": [
+   {
+    "voice_id": "RNnkVeW25AwKYxZgnHBH",
+    "reward_usd_cents": 0.2678295875000001
+   }
+  ],
+  "cost_fiat": 0.08840729573099547
+ },
+ "analysis": {
+  "evaluation_criteria_results": {
+   "booking_successful": {
+    "criteria_id": "booking_successful",
+    "result": "failure",
+    "rationale": "The agent called the bar by mistake and was given the front desk number. No hotel room was booked during this conversation.",
+    "scoring_mode": "binary",
+    "score": null,
+    "max_score": null
+   },
+   "confirmation_number_obtained": {
+    "criteria_id": "confirmation_number_obtained",
+    "result": "failure",
+    "rationale": "Since no booking was made, the agent did not obtain a reservation confirmation number.",
+    "scoring_mode": "binary",
+    "score": null,
+    "max_score": null
+   },
+   "no_payment_details": {
+    "criteria_id": "no_payment_details",
+    "result": "success",
+    "rationale": "The conversation was solely about getting the correct phone number for the front desk. No payment details were discussed, asked for, or given.",
+    "scoring_mode": "binary",
+    "score": null,
+    "max_score": null
+   }
+  },
+  "data_collection_results": {
+   "confirmation_type": {
+    "data_collection_id": "confirmation_type",
+    "name": null,
+    "value": "none",
+    "json_schema": {
+     "type": "string",
+     "description": "How the booking was confirmed.",
+     "enum": [
+      "reservation_id",
+      "verbal_booking",
+      "verbal_availability",
+      "none"
+     ],
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "The agent called the bar by mistake and was redirected to call the front desk; no booking or confirmation occurred."
+   },
+   "hotel_address": {
+    "data_collection_id": "hotel_address",
+    "name": null,
+    "value": null,
+    "json_schema": {
+     "type": "string",
+     "description": "Full street address of the hotel as stated by the receptionist. Empty if not said.",
+     "enum": null,
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "The conversation did not include any mention of the hotel's address."
+   },
+   "hotel_name": {
+    "data_collection_id": "hotel_name",
+    "name": null,
+    "value": null,
+    "json_schema": {
+     "type": "string",
+     "description": "The name of the hotel where the booking was attempted.",
+     "enum": null,
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "The name of the hotel was not mentioned at any point in the conversation."
+   },
+   "price": {
+    "data_collection_id": "price",
+    "name": null,
+    "value": null,
+    "json_schema": {
+     "type": "number",
+     "description": "Total price quoted by the hotel, with currency. Empty if not said.",
+     "enum": null,
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "The agent did not reach the front desk to inquire about rates, so no price was quoted."
+   },
+   "receptionist_name": {
+    "data_collection_id": "receptionist_name",
+    "name": null,
+    "value": null,
+    "json_schema": {
+     "type": "string",
+     "description": "The name of the hotel staff member who confirmed the booking or availability. Empty if not said.",
+     "enum": null,
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "The user, who identified as working at the bar, did not state their name during the conversation."
+   },
+   "reservation_number": {
+    "data_collection_id": "reservation_number",
+    "name": null,
+    "value": null,
+    "json_schema": {
+     "type": "string",
+     "description": "The reservation confirmation number, if booking was successful.",
+     "enum": null,
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "No reservation was made or confirmed, so no reservation number was provided."
+   },
+   "stay_dates": {
+    "data_collection_id": "stay_dates",
+    "name": null,
+    "value": null,
+    "json_schema": {
+     "type": "string",
+     "description": "The check-in and check-out dates the hotel confirmed. Empty if not said.",
+     "enum": null,
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "The agent did not reach the front desk to discuss booking details, so no stay dates were mentioned."
+   }
+  },
+  "evaluation_criteria_results_list": [
+   {
+    "criteria_id": "booking_successful",
+    "result": "failure",
+    "rationale": "The agent called the bar by mistake and was given the front desk number. No hotel room was booked during this conversation.",
+    "scoring_mode": "binary",
+    "score": null,
+    "max_score": null
+   },
+   {
+    "criteria_id": "confirmation_number_obtained",
+    "result": "failure",
+    "rationale": "Since no booking was made, the agent did not obtain a reservation confirmation number.",
+    "scoring_mode": "binary",
+    "score": null,
+    "max_score": null
+   },
+   {
+    "criteria_id": "no_payment_details",
+    "result": "success",
+    "rationale": "The conversation was solely about getting the correct phone number for the front desk. No payment details were discussed, asked for, or given.",
+    "scoring_mode": "binary",
+    "score": null,
+    "max_score": null
+   }
+  ],
+  "data_collection_results_list": [
+   {
+    "data_collection_id": "confirmation_type",
+    "name": null,
+    "value": "none",
+    "json_schema": {
+     "type": "string",
+     "description": "How the booking was confirmed.",
+     "enum": [
+      "reservation_id",
+      "verbal_booking",
+      "verbal_availability",
+      "none"
+     ],
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "The agent called the bar by mistake and was redirected to call the front desk; no booking or confirmation occurred."
+   },
+   {
+    "data_collection_id": "hotel_address",
+    "name": null,
+    "value": null,
+    "json_schema": {
+     "type": "string",
+     "description": "Full street address of the hotel as stated by the receptionist. Empty if not said.",
+     "enum": null,
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "The conversation did not include any mention of the hotel's address."
+   },
+   {
+    "data_collection_id": "hotel_name",
+    "name": null,
+    "value": null,
+    "json_schema": {
+     "type": "string",
+     "description": "The name of the hotel where the booking was attempted.",
+     "enum": null,
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "The name of the hotel was not mentioned at any point in the conversation."
+   },
+   {
+    "data_collection_id": "price",
+    "name": null,
+    "value": null,
+    "json_schema": {
+     "type": "number",
+     "description": "Total price quoted by the hotel, with currency. Empty if not said.",
+     "enum": null,
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "The agent did not reach the front desk to inquire about rates, so no price was quoted."
+   },
+   {
+    "data_collection_id": "receptionist_name",
+    "name": null,
+    "value": null,
+    "json_schema": {
+     "type": "string",
+     "description": "The name of the hotel staff member who confirmed the booking or availability. Empty if not said.",
+     "enum": null,
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "The user, who identified as working at the bar, did not state their name during the conversation."
+   },
+   {
+    "data_collection_id": "reservation_number",
+    "name": null,
+    "value": null,
+    "json_schema": {
+     "type": "string",
+     "description": "The reservation confirmation number, if booking was successful.",
+     "enum": null,
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "No reservation was made or confirmed, so no reservation number was provided."
+   },
+   {
+    "data_collection_id": "stay_dates",
+    "name": null,
+    "value": null,
+    "json_schema": {
+     "type": "string",
+     "description": "The check-in and check-out dates the hotel confirmed. Empty if not said.",
+     "enum": null,
+     "is_system_provided": false,
+     "dynamic_variable": "",
+     "allowed_values": null,
+     "allowed_values_dynamic_variable": "",
+     "constant_value": "",
+     "is_omitted": false
+    },
+    "rationale": "The agent did not reach the front desk to discuss booking details, so no stay dates were mentioned."
+   }
+  ],
+  "call_successful": "failure",
+  "call_success_score": 33.33,
+  "transcript_summary": "The agent initially called the bar by mistake, intending to book a room and inquire about rates. The user, a bar staff member, informed the agent they had reached the wrong department. The agent then requested the front desk number, which the user provided as 506-382-2587. The agent confirmed the number and ended the call to contact the front desk directly.",
+  "call_summary_title": "Hotel Front Desk Number",
+  "scoped": [],
+  "sentiment_analysis": {
+   "overall_label": "positive",
+   "overall_sentiment_score": 0.3,
+   "overall_frustration_score": 0.0,
+   "min_user_sentiment_score": 0.0,
+   "max_user_frustration_score": 0.0,
+   "num_scored_user_turns": 4
+  }
+ },
+ "visited_agents": [
+  {
+   "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+   "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v"
+  }
+ ],
+ "conversation_initiation_client_data": {
+  "conversation_config_override": {
+   "asr": null,
+   "turn": null,
+   "tts": null,
+   "conversation": null,
+   "agent": null
+  },
+  "custom_llm_extra_body": {},
+  "user_id": null,
+  "source_info": {
+   "source": null,
+   "version": null
+  },
+  "branch_id": null,
+  "environment": null,
+  "starting_workflow_node_id": null,
+  "experiments": [],
+  "procedure_ids": null,
+  "dynamic_variables": {
+   "hotel_name": "Motel 6 Moncton",
+   "guest_name": "Davide",
+   "number_of_guests": "1",
+   "check_in_date": "2026-10-17",
+   "check_out_date": "2026-10-18",
+   "contact_email": "galluzzodavide01@gmail.com",
+   "system__agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+   "system__agent_turns": 7,
+   "system__current_agent_turns": 7,
+   "system__current_subagent_turns": 7,
+   "system__current_agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+   "system__conversation_id": "conv_8401m55mch77f5ztekx8h3qq9n1y",
+   "system__call_duration_secs": 55,
+   "system__time_utc": "2026-10-17T19:12:50.378108+00:00",
+   "system__timezone": null,
+   "system__time": "Saturday, 19:12 17 October 2026",
+   "system__time_hour": 19,
+   "system__time_minute": 12,
+   "system__time_second": 50,
+   "system__is_text_only": false,
+   "system__channel": "twilio",
+   "system__caller_id": "+14316008232",
+   "system__called_number": "+15068301666",
+   "system__call_sid": "CA6d1d8797ba43066a1f2f9672ca737039",
+   "system__call_id": null,
+   "system__conversation_history": "{\"x-elevenlabs-history\": true, \"entries\": [{\"role\": \"agent\", \"message\": \"Hi there! Um, I'm calling to book a room. Could you tell me your cheapest rate?\"}, {\"role\": \"user\", \"message\": \"Um, you are calling the bar right now, which, uh, you-- the front desk is a different number.\"}, {\"role\": \"agent\", \"message\": \"Oh, sorry about that. Could you give me the number for the front desk, or can you transfer me over?\"}, {\"role\": \"user\", \"message\": \"Yeah, just hold on one second.\"}, {\"role\": \"agent\", \"tool_requests\": [{\"tool_name\": \"skip_turn\", \"params_as_json\": {\"reason\": \"Caller asked me to hold while they transfer me.\"}}]}, {\"role\": \"agent\", \"tool_results\": [{\"tool_name\": \"skip_turn\", \"result_value\": \"{\\\"result_type\\\":\\\"skip_turn_success\\\",\\\"status\\\":\\\"success\\\",\\\"reason\\\":\\\"Caller asked me to hold while they transfer me.\\\"}\"}]}, {\"role\": \"user\", \"message\": \"I don't know how to do it if we didn't transfer it, but, um, I can definitely give you the number.\"}, {\"role\": \"agent\", \"message\": \"That'd be great, ...\"}, {\"role\": \"user\", \"message\": \"So for the front, for the front desk, it's, uh, area code 506, and then 382-2587.\"}, {\"role\": \"agent\", \"message\": \"Got it, thanks. So that's five zero six, three eight two, two five eight seven?\"}, {\"role\": \"user\", \"message\": \"You got it.\"}, {\"role\": \"agent\", \"message\": \"Perfect, thank you so much. I'll give them a call. Have a good...\"}, {\"role\": \"user\", \"message\": \"All right, no worries. Sorry for the inconvenience.\"}, {\"role\": \"agent\", \"message\": \"No worries...\"}, {\"role\": \"user\", \"message\": \"You too.\"}, {\"role\": \"agent\", \"message\": \"Thanks again, take care. Bye now.\"}, {\"role\": \"agent\", \"tool_requests\": [{\"tool_name\": \"end_call\", \"params_as_json\": {\"reason\": \"The bar staff gave me the front desk number and the conversation reached a natural conclusion.\", \"system__message_to_speak\": \"Thanks again, take care. Bye now.\"}}]}, {\"role\": \"agent\", \"tool_results\": [{\"tool_name\": \"end_call\", \"result_value\": \"{\\\"result_type\\\":\\\"end_call_success\\\",\\\"status\\\":\\\"success\\\",\\\"reason\\\":\\\"The bar staff gave me the front desk number and the conversation reached a natural conclusion.\\\",\\\"message\\\":null}\"}]}]}",
+   "system__user_id": "+15068301666",
+   "system__initiator_id": null,
+   "system__environment": "production"
+  },
+  "tool_mock_config": {
+   "mocking_strategy": "none",
+   "fallback_strategy": "raise_error",
+   "mocked_tool_names": []
+  },
+  "tool_mock_overrides": {}
+ },
+ "environment": "production",
+ "experiment_assignments": null,
+ "hiding_reason": null,
+ "smb_metadata": null,
+ "conversation_id": "conv_8401m55mch77f5ztekx8h3qq9n1y",
+ "has_audio": true,
+ "has_user_audio": true,
+ "has_response_audio": true,
+ "has_auxiliary_audio": false,
+ "transcript": [
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_6701m55m4p53ea9as0hw7rghm45t"
+   },
+   "message": "Hi there! Um, I'm calling to book a room. Could you tell me your cheapest rate?",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": "deepseek-v41-flash",
+   "time_in_call_secs": 0,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_tts_service_ttfb": {
+      "elapsed_time": 0.16157292702700943
+     },
+     "convai_ttf_audio_since_silence": {
+      "elapsed_time": 0.16414174705278128
+     },
+     "convai_turn_silence_before_initiation": {
+      "elapsed_time": 0.0
+     }
+    },
+    "convai_asr_provider": null,
+    "convai_tts_model": "eleven_v3_conversational",
+    "convai_tts_cascade": null,
+    "voice_id": "RNnkVeW25AwKYxZgnHBH"
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 1,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "user",
+   "agent_metadata": null,
+   "message": "Um, you are calling the bar right now, which, uh, you-- the front desk is a different number.",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": null,
+   "time_in_call_secs": 6,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_asr_trailing_service_latency": {
+      "elapsed_time": 0.06050029909238219
+     }
+    },
+    "convai_asr_provider": "Scribe v2 Realtime",
+    "convai_tts_model": null,
+    "convai_tts_cascade": null,
+    "voice_id": null
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": "audio",
+   "source_event_id": 79,
+   "used_static_kb_document_ids": [],
+   "analysis": {
+    "user_sentiment_score": 0.0,
+    "user_frustration_score": 0.0
+   },
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_6701m55m4p53ea9as0hw7rghm45t"
+   },
+   "message": "Oh, sorry about that. Could you give me the number for the front desk, or can you transfer me over?",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": "deepseek-v41-flash",
+   "time_in_call_secs": 13,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_llm_service_ttf_sentence": {
+      "elapsed_time": 0.5827824309235439
+     },
+     "convai_llm_service_ttfb": {
+      "elapsed_time": 0.5427321320166811
+     },
+     "convai_llm_service_tt_last_sentence": {
+      "elapsed_time": 0.635008729994297
+     },
+     "convai_tts_service_ttfb": {
+      "elapsed_time": 0.10782571800518781
+     },
+     "convai_ttf_audio_since_silence": {
+      "elapsed_time": 0.9893122079791501
+     },
+     "convai_turn_silence_before_initiation": {
+      "elapsed_time": 0.224
+     },
+     "convai_turn_asr_latency": {
+      "elapsed_time": 0.06050029909238219
+     },
+     "convai_turn_asr_excess": {
+      "elapsed_time": 0.06050029909238219
+     }
+    },
+    "convai_asr_provider": null,
+    "convai_tts_model": "eleven_v3_conversational",
+    "convai_tts_cascade": null,
+    "voice_id": "RNnkVeW25AwKYxZgnHBH"
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": {
+    "model_usage": {
+     "deepseek-v41-flash": {
+      "input": {
+       "tokens": 173,
+       "price": 9.515000000000001e-05
+      },
+      "input_cache_read": {
+       "tokens": 128,
+       "price": 3.52e-05
+      },
+      "input_cache_write": {
+       "tokens": 2720,
+       "price": 0.0014960000000000002
+      },
+      "output_total": {
+       "tokens": 25,
+       "price": 0.000375
+      }
+     }
+    },
+    "detailed_model_usage": [
+     {
+      "config": {
+       "model": "deepseek-v41-flash",
+       "service_tier": "standard"
+      },
+      "usage": {
+       "input": {
+        "tokens": 173,
+        "price": 9.515000000000001e-05
+       },
+       "input_cache_read": {
+        "tokens": 128,
+        "price": 3.52e-05
+       },
+       "input_cache_write": {
+        "tokens": 2720,
+        "price": 0.0014960000000000002
+       },
+       "output_total": {
+        "tokens": 25,
+        "price": 0.000375
+       }
+      }
+     }
+    ]
+   },
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 79,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "user",
+   "agent_metadata": null,
+   "message": "Yeah, just hold on one second.",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": null,
+   "time_in_call_secs": 19,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_asr_trailing_service_latency": {
+      "elapsed_time": 0.05098654900211841
+     }
+    },
+    "convai_asr_provider": "Scribe v2 Realtime",
+    "convai_tts_model": null,
+    "convai_tts_cascade": null,
+    "voice_id": null
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": "audio",
+   "source_event_id": 134,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_6701m55m4p53ea9as0hw7rghm45t"
+   },
+   "message": null,
+   "multivoice_message": null,
+   "tool_calls": [
+    {
+     "type": "system",
+     "request_id": "chatcmpl-tool-b977cc77c5b11b5d",
+     "tool_name": "skip_turn",
+     "tool_id": null,
+     "params_as_json": "{\"reason\": \"Caller asked me to hold while they transfer me.\"}",
+     "tool_has_been_called": true,
+     "tool_details": null
+    }
+   ],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": "deepseek-v41-flash",
+   "time_in_call_secs": 22,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_llm_service_ttfb": {
+      "elapsed_time": 0.20089750702027231
+     },
+     "convai_llm_tool_request_generation_latency": {
+      "elapsed_time": 0.201386256958358
+     }
+    },
+    "convai_asr_provider": null,
+    "convai_tts_model": null,
+    "convai_tts_cascade": null,
+    "voice_id": null
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": {
+    "model_usage": {
+     "deepseek-v41-flash": {
+      "input": {
+       "tokens": 113,
+       "price": 6.215e-05
+      },
+      "input_cache_read": {
+       "tokens": 2944,
+       "price": 0.0008096000000000001
+      },
+      "input_cache_write": {
+       "tokens": 0,
+       "price": 0.0
+      },
+      "output_total": {
+       "tokens": 48,
+       "price": 0.00072
+      }
+     }
+    },
+    "detailed_model_usage": [
+     {
+      "config": {
+       "model": "deepseek-v41-flash",
+       "service_tier": "standard"
+      },
+      "usage": {
+       "input": {
+        "tokens": 113,
+        "price": 6.215e-05
+       },
+       "input_cache_read": {
+        "tokens": 2944,
+        "price": 0.0008096000000000001
+       },
+       "input_cache_write": {
+        "tokens": 0,
+        "price": 0.0
+       },
+       "output_total": {
+        "tokens": 48,
+        "price": 0.00072
+       }
+      }
+     }
+    ]
+   },
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 134,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_6701m55m4p53ea9as0hw7rghm45t"
+   },
+   "message": null,
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [
+    {
+     "request_id": "chatcmpl-tool-b977cc77c5b11b5d",
+     "tool_name": "skip_turn",
+     "result_value": "{\"result_type\":\"skip_turn_success\",\"status\":\"success\",\"reason\":\"Caller asked me to hold while they transfer me.\"}",
+     "is_error": false,
+     "is_blocked": false,
+     "tool_has_been_called": true,
+     "tool_latency_secs": 0.0003082799958065152,
+     "error_type": "",
+     "raw_error_message": "",
+     "dynamic_variable_updates": [],
+     "type": "system",
+     "result": {
+      "result_type": "skip_turn_success",
+      "status": "success",
+      "reason": "Caller asked me to hold while they transfer me."
+     }
+    }
+   ],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": null,
+   "time_in_call_secs": 22,
+   "conversation_turn_metrics": null,
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 134,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "user",
+   "agent_metadata": null,
+   "message": "I don't know how to do it if we didn't transfer it, but, um, I can definitely give you the number.",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": null,
+   "time_in_call_secs": 23,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_asr_trailing_service_latency": {
+      "elapsed_time": 0.04014681908302009
+     }
+    },
+    "convai_asr_provider": "Scribe v2 Realtime",
+    "convai_tts_model": null,
+    "convai_tts_cascade": null,
+    "voice_id": null
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": "audio",
+   "source_event_id": 182,
+   "used_static_kb_document_ids": [],
+   "analysis": {
+    "user_sentiment_score": 0.0,
+    "user_frustration_score": 0.0
+   },
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_6701m55m4p53ea9as0hw7rghm45t"
+   },
+   "message": "That'd be great, ...",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": "deepseek-v41-flash",
+   "time_in_call_secs": 29,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_llm_service_ttf_sentence": {
+      "elapsed_time": 0.14867616805713624
+     },
+     "convai_llm_service_ttfb": {
+      "elapsed_time": 0.10877783910837024
+     },
+     "convai_llm_service_tt_last_sentence": {
+      "elapsed_time": 0.1714640180580318
+     },
+     "convai_tts_service_ttfb": {
+      "elapsed_time": 0.17636448796838522
+     },
+     "convai_ttf_audio_since_silence": {
+      "elapsed_time": 0.7000948850112036
+     },
+     "convai_turn_silence_before_initiation": {
+      "elapsed_time": 0.32
+     },
+     "convai_turn_asr_latency": {
+      "elapsed_time": 0.04014681908302009
+     },
+     "convai_turn_asr_excess": {
+      "elapsed_time": 0.04014681908302009
+     }
+    },
+    "convai_asr_provider": null,
+    "convai_tts_model": "eleven_v3_conversational",
+    "convai_tts_cascade": null,
+    "voice_id": "RNnkVeW25AwKYxZgnHBH"
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": {
+    "model_usage": {
+     "deepseek-v41-flash": {
+      "input": {
+       "tokens": 98,
+       "price": 5.39e-05
+      },
+      "input_cache_read": {
+       "tokens": 2944,
+       "price": 0.0008096000000000001
+      },
+      "input_cache_write": {
+       "tokens": 128,
+       "price": 7.04e-05
+      },
+      "output_total": {
+       "tokens": 20,
+       "price": 0.0003
+      }
+     }
+    },
+    "detailed_model_usage": [
+     {
+      "config": {
+       "model": "deepseek-v41-flash",
+       "service_tier": "standard"
+      },
+      "usage": {
+       "input": {
+        "tokens": 98,
+        "price": 5.39e-05
+       },
+       "input_cache_read": {
+        "tokens": 2944,
+        "price": 0.0008096000000000001
+       },
+       "input_cache_write": {
+        "tokens": 128,
+        "price": 7.04e-05
+       },
+       "output_total": {
+        "tokens": 20,
+        "price": 0.0003
+       }
+      }
+     }
+    ]
+   },
+   "interrupted": true,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": "That'd be great, thanks. Go ahead and give me the number whenever you're ready.",
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 182,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "user",
+   "agent_metadata": null,
+   "message": "So for the front, for the front desk, it's, uh, area code 506, and then 382-2587.",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": null,
+   "time_in_call_secs": 29,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_asr_trailing_service_latency": {
+      "elapsed_time": 0.03917870996519923
+     }
+    },
+    "convai_asr_provider": "Scribe v2 Realtime",
+    "convai_tts_model": null,
+    "convai_tts_cascade": null,
+    "voice_id": null
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": "audio",
+   "source_event_id": 244,
+   "used_static_kb_document_ids": [],
+   "analysis": {
+    "user_sentiment_score": 0.0,
+    "user_frustration_score": 0.0
+   },
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_6701m55m4p53ea9as0hw7rghm45t"
+   },
+   "message": "Got it, thanks. So that's five zero six, three eight two, two five eight seven?",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": "deepseek-v41-flash",
+   "time_in_call_secs": 39,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_llm_service_ttf_sentence": {
+      "elapsed_time": 0.12848235794808716
+     },
+     "convai_llm_service_ttfb": {
+      "elapsed_time": 0.07838290894869715
+     },
+     "convai_llm_service_tt_last_sentence": {
+      "elapsed_time": 0.32933852495625615
+     },
+     "convai_tts_service_ttfb": {
+      "elapsed_time": 0.15598186803981662
+     },
+     "convai_ttf_audio_since_silence": {
+      "elapsed_time": 0.6279152550846339
+     },
+     "convai_turn_silence_before_initiation": {
+      "elapsed_time": 0.288
+     },
+     "convai_turn_asr_latency": {
+      "elapsed_time": 0.03917870996519923
+     },
+     "convai_turn_asr_excess": {
+      "elapsed_time": 0.03917870996519923
+     }
+    },
+    "convai_asr_provider": null,
+    "convai_tts_model": "eleven_v3_conversational",
+    "convai_tts_cascade": null,
+    "voice_id": "RNnkVeW25AwKYxZgnHBH"
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": {
+    "model_usage": {
+     "deepseek-v41-flash": {
+      "input": {
+       "tokens": 8,
+       "price": 4.4e-06
+      },
+      "input_cache_read": {
+       "tokens": 3072,
+       "price": 0.0008448
+      },
+      "input_cache_write": {
+       "tokens": 128,
+       "price": 7.04e-05
+      },
+      "output_total": {
+       "tokens": 22,
+       "price": 0.00033
+      }
+     }
+    },
+    "detailed_model_usage": [
+     {
+      "config": {
+       "model": "deepseek-v41-flash",
+       "service_tier": "standard"
+      },
+      "usage": {
+       "input": {
+        "tokens": 8,
+        "price": 4.4e-06
+       },
+       "input_cache_read": {
+        "tokens": 3072,
+        "price": 0.0008448
+       },
+       "input_cache_write": {
+        "tokens": 128,
+        "price": 7.04e-05
+       },
+       "output_total": {
+        "tokens": 22,
+        "price": 0.00033
+       }
+      }
+     }
+    ]
+   },
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 244,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "user",
+   "agent_metadata": null,
+   "message": "You got it.",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": null,
+   "time_in_call_secs": 46,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_asr_trailing_service_latency": {
+      "elapsed_time": 0.10505461902357638
+     }
+    },
+    "convai_asr_provider": "Scribe v2 Realtime",
+    "convai_tts_model": null,
+    "convai_tts_cascade": null,
+    "voice_id": null
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": "audio",
+   "source_event_id": 295,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_6701m55m4p53ea9as0hw7rghm45t"
+   },
+   "message": "Perfect, thank you so much. I'll give them a call. Have a good...",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": "deepseek-v41-flash",
+   "time_in_call_secs": 47,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_llm_service_ttf_sentence": {
+      "elapsed_time": 0.12741727801039815
+     },
+     "convai_llm_service_ttfb": {
+      "elapsed_time": 0.07777450804132968
+     },
+     "convai_llm_service_tt_last_sentence": {
+      "elapsed_time": 0.15939117700327188
+     },
+     "convai_tts_service_ttfb": {
+      "elapsed_time": 0.10944907809607685
+     },
+     "convai_ttf_audio_since_silence": {
+      "elapsed_time": 0.7074332349449396
+     },
+     "convai_turn_silence_before_initiation": {
+      "elapsed_time": 0.352
+     },
+     "convai_turn_asr_latency": {
+      "elapsed_time": 0.10505461902357638
+     },
+     "convai_turn_asr_excess": {
+      "elapsed_time": 0.10505461902357638
+     }
+    },
+    "convai_asr_provider": null,
+    "convai_tts_model": "eleven_v3_conversational",
+    "convai_tts_cascade": null,
+    "voice_id": "RNnkVeW25AwKYxZgnHBH"
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": {
+    "model_usage": {
+     "deepseek-v41-flash": {
+      "input": {
+       "tokens": 37,
+       "price": 2.035e-05
+      },
+      "input_cache_read": {
+       "tokens": 3072,
+       "price": 0.0008448
+      },
+      "input_cache_write": {
+       "tokens": 128,
+       "price": 7.04e-05
+      },
+      "output_total": {
+       "tokens": 20,
+       "price": 0.0003
+      }
+     }
+    },
+    "detailed_model_usage": [
+     {
+      "config": {
+       "model": "deepseek-v41-flash",
+       "service_tier": "standard"
+      },
+      "usage": {
+       "input": {
+        "tokens": 37,
+        "price": 2.035e-05
+       },
+       "input_cache_read": {
+        "tokens": 3072,
+        "price": 0.0008448
+       },
+       "input_cache_write": {
+        "tokens": 128,
+        "price": 7.04e-05
+       },
+       "output_total": {
+        "tokens": 20,
+        "price": 0.0003
+       }
+      }
+     }
+    ]
+   },
+   "interrupted": true,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": "Perfect, thank you so much. I'll give them a call. Have a good one!",
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 295,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "user",
+   "agent_metadata": null,
+   "message": "All right, no worries. Sorry for the inconvenience.",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": null,
+   "time_in_call_secs": 49,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_asr_trailing_service_latency": {
+      "elapsed_time": 0.04839872906450182
+     }
+    },
+    "convai_asr_provider": "Scribe v2 Realtime",
+    "convai_tts_model": null,
+    "convai_tts_cascade": null,
+    "voice_id": null
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": "audio",
+   "source_event_id": 321,
+   "used_static_kb_document_ids": [],
+   "analysis": {
+    "user_sentiment_score": 0.4,
+    "user_frustration_score": 0.0
+   },
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_6701m55m4p53ea9as0hw7rghm45t"
+   },
+   "message": "No worries...",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": "deepseek-v41-flash",
+   "time_in_call_secs": 51,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_llm_service_ttf_sentence": {
+      "elapsed_time": 0.10973738797474653
+     },
+     "convai_llm_service_ttfb": {
+      "elapsed_time": 0.06920519890263677
+     },
+     "convai_llm_service_tt_last_sentence": {
+      "elapsed_time": 0.10972909792326391
+     },
+     "convai_tts_service_ttfb": {
+      "elapsed_time": 0.1491817479254678
+     },
+     "convai_ttf_audio_since_silence": {
+      "elapsed_time": 0.5845505740335211
+     },
+     "convai_turn_silence_before_initiation": {
+      "elapsed_time": 0.192
+     },
+     "convai_turn_asr_latency": {
+      "elapsed_time": 0.04839872906450182
+     },
+     "convai_turn_asr_excess": {
+      "elapsed_time": 0.04839872906450182
+     }
+    },
+    "convai_asr_provider": null,
+    "convai_tts_model": "eleven_v3_conversational",
+    "convai_tts_cascade": null,
+    "voice_id": "RNnkVeW25AwKYxZgnHBH"
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": {
+    "model_usage": {
+     "deepseek-v41-flash": {
+      "input": {
+       "tokens": 70,
+       "price": 3.85e-05
+      },
+      "input_cache_read": {
+       "tokens": 3200,
+       "price": 0.0008800000000000001
+      },
+      "input_cache_write": {
+       "tokens": 0,
+       "price": 0.0
+      },
+      "output_total": {
+       "tokens": 94,
+       "price": 0.00141
+      }
+     }
+    },
+    "detailed_model_usage": [
+     {
+      "config": {
+       "model": "deepseek-v41-flash",
+       "service_tier": "standard"
+      },
+      "usage": {
+       "input": {
+        "tokens": 70,
+        "price": 3.85e-05
+       },
+       "input_cache_read": {
+        "tokens": 3200,
+        "price": 0.0008800000000000001
+       },
+       "input_cache_write": {
+        "tokens": 0,
+        "price": 0.0
+       },
+       "output_total": {
+        "tokens": 94,
+        "price": 0.00141
+       }
+      }
+     }
+    ]
+   },
+   "interrupted": true,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": "No worries at all, thanks for your help. Take care.\n\n",
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 321,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "user",
+   "agent_metadata": null,
+   "message": "You too.",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": null,
+   "time_in_call_secs": 51,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_asr_trailing_service_latency": {
+      "elapsed_time": 0.03160551004111767
+     }
+    },
+    "convai_asr_provider": "Scribe v2 Realtime",
+    "convai_tts_model": null,
+    "convai_tts_cascade": null,
+    "voice_id": null
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": "audio",
+   "source_event_id": 330,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_6701m55m4p53ea9as0hw7rghm45t"
+   },
+   "message": "Thanks again, take care. Bye now.",
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": "deepseek-v41-flash",
+   "time_in_call_secs": 53,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_llm_service_ttfb": {
+      "elapsed_time": 0.28415822610259056
+     },
+     "convai_llm_tool_request_generation_latency": {
+      "elapsed_time": 0.284540816093795
+     },
+     "convai_tts_service_ttfb": {
+      "elapsed_time": 0.12365359801333398
+     },
+     "convai_ttf_audio_since_silence": {
+      "elapsed_time": 1.061903763089329
+     },
+     "convai_turn_silence_before_initiation": {
+      "elapsed_time": 0.608
+     },
+     "convai_turn_asr_latency": {
+      "elapsed_time": 0.03160551004111767
+     },
+     "convai_turn_asr_excess": {
+      "elapsed_time": 0.03160551004111767
+     }
+    },
+    "convai_asr_provider": null,
+    "convai_tts_model": "eleven_v3_conversational",
+    "convai_tts_cascade": null,
+    "voice_id": "RNnkVeW25AwKYxZgnHBH"
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 330,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_6701m55m4p53ea9as0hw7rghm45t"
+   },
+   "message": null,
+   "multivoice_message": null,
+   "tool_calls": [
+    {
+     "type": "system",
+     "request_id": "chatcmpl-tool-ac81cdc5855b1935",
+     "tool_name": "end_call",
+     "tool_id": null,
+     "params_as_json": "{\"reason\": \"The bar staff gave me the front desk number and the conversation reached a natural conclusion.\", \"system__message_to_speak\": \"Thanks again, take care. Bye now.\"}",
+     "tool_has_been_called": true,
+     "tool_details": null
+    }
+   ],
+   "tool_results": [],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": "deepseek-v41-flash",
+   "time_in_call_secs": 53,
+   "conversation_turn_metrics": {
+    "metrics": {
+     "convai_llm_service_ttfb": {
+      "elapsed_time": 0.28415822610259056
+     },
+     "convai_llm_tool_request_generation_latency": {
+      "elapsed_time": 0.284540816093795
+     },
+     "convai_tts_service_ttfb": {
+      "elapsed_time": 0.12365359801333398
+     },
+     "convai_ttf_audio_since_silence": {
+      "elapsed_time": 1.061903763089329
+     },
+     "convai_turn_silence_before_initiation": {
+      "elapsed_time": 0.608
+     },
+     "convai_turn_asr_latency": {
+      "elapsed_time": 0.03160551004111767
+     },
+     "convai_turn_asr_excess": {
+      "elapsed_time": 0.03160551004111767
+     }
+    },
+    "convai_asr_provider": null,
+    "convai_tts_model": "eleven_v3_conversational",
+    "convai_tts_cascade": null,
+    "voice_id": "RNnkVeW25AwKYxZgnHBH"
+   },
+   "rag_retrieval_info": null,
+   "llm_usage": {
+    "model_usage": {
+     "deepseek-v41-flash": {
+      "input": {
+       "tokens": 80,
+       "price": 4.4e-05
+      },
+      "input_cache_read": {
+       "tokens": 3200,
+       "price": 0.0008800000000000001
+      },
+      "input_cache_write": {
+       "tokens": 0,
+       "price": 0.0
+      },
+      "output_total": {
+       "tokens": 82,
+       "price": 0.00123
+      }
+     }
+    },
+    "detailed_model_usage": [
+     {
+      "config": {
+       "model": "deepseek-v41-flash",
+       "service_tier": "standard"
+      },
+      "usage": {
+       "input": {
+        "tokens": 80,
+        "price": 4.4e-05
+       },
+       "input_cache_read": {
+        "tokens": 3200,
+        "price": 0.0008800000000000001
+       },
+       "input_cache_write": {
+        "tokens": 0,
+        "price": 0.0
+       },
+       "output_total": {
+        "tokens": 82,
+        "price": 0.00123
+       }
+      }
+     }
+    ]
+   },
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 330,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  },
+  {
+   "role": "agent",
+   "agent_metadata": {
+    "agent_id": "agent_2501m552v9ayegsrycv3hb092dw4",
+    "branch_id": "agtbrch_7801m552vbmxf77ankk22ex5hy1v",
+    "workflow_node_id": null,
+    "version_id": "agtvrsn_6701m55m4p53ea9as0hw7rghm45t"
+   },
+   "message": null,
+   "multivoice_message": null,
+   "tool_calls": [],
+   "tool_results": [
+    {
+     "request_id": "chatcmpl-tool-ac81cdc5855b1935",
+     "tool_name": "end_call",
+     "result_value": "{\"result_type\":\"end_call_success\",\"status\":\"success\",\"reason\":\"The bar staff gave me the front desk number and the conversation reached a natural conclusion.\",\"message\":null}",
+     "is_error": false,
+     "is_blocked": false,
+     "tool_has_been_called": true,
+     "tool_latency_secs": 0.5015944819897413,
+     "error_type": "",
+     "raw_error_message": "",
+     "dynamic_variable_updates": [],
+     "type": "system",
+     "result": {
+      "result_type": "end_call_success",
+      "status": "success",
+      "reason": "The bar staff gave me the front desk number and the conversation reached a natural conclusion.",
+      "message": null
+     }
+    }
+   ],
+   "feedback": null,
+   "llm_override": null,
+   "producing_llm": null,
+   "time_in_call_secs": 55,
+   "conversation_turn_metrics": null,
+   "rag_retrieval_info": null,
+   "llm_usage": null,
+   "interrupted": false,
+   "ignored_as_backchannel": false,
+   "platform_event": null,
+   "original_message": null,
+   "reasoning": [],
+   "source_medium": null,
+   "source_event_id": 330,
+   "used_static_kb_document_ids": [],
+   "analysis": null,
+   "user_identifier": null,
+   "id": null,
+   "compaction": null,
+   "triggered_guardrails": [],
+   "file_input": null,
+   "file_inputs": [],
+   "contextual_update_info": null,
+   "config_snapshot_id": null,
+   "reasoned": false
+  }
+ ],
+ "tag_ids": [],
+ "realtime_config_snapshots": null,
+ "orchestrator": "conversational",
+ "realtime_context": null,
+ "otlp_traces": null
+}

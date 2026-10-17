@@ -1,0 +1,52 @@
+{
+  "query": {
+    "city": "Toronto",
+    "check_in": "2026-10-17",
+    "check_out": "2026-10-18",
+    "guests": 1
+  },
+  "strategy": "cheapest",
+  "elapsed_s": 217.5,
+  "chosen": null,
+  "calls": [
+    {
+      "hotel": "Hotel Moncton",
+      "address": "2779 Mountain Rd, Moncton, NB E1G 2W5, Canada",
+      "phone": "+15063843554",
+      "number": null,
+      "price": null,
+      "google_price": 75,
+      "date": "2026-10-17",
+      "status": "no_reservation",
+      "conversation_id": "conv_1501m55mch7rfhnsq1qfgkznmtzg",
+      "call_secs": 12,
+      "cost_credits": 108
+    },
+    {
+      "hotel": "Motel 6 Moncton",
+      "address": "1905 Main St, Moncton, NB E1E 1H9, Canada",
+      "phone": "+15068301666",
+      "number": null,
+      "price": null,
+      "google_price": 61,
+      "date": "2026-10-17",
+      "status": "no_reservation",
+      "conversation_id": "conv_8401m55mch77f5ztekx8h3qq9n1y",
+      "call_secs": 56,
+      "cost_credits": 488
+    },
+    {
+      "hotel": "Rodd Moncton",
+      "address": "434 Main St, Moncton, NB E1C 1B9, Canada",
+      "phone": "+15063821664",
+      "number": null,
+      "price": 282.0,
+      "google_price": 84,
+      "date": "2026-10-17",
+      "status": "no_reservation",
+      "conversation_id": "conv_4901m55mch7qf82tq0ywp0exrdwy",
+      "call_secs": 186,
+      "cost_credits": 1537
+    }
+  ]
+}
