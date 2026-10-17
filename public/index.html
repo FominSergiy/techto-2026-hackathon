@@ -22,6 +22,8 @@
     .bar { display: flex; gap: 12px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
     button { padding: 9px 18px; border: 0; border-radius: 8px; background: var(--accent); color: var(--accent-text); font: inherit; font-weight: 600; cursor: pointer; }
     button:disabled { opacity: .6; cursor: wait; }
+    button.secondary { background: var(--row); color: var(--text); border: 1px solid var(--border); }
+    .review { border-color: var(--accent); }
     .muted { color: var(--muted); font-size: 13px; }
     .error { color: var(--error); }
     .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
@@ -52,22 +54,24 @@
         <div id="sources" class="sources muted">Loading sources…</div>
         <textarea id="prompt" placeholder="e.g. Cheapest hotels in Toronto, CA from 2026-11-20 to 2026-11-22 for 2 adults under 250 CAD"></textarea>
         <div class="bar">
-            <button id="run">Search</button>
-            <span id="status" class="muted">Ctrl/Cmd+Enter to run. Tick the APIs to use above. Raw flags work too: --max-nightly-price=200</span>
+            <button id="run">Review prompt</button>
+            <span id="status" class="muted">Ctrl/Cmd+Enter to review. You see the full prompt before anything runs. Tick the APIs to use above.</span>
         </div>
     </div>
 
+    <div id="review"></div>
     <div id="output"></div>
 
     <div class="card">
         <h2>Backboard (web search)</h2>
         <textarea id="bbPrompt" placeholder="e.g. Cheapest hotels in Aurora, Ontario for Saturday night, 2 adults, with phone numbers"></textarea>
         <div class="bar">
-            <button id="bbRun">Ask Backboard</button>
-            <span id="bbStatus" class="muted">Separate from the search above: a web-search model answers directly. Prices are hints, not API rates. Ctrl/Cmd+Enter to run.</span>
+            <button id="bbRun">Review prompt</button>
+            <span id="bbStatus" class="muted">Separate from the search above: a web-search model answers directly. Prices are hints, not API rates. Ctrl/Cmd+Enter to review.</span>
         </div>
     </div>
 
+    <div id="bbReview"></div>
     <div id="bbOutput"></div>
 </main>
 
@@ -121,7 +125,7 @@ function render(result) {
         </div>`;
 }
 
-async function run() {
+async function run(text) {
     const button = $("run");
     const started = Date.now();
     button.disabled = true;
@@ -132,7 +136,7 @@ async function run() {
         const response = await fetch("/api/search", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt: $("prompt").value, ...pickedSources() })
+            body: JSON.stringify({ prompt: text, reviewed: true, ...pickedSources() })
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error);
@@ -204,7 +208,7 @@ function pickedSources() {
 
 loadSources();
 
-async function runBackboard() {
+async function runBackboard(text) {
     const button = $("bbRun");
     const started = Date.now();
     button.disabled = true;
@@ -215,7 +219,7 @@ async function runBackboard() {
         const response = await fetch("/api/backboard", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt: $("bbPrompt").value })
+            body: JSON.stringify({ prompt: text })
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error);
@@ -234,14 +238,73 @@ async function runBackboard() {
     }
 }
 
-$("run").addEventListener("click", run);
-$("bbRun").addEventListener("click", runBackboard);
-$("bbPrompt").addEventListener("keydown", event => {
-    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) runBackboard();
-});
-$("prompt").addEventListener("keydown", event => {
-    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) run();
-});
+// Two steps per box: "Review prompt" shows the full prompt that will run (nothing is searched yet),
+// the "Run" button in the review panel then runs exactly that text.
+const BOXES = {
+    search: { input: "prompt", button: "run", status: "status", panel: "review", go: run, verb: "Run search" },
+    backboard: { input: "bbPrompt", button: "bbRun", status: "bbStatus", panel: "bbReview", go: runBackboard, verb: "Ask Backboard" }
+};
+
+function showReview(box, data) {
+    const usage = data.usage ? ` · ${data.usage.input_tokens + data.usage.output_tokens} tokens` : "";
+    const hint = data.target === "search" ? " Edit the --flags to change a setting." : "";
+    $(box.panel).innerHTML = `
+        <div class="card review">
+            <h2>Prompt that will run</h2>
+            ${data.warnings.map(warning => `<p class="error">${esc(warning)}</p>`).join("")}
+            <textarea id="${box.panel}Text">${esc(data.prompt)}</textarea>
+            ${data.assumed.length ? `<p class="muted">Filled in because the request didn't say: ${data.assumed.map(esc).join(" · ")}</p>` : ""}
+            <div class="bar">
+                <button id="${box.panel}Go">${box.verb}</button>
+                <button id="${box.panel}Cancel" class="secondary">Cancel</button>
+                <span class="muted">Rewritten by ${esc(data.parser)}${usage}. Nothing has been searched yet.${hint}</span>
+            </div>
+        </div>`;
+
+    const proceed = () => {
+        const text = $(`${box.panel}Text`).value;
+        $(box.panel).innerHTML = "";
+        box.go(text);
+    };
+    $(`${box.panel}Go`).addEventListener("click", proceed);
+    $(`${box.panel}Cancel`).addEventListener("click", () => {
+        $(box.panel).innerHTML = "";
+        $(box.status).textContent = "Cancelled";
+    });
+    $(`${box.panel}Text`).addEventListener("keydown", event => {
+        if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) proceed();
+    });
+}
+
+async function review(target) {
+    const box = BOXES[target];
+    $(box.button).disabled = true;
+    $(box.panel).innerHTML = "";
+    $(box.status).textContent = "Preparing the prompt…";
+
+    try {
+        const response = await fetch("/api/refine", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt: $(box.input).value, target })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error);
+        showReview(box, data);
+        $(box.status).textContent = "Check the prompt below, edit it if needed, then run it.";
+    } catch (error) {
+        $(box.status).innerHTML = `<span class="error">${esc(error.message)}</span>`;
+    } finally {
+        $(box.button).disabled = false;
+    }
+}
+
+for (const [target, box] of Object.entries(BOXES)) {
+    $(box.button).addEventListener("click", () => review(target));
+    $(box.input).addEventListener("keydown", event => {
+        if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) review(target);
+    });
+}
 </script>
 </body>
 </html>

@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Two-step prompts: review the rewritten prompt, then run it
+tags: decision, ui, prompt
+- Decision: Both UI boxes first call `POST /api/refine` (`prompt_refine.js`), which rewrites the rough request into the full explicit prompt and shows it in an editable box with the assumptions it made. A second click runs exactly that text. For the price APIs the reviewed prompt carries every setting as a `--flag`, so `parsePrompt(..., { literal: true })` uses them as-is and doesn't spend a second Haiku call. For Backboard it is a full sentence asking for city/region/country, dates, guests, currency, phone, address and the page behind each price.
+- Why: A vague prompt silently became defaults (next Saturday, Aurora, 4.0 rating) and one run costs API quota and tokens. Seeing the prompt first catches that before it is spent, and it is the same text the run uses, so there is no gap between what was shown and what ran.
+- Alternatives: Always parse with Haiku and run immediately (current behaviour before this, no chance to correct it). Showing only chips of the parsed settings (not editable, and Backboard has no settings to show).
+
 ## 2026-10-17 — No payment; booking ends at verbal confirmation and/or reservation ID
 tags: decision, booking, call-handling, spec
 - Decision: The agent never handles payment. Success means the hotel confirms the booking verbally, gives a reservation ID, or both. If a hotel won't book without a card, the agent gets verbal confirmation that the room is available for the requested date at the quoted price, and we count that as the confirmation.

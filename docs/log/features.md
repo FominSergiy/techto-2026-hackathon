@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Review-then-run prompt flow (prompt_refine.js)
+tags: feature, ui, prompt
+- Feature: "Review prompt" on each box rewrites the rough text into the full prompt and shows it (editable) with a list of what was filled in from defaults and any warnings (e.g. no country for a non-default city). "Run search" / "Ask Backboard" then runs exactly that text. Cancel discards it.
+- Status: done, tested offline (`test/prompt-refine.js`, DEMO-mode server probe). The Haiku-parsed path and a live run through the reviewed prompt were not exercised.
+- Notes: Without `ANTHROPIC_API_KEY` the regex parser only understands ISO dates, so "Friday" falls back to next Saturday, and the assumptions list says so. With the key the review step costs one Haiku call (shown as tokens in the panel) and the run itself costs none. Editing the sentence in the search prompt does nothing: the `--flags` line is what runs. Backboard defaults to 10 hotels and only gets rating/review minimums if the request asked for them, since the 4.0 / 50 defaults empty small cities.
+
 ## 2026-10-17 — Expedia hotel source (Playwright)
 tags: feature, search, data-source
 - Feature: `node expedia.js` (or the "Expedia" checkbox in the UI) opens Expedia's hotel search for `settings` (city, region, country, dates, adults, currency, price sort), clicks "Show more" until `targetCount` hotels pass the filters or `maxPages` is hit, and returns the cheapest ones in the shared hotel shape (rating halved to out of 5; per-night/total converted with `nights`). Prints a warning with counts when a field can't be parsed.

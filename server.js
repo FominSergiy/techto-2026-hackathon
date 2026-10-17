@@ -5,6 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { spawn } = require("node:child_process");
 const { parsePrompt } = require("./prompt");
+const { refine } = require("./prompt_refine");
 const { SOURCES, describe } = require("./hotel_search/sources");
 const backboard = require("./backboard_search/backboard");
 
@@ -77,7 +78,7 @@ function demoResult(picked) {
 
 async function handleSearch(request, response) {
     try {
-        const { prompt, sources, places } = JSON.parse(await readBody(request));
+        const { prompt, sources, places, reviewed } = JSON.parse(await readBody(request));
         if (!prompt?.trim()) {
             return sendJson(response, 400, { error: "Enter a prompt first" });
         }
@@ -93,10 +94,23 @@ async function handleSearch(request, response) {
         }
 
         const started = Date.now();
-        const parsed = await parsePrompt(prompt);
+        const parsed = await parsePrompt(prompt, { literal: Boolean(reviewed) });
         const args = [...parsed.args.filter(arg => !/^--(sources|enrich-phones)=/.test(arg)), ...picked];
         const { hotels, log } = await runSearch(args);
         sendJson(response, 200, { hotels, log, args, parser: parsed.parser, usage: parsed.usage, seconds: (Date.now() - started) / 1000 });
+    } catch (error) {
+        sendJson(response, 500, { error: error.message });
+    }
+}
+
+// Step 1 of both boxes: turn the rough prompt into the full prompt that will run, without running it
+async function handleRefine(request, response) {
+    try {
+        const { prompt, target } = JSON.parse(await readBody(request));
+        if (!prompt?.trim()) {
+            return sendJson(response, 400, { error: "Enter a prompt first" });
+        }
+        sendJson(response, 200, await refine(prompt, target, { offline: Boolean(process.env.DEMO) }));
     } catch (error) {
         sendJson(response, 500, { error: error.message });
     }
@@ -138,6 +152,9 @@ http.createServer((request, response) => {
     }
     if (request.method === "GET" && request.url === "/api/sources") {
         return sendJson(response, 200, describe());
+    }
+    if (request.method === "POST" && request.url === "/api/refine") {
+        return handleRefine(request, response);
     }
     if (request.method === "POST" && request.url === "/api/backboard") {
         return handleBackboard(request, response);

@@ -77,16 +77,24 @@ function parseWithRegex(prompt) {
     return settings;
 }
 
-// Returns { args, settings, usage, parser } - args are ready to pass to search.js
-async function parsePrompt(prompt) {
+// --key=value or --key="value with spaces"
+const FLAG_PATTERN = /--[\w-]+=(?:"[^"]*"|\S*)/g;
+
+// Returns { args, settings, usage, parser } - args are ready to pass to search.js.
+// offline: regex parser only, no API call (DEMO mode). literal: the prompt is a reviewed one (prompt_refine.js)
+// that already carries every setting as a --flag, so use the flags as they are and don't parse the text again.
+async function parsePrompt(prompt, { offline = false, literal = false } = {}) {
     // Explicit --key=value tokens are passed through as-is and win over anything parsed
-    const flags = prompt.match(/--[\w-]+=\S*/g) || [];
-    const text = prompt.replace(/--[\w-]+=\S*/g, " ");
+    const flags = (prompt.match(FLAG_PATTERN) || []).map(flag => flag.replace(/="([^"]*)"$/, "=$1"));
+    const text = prompt.replace(FLAG_PATTERN, " ");
+    if (literal && flags.length) {
+        return { args: flags, parser: "reviewed prompt", usage: null };
+    }
 
     let parsed;
     let parser = "regex";
     let usage = null;
-    if (process.env.ANTHROPIC_API_KEY) {
+    if (process.env.ANTHROPIC_API_KEY && !offline) {
         try {
             ({ settings: parsed, usage } = await parseWithClaude(text));
             parser = MODEL;

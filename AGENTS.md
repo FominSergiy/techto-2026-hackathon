@@ -86,7 +86,8 @@ TBD. Record the choice in [decisions.md](docs/log/decisions.md), then summarize 
   - `maps.js`: standalone Google Places search (phone numbers, rough price level)
   - `test/`: offline Expedia parser and flow tests (fake pages, no network)
 - `server.js`: web UI backend (plain `node:http`, no deps). Serves `public/index.html`, `GET /api/sources` and `POST /api/search {prompt, sources, places}`, which parses the prompt and runs `search.js --json`
-- `prompt.js`: free-text prompt -> `search.js` CLI args. Claude (haiku) when `ANTHROPIC_API_KEY` is set, regex fallback otherwise; raw `--flags` in the prompt always win
+- `prompt.js`: free-text prompt -> `search.js` CLI args. Claude (haiku) when `ANTHROPIC_API_KEY` is set, regex fallback otherwise; raw `--flags` in the prompt always win. `{ literal: true }` skips parsing for a reviewed prompt, `{ offline: true }` forces the regex parser
+- `prompt_refine.js`: step 1 of the two-step UI flow (`POST /api/refine`). Rewrites a rough request into the full prompt that will run (sentence + `--flags` for the price APIs, a full sentence asking for phones/addresses/source pages for Backboard) and lists what it assumed. The UI shows it, and the "Run" button then runs exactly that text. `node test/prompt-refine.js` runs the offline tests
 - `public/index.html`: prompt textarea, a checkbox per API (disabled when its `.env` key is missing), and the results table. A separate "Backboard (web search)" card has its own textarea and button (`POST /api/backboard`)
 - `backboard_search/`: Backboard (web-search model) as a hotel price source, self-contained. Prices are hints, not API rates. Needs `BACKBOARD_API_KEY`. Not yet a checkbox in the main search, see its README for the wiring. `node backboard_search/test.js` runs the offline tests
 - `pricing.js`: experiment, on-device price finder (Places photos + hotel sites via local Ollama models). Found no usable prices, see `docs/log/features.md`
