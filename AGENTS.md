@@ -20,6 +20,7 @@ Every doc lives under `docs/`. Keep this table up to date when you add, rename o
 | Path | Purpose | Tags |
 |---|---|---|
 | [docs/spec/hackathon-brief.md](docs/spec/hackathon-brief.md) | Mission, rules, required output, judging criteria, open questions | spec, requirements, judging, rules |
+| [docs/research/elevenlabs-backboard-field-guide.html](docs/research/elevenlabs-backboard-field-guide.html) | ElevenLabs + Backboard research: MCP status, pipeline, hold/IVR handling, coordinating parallel calls, test setup ([live artifact](https://claude.ai/artifact/LNTQDh9RvPumpS1tPmusPp) for comments) | research, telephony, elevenlabs, backboard, mcp, architecture |
 | [docs/log/decisions.md](docs/log/decisions.md) | Append-only log of short decisions | log, decisions |
 | [docs/log/features.md](docs/log/features.md) | Append-only log of features and their status | log, features |
 
