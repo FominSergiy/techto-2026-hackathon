@@ -7,13 +7,7 @@ const { normalizeName } = require("./hotel-utils");
 const { enrichWithPlaces } = require("./places");
 const { printReport, writeReport } = require("./report");
 
-const SOURCES = {
-    xotelo: "./xotelo",
-    searchapi: "./searchapi",
-    liteapi: "./liteapi",
-    hotelbeds: "./hotelbeds",
-    booking: "./apify-booking"
-};
+const { SOURCES } = require("./sources");
 
 async function runSource(name) {
     if (!SOURCES[name]) {
@@ -21,7 +15,7 @@ async function runSource(name) {
     }
 
     const started = Date.now();
-    const hotels = await require(SOURCES[name]).search();
+    const hotels = await require(SOURCES[name].module).search();
     console.log(`${name}: ${hotels.length} hotels in ${((Date.now() - started) / 1000).toFixed(1)}s`);
     return hotels.map(hotel => ({ ...hotel, source: name }));
 }

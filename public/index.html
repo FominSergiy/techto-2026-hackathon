@@ -32,6 +32,10 @@
     tbody tr:hover { background: var(--row); }
     td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
     a { color: var(--accent); }
+    .sources { display: flex; gap: 8px 20px; flex-wrap: wrap; margin-bottom: 12px; }
+    .sources label { display: flex; gap: 6px; align-items: baseline; cursor: pointer; }
+    .sources label.off { cursor: not-allowed; opacity: .65; }
+    .sources .places { border-left: 1px solid var(--border); padding-left: 20px; }
     details { margin-top: 12px; }
     pre { margin: 8px 0 0; padding: 10px; background: var(--bg); border-radius: 8px; overflow-x: auto; font-size: 12px; }
 </style>
@@ -41,10 +45,11 @@
     <h1>Hotel Search</h1>
 
     <div class="card">
+        <div id="sources" class="sources muted">Loading sources…</div>
         <textarea id="prompt" placeholder="e.g. Cheapest hotels in Toronto, CA from 2026-11-20 to 2026-11-22 for 2 adults under 250 CAD"></textarea>
         <div class="bar">
             <button id="run">Search</button>
-            <span id="status" class="muted">Ctrl/Cmd+Enter to run. Raw flags work too: --sources=xotelo --max-nightly-price=200</span>
+            <span id="status" class="muted">Ctrl/Cmd+Enter to run. Tick the APIs to use above. Raw flags work too: --max-nightly-price=200</span>
         </div>
     </div>
 
@@ -103,7 +108,7 @@ async function run() {
         const response = await fetch("/api/search", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt: $("prompt").value })
+            body: JSON.stringify({ prompt: $("prompt").value, ...pickedSources() })
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error);
@@ -117,6 +122,59 @@ async function run() {
     }
 }
 
+// Source checkboxes. A source whose .env keys are missing is shown but can't be ticked.
+const CHOICES_KEY = "hotel-search-choices";
+
+function savedChoices() {
+    try {
+        return JSON.parse(localStorage.getItem(CHOICES_KEY)) || {};
+    } catch {
+        return {};
+    }
+}
+
+function saveChoices() {
+    const choices = Object.fromEntries([...document.querySelectorAll("#sources input")].map(box => [box.value, box.checked]));
+    try {
+        localStorage.setItem(CHOICES_KEY, JSON.stringify(choices));
+    } catch {
+        // Storage blocked - the choices just won't be remembered
+    }
+}
+
+function checkbox({ value, label, detail, missing, checked, className = "" }) {
+    const off = missing.length > 0;
+    const note = off ? `missing ${missing.join(", ")} in .env` : detail;
+    return `<label class="${className} ${off ? "off" : ""}">
+        <input type="checkbox" value="${esc(value)}" ${checked && !off ? "checked" : ""} ${off ? "disabled" : ""}>
+        <span>${esc(label)} <span class="muted">${esc(note)}</span></span>
+    </label>`;
+}
+
+async function loadSources() {
+    try {
+        const response = await fetch("/api/sources");
+        const { sources, places } = await response.json();
+        const saved = savedChoices();
+
+        $("sources").classList.remove("muted");
+        $("sources").innerHTML = sources
+            .map(source => checkbox({ value: source.name, label: source.label, detail: source.detail, missing: source.missing, checked: saved[source.name] ?? true }))
+            .join("")
+            + checkbox({ value: "places", label: "Google Places", detail: "phones, addresses, city check", missing: places.missing, checked: saved.places ?? true, className: "places" });
+        $("sources").addEventListener("change", saveChoices);
+    } catch (error) {
+        $("sources").textContent = `Could not load the source list: ${error.message}`;
+    }
+}
+
+// The ticked sources, plus whether to look hotels up in Google Places (phones, addresses, city check)
+function pickedSources() {
+    const ticked = [...document.querySelectorAll("#sources input:checked")].map(box => box.value);
+    return { sources: ticked.filter(value => value !== "places"), places: ticked.includes("places") };
+}
+
+loadSources();
 $("run").addEventListener("click", run);
 $("prompt").addEventListener("keydown", event => {
     if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) run();

@@ -5,6 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { spawn } = require("node:child_process");
 const { parsePrompt } = require("./prompt");
+const { SOURCES, describe } = require("./sources");
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -47,17 +48,48 @@ function sendJson(response, status, data) {
     response.end(JSON.stringify(data));
 }
 
+// DEMO=1: answer every search with the newest saved run in output/ instead of calling any API,
+// so the page can be tested without using up API quota
+function demoResult(picked) {
+    const dir = path.join(__dirname, "output");
+    const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter(name => /^hotels-.*\.json$/.test(name)) : [];
+    if (!files.length) {
+        throw new Error("DEMO mode needs a saved run in output/ - run node search.js once first");
+    }
+
+    const newest = files.sort((a, b) => fs.statSync(path.join(dir, b)).mtimeMs - fs.statSync(path.join(dir, a)).mtimeMs)[0];
+    return {
+        hotels: JSON.parse(fs.readFileSync(path.join(dir, newest), "utf8")),
+        log: `DEMO mode: showing saved results from output/${newest}. No APIs were called; the ticked sources (${picked.join(" ")}) are not applied.`,
+        args: [...picked, "demo mode"],
+        parser: "demo (prompt ignored)",
+        usage: null,
+        seconds: 0
+    };
+}
+
 async function handleSearch(request, response) {
     try {
-        const { prompt } = JSON.parse(await readBody(request));
+        const { prompt, sources, places } = JSON.parse(await readBody(request));
         if (!prompt?.trim()) {
             return sendJson(response, 400, { error: "Enter a prompt first" });
         }
 
+        // The checkboxes decide which APIs run, over anything the prompt says about them
+        const known = (sources || []).filter(name => name in SOURCES);
+        if (!known.length) {
+            return sendJson(response, 400, { error: "Tick at least one source" });
+        }
+        const picked = [`--sources=${known.join(",")}`, `--enrich-phones=${Boolean(places)}`];
+        if (process.env.DEMO) {
+            return sendJson(response, 200, demoResult(picked));
+        }
+
         const started = Date.now();
         const parsed = await parsePrompt(prompt);
-        const { hotels, log } = await runSearch(parsed.args);
-        sendJson(response, 200, { hotels, log, args: parsed.args, parser: parsed.parser, usage: parsed.usage, seconds: (Date.now() - started) / 1000 });
+        const args = [...parsed.args.filter(arg => !/^--(sources|enrich-phones)=/.test(arg)), ...picked];
+        const { hotels, log } = await runSearch(args);
+        sendJson(response, 200, { hotels, log, args, parser: parsed.parser, usage: parsed.usage, seconds: (Date.now() - started) / 1000 });
     } catch (error) {
         sendJson(response, 500, { error: error.message });
     }
@@ -81,5 +113,8 @@ http.createServer((request, response) => {
     if (request.method === "POST" && request.url === "/api/search") {
         return handleSearch(request, response);
     }
+    if (request.method === "GET" && request.url === "/api/sources") {
+        return sendJson(response, 200, describe());
+    }
     serveStatic(request, response);
-}).listen(PORT, () => console.log(`Hotel search UI on http://localhost:${PORT}`));
+}).listen(PORT, () => console.log(`Hotel search UI on http://localhost:${PORT}${process.env.DEMO ? " (DEMO mode: saved results, no API calls)" : ""}`));

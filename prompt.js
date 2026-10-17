@@ -8,12 +8,16 @@ try {
     // No .env file - rely on the environment
 }
 
+const defaults = require("./settings");
+
 const MODEL = "claude-haiku-5-5";
 const SETTING_KEYS = {
     city: "string",
+    region: "province/state name that tells apart cities sharing a name, e.g. Ontario for Aurora, CA; null if unsure",
     countryCode: "ISO 3166 alpha-2 code of the city's country, e.g. CA",
     checkIn: "YYYY-MM-DD",
     checkOut: "YYYY-MM-DD",
+    nights: "number of nights (used when checkOut is not given)",
     adults: "number",
     currency: "ISO 4217 code, e.g. CAD",
     maxNightlyPrice: "number or null for no limit",
@@ -91,6 +95,12 @@ async function parsePrompt(prompt) {
         }
     }
     parsed ||= parseWithRegex(text);
+
+    // settings.js's default region belongs to its default city - another city must not inherit it
+    // (a search for Paris would otherwise look for "Paris, Ontario" and the city check would drop every hotel)
+    if (parsed.city && !("region" in parsed) && parsed.city.toLowerCase() !== defaults.city.toLowerCase()) {
+        parsed.region = null;
+    }
 
     const flagKeys = new Set(flags.map(flag => flag.slice(2).split("=")[0]));
     const args = [...toArgs(parsed).filter(arg => !flagKeys.has(arg.slice(2).split("=")[0])), ...flags];

@@ -72,10 +72,11 @@ TBD. Record the choice in [decisions.md](docs/log/decisions.md), then summarize 
 
 - `settings.js`: city and region (City X), dates (default: next Saturday, 1 night), guests, currency, filters and enabled sources. Any value can be overridden on the command line.
 - `search.js`: the suite. Runs every enabled source in parallel, merges to one row per hotel (cheapest offer), adds phone/address from Google Places, prints a table and saves CSV + JSON to `output/`
+- `sources.js`: the list of price sources and the `.env` keys each needs (drives the UI checkboxes and `search.js`)
 - `server.js`: web UI backend (plain `node:http`, no deps). Serves `public/index.html` and `POST /api/search {prompt}`, which parses the prompt and runs `search-json.js` in a child process
 - `prompt.js`: free-text prompt -> `search.js` CLI args. Claude (haiku) when `ANTHROPIC_API_KEY` is set, regex fallback otherwise; raw `--flags` in the prompt always win
 - `search-json.js`: child entry that runs the suite and prints the records as JSON (needed because `settings.js` reads `process.argv` once)
-- `public/index.html`: prompt textarea + results table
+- `public/index.html`: prompt textarea, a checkbox per API (disabled when its `.env` key is missing), and the results table
 - `places.js`: Google Places lookup that supplies phone numbers and street addresses
 - `report.js`: the single output format (name, city, address, phone, price, source, url) as table, CSV and JSON
 - `xotelo.js`, `searchapi.js`, `liteapi.js`, `hotelbeds.js`, `apify-booking.js`: one hotel price source each, also runnable on their own
@@ -90,6 +91,7 @@ TBD. Record the choice in [decisions.md](docs/log/decisions.md), then summarize 
 cp .env.example .env    # fill in the keys for the sources you use
 node search.js          # the suite: all sources in settings.sources -> table + output/*.csv/json
 node server.js          # web UI on http://localhost:3000 (prompt textarea -> results table)
+DEMO=1 node server.js   # same UI, but every search shows the newest saved output/*.json - no API calls
 node xotelo.js          # a single source (no key needed for Xotelo)
 node search.js --city=Paris --country-code=FR --sources=xotelo,searchapi --max-nightly-price=200
 ```
