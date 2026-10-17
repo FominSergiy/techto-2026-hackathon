@@ -24,7 +24,7 @@ A condensed version of the research in [the field guide](../research/elevenlabs-
 |---|---|---|---|
 | Voice agent + conversation | ElevenLabs Agents (Creator plan) | Built-in tools for holds, phone menus, voicemail and hang-up; 10 concurrent calls | Hackathon coupon (Creator plan); 275 min included, then $0.08/min |
 | Phone line | Twilio number imported into ElevenLabs | ElevenLabs needs Twilio or a SIP trunk to call out | Not covered by credits; a few dollars total |
-| Our service | Python + FastAPI, one process (`run.py`) | Fast to build; async calls fit a 5-way fan-out | Free |
+| Our service | Node.js, one process (`run.js`), minimal HTTP server | Fast to build; async I/O fits a 5-way fan-out | Free |
 | Public URL | cloudflared named tunnel or ngrok reserved domain | ElevenLabs must reach our endpoints; the URL must stay stable | Free |
 | Email | Resend, SendGrid or Gmail SMTP (TBD) | Neither sponsor sends email | Free tier |
 | Prompt parsing, hotel search, memory | Backboard | One API key for any model, plus web search and memory | Hackathon credits + $5 free |
@@ -35,10 +35,10 @@ A condensed version of the research in [the field guide](../research/elevenlabs-
 ## Runtime Architecture
 
 ```
- our service (run.py)                                cloud
+ our service (run.js)                                cloud
 ┌────────────────────────────────┐   POST outbound-call ×5    ┌───────────────────┐       ┌────────┐
 │ dialer                         │ ─────────────────────────▶ │ ElevenLabs        │◀─────▶│ Twilio │──▶ hotels
-│ coordinator (FastAPI)          │ ◀── tool calls (HTTP) ──── │ 5 conversations   │       └────────┘
+│ coordinator (Node.js)          │ ◀── tool calls (HTTP) ──── │ 5 conversations   │       └────────┘
 │   board = {...} + lock         │ ─── JSON tool result ────▶ │ (LLM + voice)     │
 │ post-call webhook receiver     │ ◀── call ended + data ──── │                   │
 │ emailer + ledger.jsonl         │                            └───────────────────┘
@@ -59,9 +59,9 @@ A condensed version of the research in [the field guide](../research/elevenlabs-
 
 State lives in memory, mirrored to `runs/<run_id>/ledger.jsonl`:
 
-```python
-board = {"run_id": "...", "winner": None,
-         "calls": {"h1": {"status": "ringing", "quote": None, "conversation_id": "...", "callSid": "..."}}}
+```js
+const board = { run_id: "...", winner: null,
+  calls: { h1: { status: "ringing", quote: null, conversation_id: "...", callSid: "..." } } };
 ```
 
 | Route (webhook tool) | Agent calls it when | We do | Agent hears |
@@ -77,8 +77,8 @@ board = {"run_id": "...", "winner": None,
 - **Best price:** hold each claim for a 20–30 s window. The agent says "one moment while I confirm with my guest" and waits. The cheapest quote then gets `BOOK`. Cheaper, but slower, and the hotel may not wait.
 
 **Gotchas:**
-- Run one worker only (`uvicorn --workers 1`). With several workers, each has its own state and the lock breaks.
-- The tool URLs are saved in the agent config, so the tunnel URL must not change between restarts. Otherwise, have `run.py` update the URLs at startup.
+- Run one process only (no `cluster`, no PM2 cluster mode). With several processes, each has its own state and the lock breaks. Inside one Node process the claim check is synchronous, so a plain flag is enough; no real mutex needed.
+- The tool URLs are saved in the agent config, so the tunnel URL must not change between restarts. Otherwise, have `run.js` update the URLs at startup.
 - Protect our routes with a secret header. Webhook tools can send custom headers.
 
 ## Agent Config (ElevenLabs)
@@ -131,7 +131,7 @@ The two verbal formats follow the spec's proposed answer to its open question on
 
 ## Token and Cost Tally
 
-Every token-spending step appends a line to `runs/<run_id>/ledger.jsonl`. `tally.py` runs after the email and writes `report.md` / `report.json`.
+Every token-spending step appends a line to `runs/<run_id>/ledger.jsonl`. `tally.js` runs after the email and writes `report.md` / `report.json`.
 
 | Source | Where the numbers come from |
 |---|---|

@@ -24,7 +24,7 @@ The end-to-end path of one run: a text prompt comes in, a confirmation email goe
 
 | Service | Runs where | Owns | Called by / calls |
 |---|---|---|---|
-| **Our service** (orchestrator) | One Python + FastAPI process, `--workers 1`, on our machine behind an HTTPS tunnel | Run state, booking lock, ranking, dialing, email trigger, ledger | Called by us (`/runs`) and ElevenLabs (`/tools/*`, `/webhooks/*`). Calls Backboard, ElevenLabs, Twilio and email. |
+| **Our service** (orchestrator) | One Node.js process (single instance), on our machine behind an HTTPS tunnel | Run state, booking lock, ranking, dialing, email trigger, ledger | Called by us (`/runs`) and ElevenLabs (`/tools/*`, `/webhooks/*`). Calls Backboard, ElevenLabs, Twilio and email. |
 | **Backboard** | Cloud API (`app.backboard.io/api`) | Prompt parsing, hotel web search, optional transcript check, lessons memory | Called by our service only |
 | **ElevenLabs Agents** | Cloud | Agent config (`agent_id`: prompt, voice, tools, turn settings); runs every conversation; post-call data and usage | Called by our service (start calls, fetch usage). Calls our tool URLs during calls and our webhook after. |
 | **Twilio** | Cloud | Phone number and phone network; call price; hang-up control | Used by ElevenLabs to dial; our service uses it to hang up stragglers |
@@ -87,10 +87,10 @@ A pre-flight check confirms `GET /health` answers through the public URL and tha
 - **Trigger:** a free-text prompt sent from a small CLI:
 
 ```bash
-python start.py "Book the cheapest hotel in Toronto for Oct 24, one night, two adults. Email the confirmation to receipts@example.com"
+node start.js "Book the cheapest hotel in Toronto for Oct 24, one night, two adults. Email the confirmation to receipts@example.com"
 ```
 
-- `start.py` sends `POST /runs {"prompt": "..."}` with our secret header and prints progress by polling `GET /runs/{id}`.
+- `start.js` sends `POST /runs {"prompt": "..."}` with our secret header and prints progress by polling `GET /runs/{id}`.
 - The service creates a `run_id`, records `t0` (the race clock starts), and opens `runs/<run_id>/ledger.jsonl`.
 
 ### Stage 2 · Parse
@@ -119,7 +119,7 @@ python start.py "Book the cheapest hotel in Toronto for Oct 24, one night, two a
 ### Stage 4 · Dial
 
 - **Owner:** our service, calling ElevenLabs.
-- **How:** 5 `POST /v1/convai/twilio/outbound-call` requests fired together with `asyncio.gather`. All 5 use the same `agent_id` and `agent_phone_number_id`; each has its own `to_number` and dynamic variables (`run_id`, `candidate_id`, `hotel_name`, `listed_price`, `check_in`, `nights`, `guests`, `guest_name`, `hotel_notes`). The no-payment rule is fixed in the agent prompt, not passed per call.
+- **How:** 5 `POST /v1/convai/twilio/outbound-call` requests fired together with `Promise.all`. All 5 use the same `agent_id` and `agent_phone_number_id`; each has its own `to_number` and dynamic variables (`run_id`, `candidate_id`, `hotel_name`, `listed_price`, `check_in`, `nights`, `guests`, `guest_name`, `hotel_notes`). The no-payment rule is fixed in the agent prompt, not passed per call.
 - **Result:** each request returns within about a second with `conversation_id` and `callSid`. Both go on the board, and the call's status becomes `ringing`.
 - **After dialing,** our service doesn't drive the calls. It waits for check-ins.
 
@@ -187,8 +187,8 @@ python start.py "Book the cheapest hotel in Toronto for Oct 24, one night, two a
 | Endpoint | Called by | When | Auth |
 |---|---|---|---|
 | `GET /health` | Us | Pre-flight | none |
-| `POST /runs` | `start.py` (us) | Start of a run | Secret header |
-| `GET /runs/{id}` | `start.py` (us) | Progress and result | Secret header |
+| `POST /runs` | `start.js` (us) | Start of a run | Secret header |
+| `GET /runs/{id}` | `start.js` (us) | Progress and result | Secret header |
 | `POST /tools/report_quote` | ElevenLabs | Mid-call | Secret header |
 | `POST /tools/claim_booking` | ElevenLabs | Mid-call | Secret header |
 | `POST /tools/check_status` | ElevenLabs | Mid-call | Secret header |

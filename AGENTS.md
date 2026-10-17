@@ -69,7 +69,7 @@ grep -n -A4 "tags:.*telephony" docs/log/decisions.md
 
 ## Stack
 
-TBD. Record the choice in [decisions.md](docs/log/decisions.md), then summarize it here.
+Backend: Node.js, one process (see [architecture-plan.md](docs/architecture/architecture-plan.md)). Remaining choices are in [decisions.md](docs/log/decisions.md).
 
 ## Repo Structure
 
