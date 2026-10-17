@@ -11,6 +11,7 @@ const backboard = require("./backboard_search/backboard");
 const { classify } = require("./backboard_search/classify");
 const settings = require("./hotel_search/settings");
 const placesSearch = require("./hotel_search/places-search");
+const { combine } = require("./hotel_search/combine");
 const { withRawCapture } = require("./hotel_search/hotel-utils");
 
 const PORT = process.env.PORT || 3000;
@@ -150,6 +151,38 @@ async function handleBackboard(request, response) {
     }
 }
 
+// The city a Google Maps search is for, read from the prompt. This covers all of Canada, so the region is not pinned to
+// Ontario: a province the request names ("Hamilton, Ontario") goes into the Maps queries to tell same-named cities apart,
+// and without one the queries name only the city. Returns { parsed, city, region } or { parsed, error }.
+async function readPlace(prompt) {
+    const parsed = await parsePrompt(prompt);
+    const args = parsed.args;
+    if (!hasCity(args)) {
+        return { parsed, error: 'No city found in your prompt, so nothing was searched. Name one, e.g. "hotels in Hamilton" (or add --city=Hamilton).' };
+    }
+    const flag = name => args.find(arg => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
+    const region = [flag("region")].find(value => value && !/^(null|undefined)$/i.test(value)) || null;
+    return { parsed, city: flag("city"), region };
+}
+
+// The fixed Maps searches for a city, then (unless rank is false) a Backboard model's expected price for each hotel, with the
+// table ordered by it. If ranking fails the Maps results are still returned, unranked, with the reason.
+async function searchMaps(city, region, rank) {
+    const result = await withRawCapture("places-search", () => placesSearch.run(city, region));
+    let hotels = result.hotels;
+    let ranking = null;
+    if (rank !== false && hotels.length) {
+        try {
+            const ranked = await classify(hotels, { city, region, countryCode: settings.countryCode, currency: settings.currency });
+            hotels = ranked.hotels;
+            ranking = ranked.run;
+        } catch (error) {
+            ranking = { error: error.message };
+        }
+    }
+    return { ...result, hotels, ranking };
+}
+
 // Google Maps only: the prompt is reduced to a city, then a few fixed Places searches run for it ("hotels in X", "inns in X", ...)
 async function handlePlaces(request, response) {
     try {
@@ -163,40 +196,57 @@ async function handlePlaces(request, response) {
         }
 
         const started = Date.now();
-        const parsed = await parsePrompt(prompt);
-        // This card covers all of Canada, so the region is not pinned to Ontario: a province the request names ("Hamilton,
-        // Ontario") goes into the Maps queries to tell same-named cities apart, and without one the queries name only the city
-        const args = parsed.args;
-        if (!hasCity(args)) {
-            return sendJson(response, 400, { error: 'No city found in your prompt, so nothing was searched. Name one, e.g. "hotels in Hamilton" (or add --city=Hamilton).' });
+        const { parsed, city, region, error } = await readPlace(prompt);
+        if (error) {
+            return sendJson(response, 400, { error });
         }
-        const flag = name => args.find(arg => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
-        const city = flag("city");
-        const region = [flag("region")].find(value => value && !/^(null|undefined)$/i.test(value)) || null;
+        const result = await searchMaps(city, region, rank);
+        sendJson(response, 200, { ...result, city, parser: parsed.parser, usage: parsed.usage, seconds: (Date.now() - started) / 1000 });
+    } catch (error) {
+        sendJson(response, 500, { error: error.message });
+    }
+}
 
-        const result = await withRawCapture("places-search", () => placesSearch.run(city, region));
-
-        // Then a Backboard model estimates each hotel's typical price (from the name, the area and web search) and the table is
-        // ordered by it. If that fails the Maps results are still shown, unranked, with the reason.
-        let hotels = result.hotels;
-        let ranking = null;
-        if (rank !== false && hotels.length) {
-            try {
-                const ranked = await classify(hotels, { city, region, countryCode: settings.countryCode, currency: settings.currency });
-                hotels = ranked.hotels;
-                ranking = ranked.run;
-            } catch (error) {
-                ranking = { error: error.message };
-            }
+// The reservation page: the Google Maps search (ranked by expected price) and the Backboard web search run side by side
+// for the same prompt, and their hotels are merged into one list, cheapest first. Either one failing leaves the other's hotels.
+async function handleReservation(request, response) {
+    try {
+        const { prompt } = JSON.parse(await readBody(request));
+        if (!prompt?.trim()) {
+            return sendJson(response, 400, { error: "Enter a prompt first" });
         }
-        sendJson(response, 200, { ...result, hotels, ranking, city, parser: parsed.parser, usage: parsed.usage, seconds: (Date.now() - started) / 1000 });
+        if (process.env.DEMO) {
+            return sendJson(response, 400, { error: "DEMO mode makes no API calls, so this search is off" });
+        }
+
+        const place = await readPlace(prompt);
+        if (place.error) {
+            return sendJson(response, 400, { error: place.error });
+        }
+
+        const [maps, found] = await Promise.allSettled([
+            searchMaps(place.city, place.region),
+            backboard.search({ prompt: prompt.trim() })
+        ]);
+        if (maps.status === "rejected" && found.status === "rejected") {
+            return sendJson(response, 500, { error: `Google Maps: ${maps.reason.message}. Backboard: ${found.reason.message}` });
+        }
+
+        const warnings = [
+            maps.status === "rejected" && `Google Maps failed: ${maps.reason.message}`,
+            found.status === "rejected" && `Backboard failed: ${found.reason.message}`,
+            maps.status === "fulfilled" && maps.value.ranking?.error && `Price estimates failed: ${maps.value.ranking.error}`
+        ].filter(Boolean);
+        const hotels = combine(maps.value?.hotels, found.value);
+        sendJson(response, 200, { hotels, warnings });
     } catch (error) {
         sendJson(response, 500, { error: error.message });
     }
 }
 
 function serveStatic(request, response) {
-    const name = request.url === "/" ? "index.html" : path.basename(request.url.split("?")[0]);
+    const route = request.url.split("?")[0];
+    const name = route === "/" ? "index.html" : route === "/reservation" ? "reservation.html" : path.basename(route);
     const file = path.join(PUBLIC_DIR, name);
     fs.readFile(file, (error, content) => {
         if (error) {
@@ -224,6 +274,9 @@ http.createServer((request, response) => {
     }
     if (request.method === "POST" && request.url === "/api/places") {
         return handlePlaces(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/reservation") {
+        return handleReservation(request, response);
     }
     serveStatic(request, response);
 }).listen(PORT, () => console.log(`Hotel search UI on http://localhost:${PORT}${process.env.DEMO ? " (DEMO mode: saved results, no API calls)" : ""}`));

@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Reservation AI service page (/reservation)
+tags: feature, ui, search, places, backboard
+- Feature: A separate, clean page at `/reservation`: title "Reservation AI service", one input, one table (hotel, price / night, phone, address). One prompt runs the Google Maps search (5 Places searches plus the Backboard expected-price ranking) and the Backboard web search at the same time, merges them into one list and sorts it cheapest first.
+- Status: wip - handler checked end to end with Places and Backboard faked (no live calls); merge tested offline; never run live.
+- Notes: One search costs 5 Places calls + 2 Backboard calls (ranking, search) + 1 prompt-parsing call. Prices come in three kinds: found by Backboard on a page (shown as is, or "from" for a page's lowest rate) beats the model's estimate (shown "~"). The same hotel is matched across the two lists by name overlap, and two different local phone numbers stop a merge ("Holiday Inn" vs "Holiday Inn Express"); toll-free numbers are ignored because Backboard returns each chain's central booking line (1-800-454-3213 for Super 8). A hotel only Backboard found has not been city-checked.
+
 ## 2026-10-17 — Backboard free-text card: ask for a minimum number of hotels
 tags: feature, search, backboard, learnings
 - Feature: In free-text mode (`/api/backboard`) the user's words are now followed by "Unless the request above names a number of hotels, list at least N" (N = `count`, default 20).
