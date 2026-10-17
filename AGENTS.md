@@ -80,7 +80,7 @@ TBD. Record the choice in [decisions.md](docs/log/decisions.md), then summarize 
   - `sources.js`: the price sources, the `.env` keys each needs and whether it starts ticked (`defaultOn`) - drives the UI checkboxes and `index.js`
   - `xotelo.js`, `searchapi.js`, `liteapi.js`, `hotelbeds.js`, `apify-booking.js`, `expedia.js`: one price source each, also runnable on their own. `expedia.js` reads the real search page with Playwright (persistent profile in `.browser-profile/`, `HEADLESS=false` so a human can solve the bot check, `--dump-html=<file>` for selector fixes); its selectors are unverified
   - `places.js`: Google Places lookup that supplies phone numbers, street addresses and each hotel's real city
-  - `locations.js`: looks up the TripAdvisor (Xotelo) and Hotelbeds location codes from the city, cached in `.cache/`
+  - `locations.js`: looks up the Hotelbeds destination code from the city, cached in `.cache/` (Xotelo's own lookup is in `xotelo.js`)
   - `report.js`: the single output format (name, city, address, phone, price, source, url) as table, CSV and JSON
   - `hotel-utils.js`: shared env loading, JSON fetching, paging, filtering and cheapest-first ranking
   - `maps.js`: standalone Google Places search (phone numbers, rough price level)
@@ -101,7 +101,7 @@ node search.js                    # all sources in hotel_search/settings.js -> t
 node search.js --city=Paris --country-code=FR --sources=xotelo,searchapi --max-nightly-price=200
 node server.js                    # web UI on http://localhost:3000 (prompt textarea -> results table)
 DEMO=1 node server.js             # same UI, but every search shows the newest saved output/*.json - no API calls
-node hotel_search/xotelo.js       # a single source (no key needed for Xotelo)
+node hotel_search/xotelo.js       # a single source (Xotelo needs RAPIDAPI_KEY: it runs /search, /list and /rates itself)
 HEADLESS=false node hotel_search/expedia.js --dump-html=expedia-dump.html
 node hotel_search/test/expedia-parse.js   # offline Expedia tests
 ```

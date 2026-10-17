@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Xotelo runs its whole flow through RapidAPI, inside xotelo.js
+tags: decision, search, xotelo
+- Decision: `xotelo.js` calls `/search` (city -> TripAdvisor location key, cached), `/list` (hotels) and `/rates` (live prices) on Xotelo's RapidAPI listing with `RAPIDAPI_KEY`. The lookup moved out of `locations.js`, so ticking the Xotelo box runs the full source on its own.
+- Why: `/search` is only offered on RapidAPI, and the old key lookup needed a SearchApi key, a second source's quota, just to feed Xotelo. Each source should be self-contained.
+- Alternatives: Keep the free `data.xotelo.com` for `/list` and `/rates` (it times out at ~11s for big cities, see features log; RapidAPI may not).
+
 ## 2026-10-17 — Prompt rewriting uses a cheap LLM: Haiku, else Backboard gpt-4o-mini, else regex
 tags: decision, prompt, llm, cost
 - Decision: `parsePrompt` tries Claude Haiku (`ANTHROPIC_API_KEY`), then Backboard's `gpt-4o-mini` (`BACKBOARD_API_KEY`, no web search, no memory), then the regex parser. The LLM only extracts settings as JSON (fixes typos, resolves "today"/"tomorrow"); the review prompt and `--flags` are still built by code. When regex was used the review panel shows a warning with the reason.

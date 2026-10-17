@@ -1,9 +1,14 @@
-// Live OTA rates via Xotelo (TripAdvisor data, no API key) - https://xotelo.com/
+// Live OTA rates via Xotelo (TripAdvisor data) - https://xotelo.com/
+// The whole flow lives here, through Xotelo's RapidAPI listing (/search is only offered there; needs RAPIDAPI_KEY):
+//   /search finds the city's location key, /list pages through its hotels, /rates gives each hotel's live price.
 const settings = require("./settings");
-const { sleep, getJson, passesFilters, cheapest, runIfMain } = require("./hotel-utils");
-const { tripadvisorLocationKey } = require("./locations");
+const { sleep, getJson, requireEnv, normalizeName, passesFilters, cheapest, runIfMain } = require("./hotel-utils");
+const { cached } = require("./locations");
 
-const BASE_URL = "https://data.xotelo.com/api";
+// RapidAPI hosts are "<api-slug>.p.rapidapi.com"; this one is a guess from the listing's slug, override it if the
+// "Endpoints" tab on RapidAPI shows another X-RapidAPI-Host
+const HOST = process.env.RAPIDAPI_XOTELO_HOST || "xotelo-hotel-prices.p.rapidapi.com";
+const BASE_URL = `https://${HOST}/api`;
 const PAGE_SIZE = 100;
 const RATE_BATCH_SIZE = 10;
 // Xotelo returns intermittent quick 500s (getJson backs off between attempts). The list call decides whether the
@@ -14,6 +19,33 @@ const RATE_RETRIES = 2;
 // body after ~10.8s every time, whatever the limit or sort, while Aurora (5 hotels) answers in under a second.
 // A failure that took this long is Xotelo's own timeout, so retrying only burns another 11s per attempt.
 const SLOW_FAILURE_MS = 8000;
+
+function headers() {
+    const [key] = requireEnv("RAPIDAPI_KEY");
+    return { "X-RapidAPI-Key": key, "X-RapidAPI-Host": HOST };
+}
+
+// TripAdvisor city id (e.g. g499250) for settings.city, looked up once with /search and then cached
+function locationKey() {
+    if (settings.tripadvisorLocationKey) {
+        return settings.tripadvisorLocationKey;
+    }
+
+    return cached("tripadvisorLocationKey", async () => {
+        const params = new URLSearchParams({ query: [settings.city, settings.region].filter(Boolean).join(" "), location_type: "geo" });
+        const { result } = await getJson(`${BASE_URL}/search?${params}`, { headers: headers() }, RATE_RETRIES);
+
+        // Several cities share a name (Aurora, ON vs Aurora, IL), so the place must name our city and region
+        const city = normalizeName(settings.city);
+        const region = settings.region ? normalizeName(settings.region) : "";
+        const named = (result.list || []).filter(item => item.location_key && normalizeName(item.name) === city);
+        const match = named.find(item => normalizeName(item.place_name || "").includes(region)) || (region ? null : named[0]);
+        if (!match) {
+            throw new Error(`Xotelo /search found no place named "${settings.city}"${region ? ` in ${settings.region}` : ""} - pass --tripadvisor-location-key`);
+        }
+        return match.location_key;
+    });
+}
 
 function toHotel(item, nightlyPrice) {
     return {
@@ -38,7 +70,7 @@ async function lowestRate(hotelKey) {
         adults: String(settings.adults),
         currency: settings.currency
     });
-    const { result } = await getJson(`${BASE_URL}/rates?${params}`, {}, RATE_RETRIES);
+    const { result } = await getJson(`${BASE_URL}/rates?${params}`, { headers: headers() }, RATE_RETRIES);
     const rates = result.rates.map(rate => rate.rate).filter(rate => rate != null);
     return rates.length ? Math.min(...rates) : null;
 }
@@ -49,7 +81,7 @@ async function listPage(params) {
     for (let attempt = 0; ; attempt++) {
         const started = Date.now();
         try {
-            return await getJson(`${BASE_URL}/list?${params}`);
+            return await getJson(`${BASE_URL}/list?${params}`, { headers: headers() });
         } catch (error) {
             const seconds = (Date.now() - started) / 1000;
             if (seconds * 1000 >= SLOW_FAILURE_MS) {
@@ -62,12 +94,12 @@ async function listPage(params) {
 }
 
 async function search() {
-    // 1. Pull the hotel list. Its price ranges are typical prices, not live ones.
-    const locationKey = await tripadvisorLocationKey();
+    // 1. /search the city, then /list its hotels. The list's price ranges are typical prices, not live ones.
+    const key = await locationKey();
     const listed = [];
     for (let page = 1; page <= settings.maxPages; page++) {
         const params = new URLSearchParams({
-            location_key: locationKey,
+            location_key: key,
             offset: String((page - 1) * PAGE_SIZE),
             limit: String(PAGE_SIZE),
             sort: "best_value"
@@ -110,5 +142,5 @@ async function search() {
     return cheapest(matches);
 }
 
-module.exports = { search, listPage };
+module.exports = { search, listPage, locationKey };
 runIfMain(module, "Xotelo", search);

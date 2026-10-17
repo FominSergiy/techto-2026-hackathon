@@ -1,4 +1,4 @@
-// Resolves provider-specific location codes from settings.city, cached in .cache/locations.json.
+// Resolves the Hotelbeds destination code (Xotelo's lookup lives in xotelo.js) from settings.city, cached in .cache/locations.json.
 // A value set in settings (or on the command line) always wins over the lookup.
 const fs = require("node:fs");
 const path = require("node:path");
@@ -31,36 +31,6 @@ async function cached(field, lookup) {
     fs.mkdirSync(path.dirname(CACHE_FILE), { recursive: true });
     fs.writeFileSync(CACHE_FILE, JSON.stringify(fresh, null, 2));
     return value;
-}
-
-// TripAdvisor city id (e.g. g155019) from the city's TripAdvisor hotels URL, found via a SearchApi Google search
-async function tripadvisorLocationKey() {
-    if (settings.tripadvisorLocationKey) {
-        return settings.tripadvisorLocationKey;
-    }
-
-    return cached("tripadvisorLocationKey", async () => {
-        const [apiKey] = requireEnv("SEARCH_API_KEY");
-        const params = new URLSearchParams({
-            engine: "google",
-            q: `site:tripadvisor.com Hotels in ${[settings.city, settings.region].filter(Boolean).join(" ")}`,
-            gl: settings.countryCode.toLowerCase(),
-            hl: "en",
-            api_key: apiKey
-        });
-        const data = await getJson(`https://www.searchapi.io/api/v1/search?${params}`);
-
-        // City pages look like /Hotels-g499250-Aurora_Ontario-Hotels.html. Several cities share a name
-        // (Aurora has pages for Ontario, Colorado, Illinois...), so the slug must name our city and region.
-        const wanted = [settings.city, settings.region].filter(Boolean).map(normalize).join(" ");
-        for (const result of data.organic_results || []) {
-            const match = result.link?.match(/tripadvisor\.[a-z.]+\/Hotels-(g\d+)-([^/]+?)-Hotels\.html/i);
-            if (match && normalize(match[2].replace(/_/g, " ")) === wanted) {
-                return match[1];
-            }
-        }
-        throw new Error(`No TripAdvisor page named "${wanted}" in the search results - pass --tripadvisor-location-key`);
-    });
 }
 
 // Hotelbeds destination code (e.g. YTO) from the Content API's destination list for the country.
@@ -104,4 +74,4 @@ async function hotelbedsDestinationCode() {
     });
 }
 
-module.exports = { tripadvisorLocationKey, hotelbedsDestinationCode };
+module.exports = { cached, hotelbedsDestinationCode };

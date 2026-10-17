@@ -8,8 +8,8 @@ try {
 }
 
 const SOURCES = {
-    xotelo: { label: "Xotelo", detail: "TripAdvisor rates", module: "./xotelo", env: [],
-        cost: { kind: "free", label: "Free", note: "No key needed. Xotelo does not publish rate limits or terms." } },
+    xotelo: { label: "Xotelo", detail: "TripAdvisor rates", module: "./xotelo", env: ["RAPIDAPI_KEY"],
+        cost: { kind: "tier", label: "RapidAPI plan", note: "Runs search, list and rates through Xotelo's RapidAPI listing. The plan's free quota was not checked." } },
     searchapi: { label: "SearchApi", detail: "Google Hotels", module: "./searchapi", env: ["SEARCH_API_KEY"],
         cost: { kind: "tier", label: "100 free requests", note: "No card needed for the free requests (expiry not stated). Then $40/month for 10,000 searches." } },
     liteapi: { label: "LiteAPI", detail: "bookable rates", module: "./liteapi", env: ["LITE_API_KEY"],

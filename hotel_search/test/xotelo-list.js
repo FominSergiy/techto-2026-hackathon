@@ -1,6 +1,7 @@
 // Offline test for Xotelo's /list handling (fetch and the clock are faked, no API is called).
 // Run: node hotel_search/test/xotelo-list.js
 const assert = require("node:assert");
+process.env.RAPIDAPI_KEY = "test-key";
 const { listPage } = require("../xotelo");
 
 const body500 = { error: { status_code: 500, message: "Internal Server Error" }, result: null };
@@ -42,7 +43,7 @@ function stub(...answers) {
         stub({ body: body500, takes: 100 });
         await assert.rejects(
             () => listPage(new URLSearchParams({ location_key: "g499250" })),
-            error => error.message === "data.xotelo.com: Internal Server Error"
+            error => error.message === "xotelo-hotel-prices.p.rapidapi.com: Internal Server Error"
         );
         assert.strictEqual(calls, 4, "1 attempt + 3 retries");
 

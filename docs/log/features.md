@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Xotelo source is self-contained on RapidAPI
+tags: feature, search, xotelo
+- Feature: `xotelo.js` does search -> list -> rates by itself (`/search` for the location key, `/list` for hotels, `/rates` for live prices) through RapidAPI. The Xotelo checkbox needs `RAPIDAPI_KEY` and runs the whole flow; `tripadvisorLocationKey` in settings still skips `/search`.
+- Status: wip. Offline tests pass (`test/xotelo-search.js`, `test/xotelo-list.js`). NOT run live yet.
+- Notes: The RapidAPI host (`xotelo-hotel-prices.p.rapidapi.com`, override with `RAPIDAPI_XOTELO_HOST`) and the `/api/...` paths are guessed from the listing slug. The `/search` result fields (`location_key`, `name`, `place_name`) come from xotelo.com's docs and are unverified, so the place match may need adjusting. Unknown whether RapidAPI also avoids the ~11s big-city `/list` timeout.
+
 ## 2026-10-17 — Xotelo diagnosed live: big cities time out, rates come back empty
 tags: feature, search, xotelo, learnings
 - Feature: Tested against the real Xotelo API (no key needed). `/list` answers HTTP 200 with `{"error":{"status_code":500,...}}` in the body after ~10.8s for every city with many hotels (Toronto, Montreal, Hamilton: 13 calls, any `limit` from 10 to 100, any `sort`), while Aurora (5 hotels) answers in 0.9s every time. So it is not intermittent for big cities: Xotelo's server gives up at ~11s. `xotelo.js` now fails at once on a slow failure with a message saying so (it used to retry 5 times, ~1 minute of waiting), still retries quick failures with backoff, and `getJson` now backs off on a 500 reported inside an HTTP 200 body, which is how Xotelo reports errors.
