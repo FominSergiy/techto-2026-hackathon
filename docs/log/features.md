@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Price cap no longer switched off by the prompt parser; warning when Google Places is off
+tags: feature, search, prompt, learnings
+- Feature: (1) The prompt parser told the model `maxNightlyPrice` could be "null for no limit", and models answered null for requests that named no price, so no cap reached the actors (the saved Google request for Humber Bay had no `max_price`, and the 150 default never applied). Now the model is told to omit the key, and a null is dropped unless the request says "no limit / any price / unlimited" (`test/prompt-llm.js`). (2) The results page shows a red note when a run had `--enrich-phones=false`, so a table with empty City / Address / Phone columns says why.
+- Status: done, offline tests only.
+- Notes: Found from `output/raw/`: the last three browser runs saved Xotelo and Google responses but no `places` folder, i.e. Places made no request, and the Google responses had no phones (plain search, no `max_price`). The Google actor returned phones in two runs that had `max_price: 100` and none with 400 or no cap, so the cap may be what triggers phones (unconfirmed, Run C would test it).
+
 ## 2026-10-17 — Google Hotels actor CAN return phones (correction), flat output shape handled
 tags: feature, search, apify, learnings
 - Feature: A manual Apify run of `johnvc/google-hotels-search-scraper` returned `address`, `phone` and `phone_link` for every hotel, as one flat item per hotel (no `properties` page wrapper). `apify-google-hotels.js` now reads both shapes (page items and flat items) and logs how many hotels came back with a phone; real data is in `test/fixtures/apify-google-hotels-with-phones.json`.

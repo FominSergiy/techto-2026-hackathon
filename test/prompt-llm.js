@@ -97,5 +97,21 @@ function keys({ anthropic, backboard }) {
     assert.deepStrictEqual(reviewed.warnings, []);
     assert.match(reviewed.prompt, /top 20\n/, "no count in the reply means the top 20, not 1");
 
+    // A model that answers "no limit" (null) for a request with no price must not switch the default cap off
+    const nullPrice = body => ({ status: "COMPLETED", content: JSON.stringify({ ...SETTINGS, maxNightlyPrice: null, ...body }), input_tokens: 80, output_tokens: 25 });
+    keys({ backboard: "bb-key" });
+    stub({ body: nullPrice() });
+    const capped = await refine(ROUGH, "search");
+    assert.match(capped.prompt, /under 150 CAD/, "the default cap applies");
+    assert.ok(capped.prompt.includes("--max-nightly-price=150"), capped.prompt);
+    assert.ok(capped.assumed.some(note => /^max price per night: 150/.test(note)));
+
+    // ...but asking for no limit still turns it off, and an explicit price wins
+    stub({ body: nullPrice() });
+    const unlimited = await refine(`${ROUGH}, no price limit`, "search");
+    assert.ok(unlimited.prompt.includes("--max-nightly-price=null"), unlimited.prompt);
+    stub({ body: nullPrice({ maxNightlyPrice: 90 }) });
+    assert.ok((await refine(`${ROUGH}, under 90`, "search")).prompt.includes("--max-nightly-price=90"));
+
     console.log("prompt-llm: all tests passed");
 })();

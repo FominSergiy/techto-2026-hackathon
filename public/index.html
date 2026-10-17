@@ -117,6 +117,7 @@ function render(result) {
         <div class="card">
             <div class="chips">${chips || '<span class="chip">default settings</span>'}</div>
             ${failures.map(line => `<p class="error">${esc(line)}</p>`).join("")}
+            ${result.args.includes("--enrich-phones=false") ? '<p class="error">Google Places was off for this run, so there are no phone numbers, addresses or city check. Tick "Google Places" and run again.</p>' : ""}
             ${result.hotels.length ? renderTable(result.hotels)
                 : failures.length ? "<p>No hotels came back because the source(s) above failed.</p>"
                 : "<p>No hotels matched. Try loosening the filters.</p>"}

@@ -19,7 +19,7 @@ const SETTING_KEYS = {
     nights: "number of nights (used when checkOut is not given)",
     adults: "number",
     currency: "ISO 4217 code, e.g. CAD",
-    maxNightlyPrice: "number or null for no limit",
+    maxNightlyPrice: "number, ONLY when the user states a price limit such as 'under 150'. If they name no price, omit the key (null only when they say there is no limit)",
     minRating: "number out of 5, or null",
     minReviews: "number, or null",
     targetCount: "number of hotels to return, ONLY when the user gives an explicit count such as 'top 5' or '10 hotels'. 'the cheapest hotel/option' is NOT a count of 1: omit the key",
@@ -96,6 +96,9 @@ const LLM_PARSERS = [
     { name: "Backboard", envKey: "BACKBOARD_API_KEY", parse: parseWithBackboard, label: () => `backboard/${backboardModel().name}` }
 ];
 
+// "no limit", "no max price", "any price", "unlimited budget", "price doesn't matter"
+const NO_PRICE_LIMIT = /\b(?:no|any|without|unlimited)\b[\w\s-]{0,12}\b(?:limit|max(?:imum)?|budget|price|cap)\b|\bunlimited\b|\bprice\b[\w\s']{0,12}\bmatter/i;
+
 function parseWithRegex(prompt) {
     const settings = {};
     const city = prompt.match(/\b(?:in|near|for|at)\s+((?:[A-Z][\p{L}.'-]*\s?)+?)(?:,\s*([A-Z]{2})\b)?(?=$|[\s,.]+(?:[a-z]|\d|from\b)|[,.]|\s+[A-Z][a-z]{2}\s+\d)/u);
@@ -153,6 +156,12 @@ async function parsePrompt(prompt, { offline = false, literal = false } = {}) {
         reasons.push("no ANTHROPIC_API_KEY or BACKBOARD_API_KEY is set");
     }
     parsed ||= parseWithRegex(text);
+
+    // Models answer "no limit" (null) even when the request names no price at all, which switched the price cap off
+    // (no max_price reached the actors). Only keep null when the user really asked for no limit.
+    if (parsed.maxNightlyPrice === null && !NO_PRICE_LIMIT.test(text)) {
+        delete parsed.maxNightlyPrice;
+    }
 
     const flagKeys = new Set(flags.map(flag => flag.slice(2).split("=")[0]));
     const args = [...toArgs(parsed).filter(arg => !flagKeys.has(arg.slice(2).split("=")[0])), ...flags];
