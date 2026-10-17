@@ -1,0 +1,6 @@
+[
+  {"name": "Novotel Toronto Vaughan", "address": "200 Bass Pro Mills Dr, Vaughan, ON L4K 0B9",
+   "phone": "+1 905-660-0212", "nightlyPrice": 128, "totalPrice": 256, "currency": "CAD"},
+  {"name": "Travelodge by Wyndham Richmond Hill", "address": "10711 Yonge St, Richmond Hill, ON L4C 3E1",
+   "phone": "+1 905-461-3319", "nightlyPrice": 135, "totalPrice": 271, "currency": "CAD"}
+]
