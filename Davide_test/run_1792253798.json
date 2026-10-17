@@ -1,0 +1,27 @@
+[
+ {
+  "t": 0.0,
+  "msg": "parsed",
+  "city": "",
+  "check_in": "2026-10-17",
+  "check_out": "2026-10-18",
+  "guests": 1
+ },
+ {
+  "t": 0.0,
+  "msg": "hotel",
+  "name": "Novotel Toronto Vaughan",
+  "price": 256,
+  "address": "200 Bass Pro Mills Dr, Vaughan, ON L4K 0B9",
+  "phone": "+19056600212",
+  "_us": false
+ },
+ {
+  "t": 0.5,
+  "msg": "failed: Novotel Toronto Vaughan: call not started -> HTTP 200 {\"success\": false, \"message\": \"HTTP 400 error: Unable to create record: Account not authorized to call +16477785978. Perhaps you need to enable some international permissions: https://www.twilio.com/console/voice/calls/geo-permissions/low-risk\", \"conversation_id\": null, \"callSid\": null}"
+ },
+ {
+  "t": 0.5,
+  "msg": "no booking obtained"
+ }
+]

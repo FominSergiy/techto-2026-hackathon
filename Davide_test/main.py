@@ -132,13 +132,14 @@ ACTIVE = {}
 def call_hotel(h, q):
     r = requests.post("https://api.elevenlabs.io/v1/convai/twilio/outbound-call", headers=XI, timeout=20, json={
         "agent_id": E["ELEVENLABS_AGENT_ID"], "agent_phone_number_id": E["ELEVENLABS_PHONE_NUMBER_ID"],
-        "to_number": E.get("TEST_NUMBER") or h["phone"],
+        "to_number": ("+" + re.sub(r"\D", "", E["TEST_NUMBER"])) if E.get("TEST_NUMBER", "").strip() else h["phone"],
         "conversation_initiation_client_data": {"dynamic_variables": {
             "hotel_name": h["name"], "guest_name": E["GUEST_NAME"], "number_of_guests": str(q["guests"]),
             "check_in_date": q["check_in"], "check_out_date": q["check_out"], "contact_email": E["CONTACT_EMAIL"]}}})
-    r.raise_for_status()
-    j = r.json()
+    j = r.json() if r.content else {}
     cid, sid = j.get("conversation_id"), j.get("callSid") or j.get("call_sid")
+    if not r.ok or not cid:
+        raise RuntimeError(f"{h['name']}: call not started -> HTTP {r.status_code} {json.dumps(j)[:400]}")
     ACTIVE[cid] = sid
     log(f"calling {h['name']}", conv=cid)
     deadline = time.time() + CALL_TIMEOUT
@@ -163,7 +164,7 @@ def call_hotel(h, q):
 # ---------- 4. Email ----------
 def send_email(res):
     m = EmailMessage()
-    m["Subject"] = f"Team # {E['TEAM_NUMBER']} - Hotel Reservation Confirmed!"
+    m["Subject"] = f"Team # {E.get('TEAM_NUMBER', '?')} - Hotel Reservation Confirmed!"
     m["From"], m["To"] = E["SMTP_USER"], E["RESULT_EMAIL"]
     m.set_content(f"Hotel Name: {res['hotel']}\nAddress: {res['address']}\nPhone: {res['phone']}\n"
                   f"Reservation #: {res['number']}\nReservation Date: {res['date']}\nPrice: {res['price']}\n")
@@ -195,8 +196,12 @@ def main():
                 continue
             for sid in list(ACTIVE.values()):  # stop the other calls: saves minutes + tokens
                 hang_up(sid)
-            send_email(res)
-            log("DONE - email sent", **res)
+            log("BOOKED", **res)
+            try:
+                send_email(res)
+                log("email sent")
+            except Exception as e:
+                log(f"EMAIL FAILED: {e}")  # booking data is in the log line above
             break
         else:
             log("no booking obtained")
