@@ -19,6 +19,18 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Alex on Main: repo prompt + Luke voice; LLM unchanged
+tags: decision, elevenlabs, call-handling
+- Decision: Main, `repo-sync` and Sergiy's copy all run the repo prompt plus the callback, date, quote-or-exit and style rules, with the Luke voice (stability 0.3, speed 1.05) and a 480 s cap. The LLM stays `deepseek-v41-flash` with reasoning `null`. This replaced Davide's dashboard prompt on Main (`agtvrsn_5901m55h5xt7et3tzm1n9vjpayns`, shorter, reads back only when unclear). A plain CLI push hit Main by mistake, and Sergiy chose to keep it there rather than roll back.
+- Why: The spec judges call handling, time and cost. Calls must end with a quote or a fast exit, never a callback. Latency data showed no gain from changing reasoning. The new voice is meant to sound less like AI.
+- Alternatives: Roll Main back to Davide's version and test on `repo-sync` first (rejected by Sergiy). Build on Davide's shorter prompt (rejected; kept the full read-back).
+
+## 2026-10-17 — Personal agent copies for teammates outside Davide's workspace
+tags: decision, elevenlabs, process
+- Decision: Sergiy tests on his own copy of Alex (`agent_3001m55j894cfm4bavqabbnjgc54`, in his workspace), pushed from the same `agent_configs/Alex.json` through a sync folder outside the repo. See [agent-config-sync.md](../architecture/agent-config-sync.md#personal-copies-in-your-own-workspace).
+- Why: He can't see Davide's workspace. The repo file stays the single source of truth; the live agent and phone number remain Davide's.
+- Alternatives: Joining Davide's workspace (needs an invite and possibly a paid seat).
+
 ## 2026-10-17 — Email via Gmail SMTP (default), Resend as an option
 tags: decision, email, stack
 - Decision: `Davide_test/email_service.py` sends the receipt. It uses Gmail SMTP with an app password by default, or Resend when `RESEND_API_KEY` is set. It is Python because the backend now lives in `Davide_test/` (Python), which conflicts with the Node.js entry below. The team still has to settle that.
