@@ -9,7 +9,7 @@ from email.message import EmailMessage
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)  # the .env file wins over variables already set in the shell
 E = os.environ
 N_CALLS = int(E.get("N_CALLS", 4))
 CALL_TIMEOUT = int(E.get("CALL_TIMEOUT", 300))  # seconds per call
@@ -129,10 +129,14 @@ def hang_up(call_sid):
 ACTIVE = {}
 
 
-def call_hotel(h, q):
+TEST = ["+" + re.sub(r"\D", "", x) for x in E.get("TEST_NUMBER", "").split(",") if x.strip()]
+
+
+def call_hotel(h, q, i=0):
+    to = TEST[i % len(TEST)] if TEST else h["phone"]  # TEST_NUMBER may hold several numbers: one per hotel
     r = requests.post("https://api.elevenlabs.io/v1/convai/twilio/outbound-call", headers=XI, timeout=20, json={
         "agent_id": E["ELEVENLABS_AGENT_ID"], "agent_phone_number_id": E["ELEVENLABS_PHONE_NUMBER_ID"],
-        "to_number": ("+" + re.sub(r"\D", "", E["TEST_NUMBER"])) if E.get("TEST_NUMBER", "").strip() else h["phone"],
+        "to_number": to,
         "conversation_initiation_client_data": {"dynamic_variables": {
             "hotel_name": h["name"], "guest_name": E["GUEST_NAME"], "number_of_guests": str(q["guests"]),
             "check_in_date": q["check_in"], "check_out_date": q["check_out"], "contact_email": E["CONTACT_EMAIL"]}}})
@@ -144,7 +148,7 @@ def call_hotel(h, q):
     log(f"calling {h['name']}", conv=cid)
     deadline = time.time() + CALL_TIMEOUT
     while time.time() < deadline:
-        time.sleep(3)
+        time.sleep(1)
         c = requests.get(f"https://api.elevenlabs.io/v1/convai/conversations/{cid}", headers=XI, timeout=15).json()
         if c.get("status") in ("done", "failed"):
             break
@@ -152,59 +156,114 @@ def call_hotel(h, q):
         hang_up(sid)
         raise RuntimeError(f"{h['name']}: timeout")
     ACTIVE.pop(cid, None)
-    LOG.append({"conv": cid, "hotel": h["name"], "metadata": c.get("metadata")})  # cost/duration for Learnings
-    d = {k: (v or {}).get("value") for k, v in (c.get("analysis", {}).get("data_collection_results") or {}).items()}
-    if not d.get("reservation_number"):
-        raise RuntimeError(f"{h['name']}: no reservation ({c.get('status')})")
-    return {"hotel": d.get("hotel_name") or h["name"], "address": d.get("hotel_address") or h["address"],
-            "phone": h["phone"], "number": d["reservation_number"],
-            "price": d.get("price") or h["price"], "date": q["check_in"]}
+
+    ALIAS = {"confirmation_number": "reservation_number", "room_rate": "price", "address": "hotel_address"}
+
+    def extracted(conv):
+        return {ALIAS.get(k, k): (v or {}).get("value") for k, v in
+                ((conv.get("analysis") or {}).get("data_collection_results") or {}).items()}
+
+    d = extracted(c)
+    for _ in range(4):  # analysis can lag a few seconds behind status=done
+        if d.get("reservation_number"):
+            break
+        time.sleep(2)
+        c = requests.get(f"https://api.elevenlabs.io/v1/convai/conversations/{cid}", headers=XI, timeout=15).json()
+        d = extracted(c)
+    json.dump(c, open(f"conv_{cid}.json", "w"), indent=1)  # transcript + analysis for debugging
+    LOG.append({"conv": cid, "hotel": h["name"], "extracted": d, "cost_credits": (c.get("metadata") or {}).get("cost"),
+                "secs": (c.get("metadata") or {}).get("call_duration_secs")})
+    meta = c.get("metadata") or {}
+    # name/address/phone come from Google data (reliable); number + price can only come from the call
+    return {"hotel": h["name"] or d.get("hotel_name"), "address": h["address"] or d.get("hotel_address"),
+            "phone": h["phone"], "number": d.get("reservation_number"),
+            "price": d.get("price"), "google_price": h["price"], "date": q["check_in"],
+            "status": "booked" if d.get("reservation_number") else "no_reservation",
+            "conversation_id": cid, "call_secs": meta.get("call_duration_secs"), "cost_credits": meta.get("cost")}
 
 
 # ---------- 4. Email ----------
 def send_email(res):
     m = EmailMessage()
     m["Subject"] = f"Team # {E.get('TEAM_NUMBER', '?')} - Hotel Reservation Confirmed!"
-    m["From"], m["To"] = E["SMTP_USER"], E["RESULT_EMAIL"]
+    m["From"], m["To"] = E.get("SMTP_USER", ""), E.get("RESULT_EMAIL", "")
     m.set_content(f"Hotel Name: {res['hotel']}\nAddress: {res['address']}\nPhone: {res['phone']}\n"
                   f"Reservation #: {res['number']}\nReservation Date: {res['date']}\nPrice: {res['price']}\n")
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
-        s.login(E["SMTP_USER"], E["SMTP_APP_PASSWORD"])
+    if not E.get("SMTP_USER") or not E.get("SMTP_APP_PASSWORD") or not E.get("RESULT_EMAIL"):
+        raise RuntimeError("SMTP_USER / SMTP_APP_PASSWORD / RESULT_EMAIL missing in .env")
+
+    def _send(s):
+        s.login(E["SMTP_USER"], E["SMTP_APP_PASSWORD"].replace(" ", ""))
         s.send_message(m)
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15) as s:
+            _send(s)
+    except smtplib.SMTPAuthenticationError:
+        raise
+    except (OSError, smtplib.SMTPException):  # port 465 blocked on some networks -> STARTTLS on 587
+        with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as s:
+            s.starttls()
+            _send(s)
 
 
 def main():
     args = sys.argv[1:]
+    if "--test-email" in args:  # no calls: just check the email works
+        send_email({"hotel": "Test Hotel", "address": "1 Test St, Toronto", "phone": "+14165550100",
+                    "number": "TEST123", "price": 99, "date": dt.date.today().isoformat()})
+        print("test email sent")
+        return
     search_only = "--search-only" in args
     hotels_file = args[args.index("--hotels") + 1] if "--hotels" in args else None
     skip = {"--search-only", "--hotels", hotels_file}
     prompt = " ".join(a for a in args if a not in skip)
     q = parse_prompt(prompt, need_city=not hotels_file)
     log("parsed", **q)
+    log("config", n_calls=N_CALLS, test_numbers=TEST or "REAL HOTEL PHONES")
     hotels = load_hotels_json(hotels_file) if hotels_file else find_hotels(q)
     for h in hotels:
         log("hotel", **h)
     if search_only or not hotels:
         return
-    with ThreadPoolExecutor(len(hotels)) as ex:
-        futs = [ex.submit(call_hotel, h, q) for h in hotels]
-        for f in as_completed(futs):
-            try:
-                res = f.result()
-            except Exception as e:
-                log(f"failed: {e}")
-                continue
+    strategy = E.get("STRATEGY", "cheapest")  # cheapest = wait all calls, pick lowest price | first = stop at first booking
+    log("strategy", strategy=strategy)
+    ex = ThreadPoolExecutor(len(hotels))
+    futs = {ex.submit(call_hotel, h, q, i): h for i, h in enumerate(hotels)}
+    results = []
+    for f in as_completed(futs):
+        h = futs[f]
+        try:
+            res = f.result()
+        except Exception as e:
+            res = {"hotel": h["name"], "address": h["address"], "phone": h["phone"], "google_price": h["price"],
+                   "status": "failed", "error": str(e)[:300]}
+        results.append(res)
+        log(res["status"].upper(), hotel=res["hotel"], number=res.get("number"), price=res.get("price"))
+        if strategy == "first" and res["status"] == "booked":
             for sid in list(ACTIVE.values()):  # stop the other calls: saves minutes + tokens
                 hang_up(sid)
-            log("BOOKED", **res)
-            try:
-                send_email(res)
-                log("email sent")
-            except Exception as e:
-                log(f"EMAIL FAILED: {e}")  # booking data is in the log line above
+            for g, hh in futs.items():
+                if not g.done():
+                    results.append({"hotel": hh["name"], "phone": hh["phone"], "status": "cancelled"})
             break
-        else:
-            log("no booking obtained")
+
+    booked = [r for r in results if r["status"] == "booked"]
+    if strategy == "cheapest":
+        booked.sort(key=lambda r: _num(r.get("price")) or float("inf"))
+    chosen = booked[0] if booked else None
+    json.dump({"query": q, "strategy": strategy, "elapsed_s": round(time.time() - T0, 1),
+               "chosen": chosen, "calls": results}, open("results.json", "w"), indent=2, ensure_ascii=False)
+    if chosen:
+        log("CHOSEN", **{k: chosen.get(k) for k in ("hotel", "number", "price")})
+        json.dump(chosen, open("result.json", "w"), indent=2, ensure_ascii=False)
+        try:
+            send_email(chosen)
+            log("email sent")
+        except Exception as e:
+            log(f"EMAIL FAILED: {e}")
+    else:
+        log("no booking obtained")
     json.dump(LOG, open(f"run_{int(T0)}.json", "w"), indent=1, default=str)
     os._exit(0)
 
