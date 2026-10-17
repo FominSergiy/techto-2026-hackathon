@@ -4,7 +4,7 @@ const assert = require("node:assert");
 const fs = require("node:fs");
 const path = require("node:path");
 
-process.env.RAPIDAPI_KEY = "test-key";
+process.env.RAPID_API_KEY = "test-key";
 const settings = require("../settings");
 const { locationKey } = require("../xotelo");
 

@@ -1,5 +1,5 @@
 // Live OTA rates via Xotelo (TripAdvisor data) - https://xotelo.com/
-// The whole flow lives here, through Xotelo's RapidAPI listing (/search is only offered there; needs RAPIDAPI_KEY):
+// The whole flow lives here, through Xotelo's RapidAPI listing (/search is only offered there; needs RAPID_API_KEY):
 //   /search finds the city's location key, /list pages through its hotels, /rates gives each hotel's live price.
 const settings = require("./settings");
 const { sleep, getJson, requireEnv, normalizeName, passesFilters, cheapest, runIfMain } = require("./hotel-utils");
@@ -21,7 +21,7 @@ const RATE_RETRIES = 2;
 const SLOW_FAILURE_MS = 8000;
 
 function headers() {
-    const [key] = requireEnv("RAPIDAPI_KEY");
+    const [key] = requireEnv("RAPID_API_KEY");
     return { "X-RapidAPI-Key": key, "X-RapidAPI-Host": HOST };
 }
 
