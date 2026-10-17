@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Raw API responses saved per source, and a sturdier Places match
+tags: feature, search, places, learnings
+- Feature: (1) Every source's raw JSON responses are saved unchanged to `output/raw/<source>/<UTC timestamp>-<city>.json` (an array, one entry per response, retries and error bodies included), plus a `places` folder and `backboard`. So an odd result can be checked against what the API actually said. (2) Google Places matching now retries 429/5xx, strips ", ON" / "(Downtown)" from names, runs a second search by name + city when the first (by name around the source's coordinates) finds nothing, and logs why each hotel got no match.
+- Status: wip. Both are covered by offline tests (`test/raw-capture.js`, `test/places-match.js`), neither run live yet.
+- Notes: Prompted by "Knights Inn Burlington, ON" from the Apify Google source showing no phone. That actor's search output has no phone or address at all (`output/raw/apify-google-hotels`); phones only ever come from Places, and the cause of this miss is not known yet: the new "no Places match" log line (and `output/raw/places`) will say. The acceptance rule is unchanged on purpose (name words >= 50% and within 750 m when the source gave coordinates), because a looser one hands a sister hotel's phone number to the wrong hotel. The actor's property-details mode (one run per `property_token`, ~$0.04 each) does return a phone, kept as a fallback idea.
+
 ## 2026-10-17 — Apify Google Hotels and Hotels.com sources
 tags: feature, search, apify, learnings
 - Feature: Two new price sources that run an Apify actor each: `apify-google-hotels.js` (`johnvc/google-hotels-search-scraper`, source `apifygoogle`) and `apify-hotelscom.js` (`jeremy_frost/hotels-com-scraper`, source `apifyhotelscom`, unticked by default). Both need `APIFY_KEY`; the shared runner is `runApifyActor` in `hotel-utils.js`, which `apify-booking.js` now uses too.

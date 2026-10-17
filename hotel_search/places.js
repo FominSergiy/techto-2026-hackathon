@@ -5,6 +5,7 @@ const { requireEnv, getJson, normalizeName } = require("./hotel-utils");
 
 const CONCURRENCY = 5;
 const MAX_DISTANCE_M = 750;   // a Places match further than this from the source's coordinates is a different hotel
+const LOOKUP_RETRIES = 2;     // Places answers 429/5xx now and then; without a retry that hotel silently gets no phone
 const FIELD_MASK = [
     "places.displayName",
     "places.formattedAddress",
@@ -22,13 +23,18 @@ function tokens(name) {
     return new Set(normalizeName(name).split(" ").filter(word => word.length > 2 && !GENERIC_WORDS.has(word)));
 }
 
-// True when enough of the shorter name's words appear in the other, so a wrong
-// hotel isn't given someone else's phone number
-function sameHotel(a, b, minOverlap) {
+// Share (0 to 1) of the shorter name's words that appear in the other
+function overlap(a, b) {
     const [small, large] = [tokens(a), tokens(b)].sort((x, y) => x.size - y.size);
-    if (!small.size) return false;
-    return [...small].filter(word => large.has(word)).length / small.size >= minOverlap;
+    if (!small.size) return 0;
+    return [...small].filter(word => large.has(word)).length / small.size;
 }
+
+// True when enough of the words match, so a wrong hotel isn't given someone else's phone number
+const sameHotel = (a, b, minOverlap) => overlap(a, b) >= minOverlap;
+
+// Google Hotels sometimes puts the place in the name ("Knights Inn Burlington, ON", "Hotel X (Downtown)")
+const cleanName = name => name.replace(/\s*\([^)]*\)\s*$/, "").replace(/,\s*[A-Za-z]{2}$/, "").trim();
 
 function distanceMeters(a, b) {
     const rad = degrees => degrees * Math.PI / 180;
@@ -37,20 +43,7 @@ function distanceMeters(a, b) {
     return 2 * 6371000 * Math.asin(Math.sqrt(h));
 }
 
-// Chain hotels share most of their name (every "Holiday Inn Express & Suites ..."), so when the source gave
-// coordinates the match must also be at that spot. Without coordinates the name has to match more closely.
-async function findPlace(apiKey, hotel) {
-    const spot = hotel.location;
-    const body = {
-        textQuery: spot ? hotel.name : [hotel.name, settings.city, settings.region].filter(Boolean).join(", "),
-        includedType: "lodging",
-        regionCode: settings.countryCode,
-        pageSize: 3
-    };
-    if (spot) {
-        body.locationBias = { circle: { center: { latitude: spot.latitude, longitude: spot.longitude }, radius: MAX_DISTANCE_M } };
-    }
-
+async function searchPlaces(apiKey, query) {
     const data = await getJson("https://places.googleapis.com/v1/places:searchText", {
         method: "POST",
         headers: {
@@ -58,13 +51,48 @@ async function findPlace(apiKey, hotel) {
             "X-Goog-Api-Key": apiKey,
             "X-Goog-FieldMask": FIELD_MASK
         },
-        body: JSON.stringify(body)
-    });
+        body: JSON.stringify({ includedType: "lodging", regionCode: settings.countryCode, ...query })
+    }, LOOKUP_RETRIES);
+    return data.places || [];
+}
 
-    return (data.places || []).find(place => {
-        if (!sameHotel(hotel.name, place.displayName?.text, spot ? 0.5 : 0.75)) return false;
-        return !spot || !place.location || distanceMeters(spot, place.location) <= MAX_DISTANCE_M;
-    });
+// Why nothing matched, for the run log: what Places did return and how close the best name was
+function describeMiss(name, spot, places) {
+    if (!places.length) return "Places returned no lodging";
+    const best = places.map(place => ({ place, share: overlap(name, place.displayName?.text) })).sort((a, b) => b.share - a.share)[0];
+    const distance = spot && best.place.location ? `, ${(distanceMeters(spot, best.place.location) / 1000).toFixed(1)} km away` : "";
+    return `${places.length} results, closest name "${best.place.displayName?.text}" (${Math.round(best.share * 100)}% of the words${distance})`;
+}
+
+// Chain hotels share most of their name (every "Holiday Inn Express & Suites ..."), so when the source gave
+// coordinates the match must also be at that spot. Without coordinates the name has to match more closely.
+// Returns { place } or { miss } (the reason). With coordinates the first search is by name around them; if the right
+// place isn't among those few results, a second search by name and city looks further. Same acceptance rules for both.
+async function findPlace(apiKey, hotel) {
+    const spot = hotel.location;
+    const name = cleanName(hotel.name);
+    const where = [hotel.city || settings.city, settings.region].filter(Boolean).join(", ");
+    const accept = place => sameHotel(name, place.displayName?.text, spot ? 0.5 : 0.75)
+        && (!spot || !place.location || distanceMeters(spot, place.location) <= MAX_DISTANCE_M);
+
+    const queries = [];
+    if (spot) {
+        queries.push({
+            textQuery: name,
+            locationBias: { circle: { center: { latitude: spot.latitude, longitude: spot.longitude }, radius: MAX_DISTANCE_M } },
+            pageSize: 3
+        });
+    }
+    queries.push({ textQuery: [name, where].filter(Boolean).join(", "), pageSize: 10 });
+
+    const seen = [];
+    for (const query of queries) {
+        const places = await searchPlaces(apiKey, query);
+        const place = places.find(accept);
+        if (place) return { place };
+        seen.push(...places);
+    }
+    return { miss: describeMiss(name, spot, seen) };
 }
 
 const component = (place, type) => place?.addressComponents?.find(part => part.types.includes(type));
@@ -103,10 +131,12 @@ async function mapLimit(items, limit, fn) {
 async function enrichWithPlaces(hotels) {
     const [apiKey] = requireEnv("GOOGLE_MAPS_API_KEY");
     let failures = 0;
+    const misses = [];
 
     const enriched = await mapLimit(hotels, CONCURRENCY, async hotel => {
         try {
-            const place = await findPlace(apiKey, hotel);
+            const { place, miss } = await findPlace(apiKey, hotel);
+            if (miss) misses.push(`${hotel.name}: ${miss}`);
             const location = locationOf(place);
             return {
                 ...hotel,
@@ -128,7 +158,8 @@ async function enrichWithPlaces(hotels) {
     });
 
     console.log(`Google Places: ${enriched.filter(hotel => hotel.phone).length} of ${hotels.length} hotels have a phone number`);
+    misses.forEach(line => console.log(`  no Places match: ${line}`));
     return enriched;
 }
 
-module.exports = { enrichWithPlaces };
+module.exports = { enrichWithPlaces, cleanName };

@@ -12,6 +12,9 @@ try {
     // No .env file - rely on the environment
 }
 
+const fs = require("node:fs");
+const path = require("node:path");
+
 const BASE_URL = "https://app.backboard.io/api";
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -136,6 +139,20 @@ function toHotel(raw, settings) {
     };
 }
 
+// Keeps Backboard's reply exactly as received in output/raw/backboard/<timestamp>[-<city>].json, an array with one
+// entry like the hotel_search sources' files (this folder doesn't import hotel_search). A failed save is only a warning.
+function saveRaw(data, settings) {
+    try {
+        const dir = path.join("output", "raw", "backboard");
+        const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+        const city = settings.prompt ? "" : `-${String(settings.city).toLowerCase().replace(/\W+/g, "-")}`;
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(path.join(dir, `${stamp}${city}.json`), JSON.stringify([data], null, 2));
+    } catch (error) {
+        console.warn(`Could not save raw Backboard response: ${error.message}`);
+    }
+}
+
 // Returns hotels in the shape the other sources use ({ name, nightlyPrice, totalPrice, currency, ... }),
 // cheapest first. Also sets `search.lastRun` with timing and token usage for the learnings log.
 async function search(options = {}) {
@@ -154,6 +171,7 @@ async function search(options = {}) {
     });
 
     const data = await response.json().catch(() => ({}));
+    saveRaw(data, settings);
     if (!response.ok) {
         throw new Error(`Backboard ${response.status}: ${JSON.stringify(data.detail || data.message || data).slice(0, 300)}`);
     }

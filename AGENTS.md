@@ -73,6 +73,7 @@ TBD. Record the choice in [decisions.md](docs/log/decisions.md), then summarize 
 
 ## Repo Structure
 
+- `output/raw/<source>/<timestamp>-<city>.json`: every source's raw API responses, unchanged, as one array per run (folders: `xotelo`, `searchapi`, `liteapi`, `hotelbeds`, `apify-booking`, `apify-google-hotels`, `apify-hotelscom`, `places`, `backboard`; Expedia reads HTML so it has none). Timestamps are UTC. Written by `withRawCapture` in `hotel-utils.js`, off when `outputDir` is null
 - `search.js`: the single entry point. Calls `hotel_search/`, prints the results table and saves CSV + JSON to `output/`. `--json` prints the records as one JSON line instead (what `server.js` runs in a child process, because `settings.js` reads `process.argv` once)
 - `hotel_search/`: the search suite
   - `index.js`: runs every enabled source in parallel, merges to one row per hotel (cheapest offer), adds phone/address from Google Places, keeps only hotels in the search city

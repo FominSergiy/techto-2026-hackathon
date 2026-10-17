@@ -2,7 +2,8 @@
 // (one row per hotel, cheapest offer wins), adds phone numbers and addresses from Google Places,
 // and returns the hotels. The root search.js calls search() and prints / saves them.
 const settings = require("./settings");
-const { normalizeName } = require("./hotel-utils");
+const path = require("node:path");
+const { normalizeName, withRawCapture } = require("./hotel-utils");
 const { enrichWithPlaces } = require("./places");
 
 const { SOURCES } = require("./sources");
@@ -13,7 +14,9 @@ async function runSource(name) {
     }
 
     const started = Date.now();
-    const hotels = await require(SOURCES[name].module).search();
+    // Raw API responses go to output/raw/<module name>/ (xotelo, apify-google-hotels, ...), one file per run
+    const { search } = require(SOURCES[name].module);
+    const hotels = await withRawCapture(path.basename(SOURCES[name].module), search);
     console.log(`${name}: ${hotels.length} hotels in ${((Date.now() - started) / 1000).toFixed(1)}s`);
     return hotels.map(hotel => ({ ...hotel, source: name }));
 }
@@ -84,7 +87,7 @@ async function search() {
         // Look up extra candidates when filtering by city, since some will turn out to be elsewhere
         const candidates = merged.slice(0, settings.strictCity ? settings.targetCount * 2 : settings.targetCount);
         try {
-            hotels = await enrichWithPlaces(candidates);
+            hotels = await withRawCapture("places", () => enrichWithPlaces(candidates));
             if (settings.strictCity) {
                 hotels = filterToCity(hotels).slice(0, settings.targetCount);
             }

@@ -3,7 +3,37 @@
 // { name, nightlyPrice, totalPrice, currency, rating (out of 5), reviews, address, url,
 //   city (optional), location (optional { latitude, longitude }) }
 const crypto = require("node:crypto");
+const fs = require("node:fs");
+const path = require("node:path");
+const { AsyncLocalStorage } = require("node:async_hooks");
 const settings = require("./settings");
+
+// Collects the JSON bodies getJson receives inside withRawCapture. Sources run in parallel, so each gets its own scope.
+const rawCapture = new AsyncLocalStorage();
+
+// Runs fn and saves every raw JSON response it received (retries and error bodies included, unchanged) as
+// <outputDir>/raw/<folder>/<timestamp>-<city>.json: an array with one entry per response.
+// Nothing is written when there were no responses or outputDir is null, and a failed save never fails the search.
+async function withRawCapture(folder, fn) {
+    const responses = [];
+    try {
+        return await rawCapture.run(responses, fn);
+    } finally {
+        if (responses.length && settings.outputDir) {
+            try {
+                const dir = path.join(settings.outputDir, "raw", folder);
+                const stamp = new Date().toISOString().replace(/[:.]/g, "-");   // 2026-10-17T13-05-22-123Z
+                const city = settings.city ? `-${settings.city.toLowerCase().replace(/\W+/g, "-")}` : "";
+                const file = path.join(dir, `${stamp}${city}.json`);
+                fs.mkdirSync(dir, { recursive: true });
+                fs.writeFileSync(file, JSON.stringify(responses, null, 2));
+                console.log(`Saved ${responses.length} raw ${folder} response${responses.length === 1 ? "" : "s"} to ${file}`);
+            } catch (error) {
+                console.warn(`Could not save raw ${folder} responses: ${error.message}`);
+            }
+        }
+    }
+}
 
 // Reads API keys from .env (real environment variables take precedence)
 function requireEnv(...names) {
@@ -27,7 +57,12 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 // first, since it is usually a short blip that instant retries land inside; other errors retry straight away.
 async function getJson(url, options = {}, retries = 0, attempt = 0) {
     const response = await fetch(url, options);
-    const data = await response.json().catch(() => ({}));
+    let isJson = true;
+    const data = await response.json().catch(() => {
+        isJson = false;
+        return {};
+    });
+    if (isJson) rawCapture.getStore()?.push(data);
 
     if (!response.ok || data.error) {
         if (retries > 0) {
@@ -159,7 +194,7 @@ function printHotels(label, hotels) {
 function runIfMain(mod, label, search) {
     if (require.main !== mod) return;
 
-    search()
+    withRawCapture(path.basename(mod.filename, ".js"), search)
         .then(hotels => printHotels(label, hotels))
         .catch(error => {
             console.error("Error:", error.message);
@@ -167,4 +202,4 @@ function runIfMain(mod, label, search) {
         });
 }
 
-module.exports = { sleep, requireEnv, getJson, countryName, runApifyActor, hotelbedsHeaders, normalizeName, perNight, passesFilters, cheapest, collectPages, printHotels, runIfMain };
+module.exports = { sleep, requireEnv, getJson, withRawCapture, countryName, runApifyActor, hotelbedsHeaders, normalizeName, perNight, passesFilters, cheapest, collectPages, printHotels, runIfMain };

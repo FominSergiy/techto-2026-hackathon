@@ -69,7 +69,18 @@ global.fetch = async (url, options) => {
     sent = JSON.parse(options.body);
     return { ok: true, status: 200, json: async () => ({ status: "COMPLETED", content: reply, model_provider: "openai", model_name: "gpt-4o", input_tokens: 700, output_tokens: 120, thread_id: "t1" }) };
 };
+// The raw reply is saved under ./output/raw/backboard, so run from a scratch folder instead of the repo's output/
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
+process.chdir(fs.mkdtempSync(path.join(os.tmpdir(), "backboard-test-")));
 search({ prompt: "cheapest hotels in Montreal" }).then(found => {
+    const saved = fs.readdirSync("output/raw/backboard");
+    assert.strictEqual(saved.length, 1);
+    assert.match(saved[0], /^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z\.json$/, "timestamp in the filename, no city in free-text mode");
+    const raw = JSON.parse(fs.readFileSync(path.join("output/raw/backboard", saved[0]), "utf8"));
+    assert.deepStrictEqual([raw.length, raw[0].content, raw[0].thread_id], [1, reply, "t1"], "the reply is saved as received");
+
     assert.deepStrictEqual(found.map(hotel => [hotel.name, hotel.nightlyPrice]), [["Hotel Three", 95], ["Hotel One", 112], ["Hotel Two", 139], ["Hotel Four", null]]);
     assert.strictEqual(sent.content, "cheapest hotels in Montreal");
     assert.strictEqual(search.lastRun.returned, 4);
