@@ -23,6 +23,7 @@ Every doc lives under `docs/`. Keep this table up to date when you add, rename o
 | [docs/architecture/run-workflow.md](docs/architecture/run-workflow.md) | End-to-end run: text prompt → parse → search → 5 calls → check-ins → email → tally; services, endpoints, failure paths, network | architecture, workflow, search, telephony, elevenlabs, backboard, coordination, email |
 | [docs/architecture/architecture-plan.md](docs/architecture/architecture-plan.md) | Condensed plan: stack choices, runtime architecture, single-call lifecycle, coordinator routes, agent config, Backboard's role, token tally, suggested test runs | architecture, telephony, elevenlabs, backboard, coordination, tokens, testing |
 | [docs/architecture/email-service.md](docs/architecture/email-service.md) | Standalone receipt sender: payload contract, how the call code wires in (Python import or `--send` JSON), config, pre-flight | architecture, email, workflow |
+| [docs/architecture/agent-config-sync.md](docs/architecture/agent-config-sync.md) | ElevenLabs agent config in the repo: pull/push sync, branches, when to sync, CLI gotchas, switching on webhook tools and the post-call webhook | architecture, elevenlabs, telephony, process |
 | [docs/research/elevenlabs-backboard-field-guide.html](docs/research/elevenlabs-backboard-field-guide.html) | ElevenLabs + Backboard research: MCP status, pipeline, hold/IVR handling, coordinating parallel calls, test setup, token tally ([live artifact](https://claude.ai/artifact/LNTQDh9RvPumpS1tPmusPp) for comments) | research, telephony, elevenlabs, backboard, mcp, architecture, tokens, judging |
 | [docs/log/decisions.md](docs/log/decisions.md) | Append-only log of short decisions | log, decisions |
 | [docs/log/features.md](docs/log/features.md) | Append-only log of features and their status | log, features |
@@ -74,8 +75,13 @@ Backend: Node.js, one process (see [architecture-plan.md](docs/architecture/arch
 
 ## Repo Structure
 
-TBD. So far only `docs/` exists.
+- `docs/`: specs, architecture, research, logs.
+- `agents.json` + `agent_configs/Alex.json`: the ElevenLabs agent config, synced with the ElevenLabs CLI. See [agent-config-sync.md](docs/architecture/agent-config-sync.md).
+- `tool_configs/`: coordinator webhook tools, not uploaded yet.
+- `.env`: API keys (gitignored).
 
 ## How to Run
 
-TBD.
+Service: TBD.
+
+Agent config: pull before editing, push to the `repo-sync` branch, and merge into Main only after test calls pass. Never push straight to Main. Steps are in [agent-config-sync.md](docs/architecture/agent-config-sync.md#when-to-sync).
