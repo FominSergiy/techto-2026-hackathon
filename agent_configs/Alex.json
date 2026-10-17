@@ -4,16 +4,16 @@
             "disable_first_message_interruptions": false,
             "dynamic_variables": {
                 "dynamic_variable_placeholders": {
+                    "candidate_id": "h1",
                     "check_in_date": "October 17",
                     "check_out_date": "October 18",
                     "contact_email": "galluzzodavide01@gmail.com",
                     "guest_name": "Davide",
-                    "number_of_guests": "1",
-                    "run_id": "test-run",
-                    "candidate_id": "h1",
                     "hotel_name": "the hotel",
+                    "hotel_notes": "",
                     "listed_price": "",
-                    "hotel_notes": ""
+                    "number_of_guests": "1",
+                    "run_id": "test-run"
                 }
             },
             "first_message": "Hi, I'd like to book your cheapest room, {{check_in_date}} to {{check_out_date}}, under the name {{guest_name}}. What's the rate?",
@@ -71,8 +71,8 @@
                         "interruption_mode": "allow",
                         "name": "play_keypad_touch_tone",
                         "params": {
-                            "system_tool_type": "play_keypad_touch_tone",
                             "suppress_turn_after_dtmf": true,
+                            "system_tool_type": "play_keypad_touch_tone",
                             "use_out_of_band_dtmf": false
                         },
                         "pre_tool_speech": "auto",
@@ -91,8 +91,9 @@
                         "interruption_mode": "allow",
                         "name": "skip_turn",
                         "params": {
+                            "omit_from_transcript": false,
                             "system_tool_type": "skip_turn",
-                            "wait_timeout_secs": -1
+                            "wait_timeout_secs": -1.0
                         },
                         "pre_tool_speech": "auto",
                         "response_timeout_secs": 20,
@@ -126,7 +127,7 @@
                         "type": "system"
                     }
                 },
-                "cascade_timeout_seconds": 4,
+                "cascade_timeout_seconds": 4.0,
                 "custom_llm": null,
                 "enable_parallel_tool_calls": true,
                 "enable_reasoning_summary": false,
@@ -159,7 +160,7 @@
                 },
                 "service_tier": "standard",
                 "speech_engine": null,
-                "temperature": 0,
+                "temperature": 0.0,
                 "thinking_budget": null,
                 "timezone": null,
                 "tool_ids": [],
@@ -208,8 +209,9 @@
                         "interruption_mode": "allow",
                         "name": "skip_turn",
                         "params": {
+                            "omit_from_transcript": false,
                             "system_tool_type": "skip_turn",
-                            "wait_timeout_secs": -1
+                            "wait_timeout_secs": -1.0
                         },
                         "pre_tool_speech": "auto",
                         "response_timeout_secs": 20,
@@ -226,8 +228,8 @@
                         "interruption_mode": "allow",
                         "name": "play_keypad_touch_tone",
                         "params": {
-                            "system_tool_type": "play_keypad_touch_tone",
                             "suppress_turn_after_dtmf": true,
+                            "system_tool_type": "play_keypad_touch_tone",
                             "use_out_of_band_dtmf": false
                         },
                         "pre_tool_speech": "auto",
@@ -323,9 +325,9 @@
             "model_id": "eleven_v3_conversational",
             "optimize_streaming_latency": 3,
             "pronunciation_dictionary_locators": [],
-            "pvc_strength": 0,
+            "pvc_strength": 0.0,
             "similarity_boost": 0.8,
-            "speed": 1,
+            "speed": 1.0,
             "stability": 0.5,
             "suggested_audio_tags": [],
             "supported_voices": [],
@@ -358,7 +360,7 @@
             "merge_with_default_ignore_terms": true,
             "mode": "turn",
             "retranscribe_on_turn_timeout": false,
-            "silence_end_call_timeout": -1,
+            "silence_end_call_timeout": -1.0,
             "soft_timeout_config": {
                 "additional_soft_timeout_messages": [],
                 "disable_until_first_user_message": false,
@@ -366,7 +368,7 @@
                 "max_soft_timeouts_per_generation": 1,
                 "message": "One sec.",
                 "randomize_fillers": false,
-                "timeout_seconds": 3,
+                "timeout_seconds": 3.0,
                 "use_llm_generated_message": false
             },
             "speculative_turn": true,
@@ -374,7 +376,7 @@
             "transcribe_on_disabled_interruptions": false,
             "turn_eagerness": "normal",
             "turn_model": "turn_v3",
-            "turn_timeout": 20
+            "turn_timeout": 20.0
         },
         "vad": {
             "background_voice_detection": false
@@ -387,7 +389,7 @@
         "analysis_items": {
             "data_collection": [
                 {
-                    "analysis_item_id": "aitem_8901m552vbrwekhsfmrzpe08ek3d",
+                    "analysis_item_id": "aitem_6001m55ckw3tfrdvdr1gzfbx2g3t",
                     "scope": "conversation",
                     "source": "user",
                     "version_id": null
@@ -399,13 +401,31 @@
                     "version_id": null
                 },
                 {
-                    "analysis_item_id": "aitem_9801m55br9qqedhvkgnykxgdgjgg",
+                    "analysis_item_id": "aitem_8901m552vbrwekhsfmrzpe08ek3d",
                     "scope": "conversation",
                     "source": "user",
                     "version_id": null
                 },
                 {
                     "analysis_item_id": "aitem_1801m55br9qxf1xr0q73j9zbdssh",
+                    "scope": "conversation",
+                    "source": "user",
+                    "version_id": null
+                },
+                {
+                    "analysis_item_id": "aitem_7801m55c0pj6e6da13tqnwbabvys",
+                    "scope": "conversation",
+                    "source": "user",
+                    "version_id": null
+                },
+                {
+                    "analysis_item_id": "aitem_9801m55br9qqedhvkgnykxgdgjgg",
+                    "scope": "conversation",
+                    "source": "user",
+                    "version_id": null
+                },
+                {
+                    "analysis_item_id": "aitem_8901m55c0pjae84tgj2jct4v45ps",
                     "scope": "conversation",
                     "source": "user",
                     "version_id": null
@@ -430,15 +450,7 @@
                 },
                 {
                     "additional_version_ids": [],
-                    "analysis_item_id": "aitem_1001m552vbrdeqfan26b9g36m150",
-                    "scope": "conversation",
-                    "source": "user",
-                    "version_id": null,
-                    "weight": null
-                },
-                {
-                    "additional_version_ids": [],
-                    "analysis_item_id": "aitem_8701m552vbrmfke829nfwbq1awfx",
+                    "analysis_item_id": "aitem_8701m55c0phre6ktkkhjebv3rfh4",
                     "scope": "conversation",
                     "source": "user",
                     "version_id": null,
@@ -463,6 +475,26 @@
             "daily_limit": 100000
         },
         "data_collection": {
+            "confirmation_type": {
+                "allowed_values": null,
+                "allowed_values_dynamic_variable": "",
+                "analysis_schedule": null,
+                "constant_value": "",
+                "description": "How the booking was confirmed.",
+                "dynamic_variable": "",
+                "enum": [
+                    "reservation_id",
+                    "verbal_booking",
+                    "verbal_availability",
+                    "none"
+                ],
+                "is_omitted": false,
+                "is_system_provided": false,
+                "llm": null,
+                "llm_billed": false,
+                "name": null,
+                "type": "string"
+            },
             "hotel_address": {
                 "allowed_values": null,
                 "allowed_values_dynamic_variable": "",
@@ -508,6 +540,21 @@
                 "name": null,
                 "type": "number"
             },
+            "receptionist_name": {
+                "allowed_values": null,
+                "allowed_values_dynamic_variable": "",
+                "analysis_schedule": null,
+                "constant_value": "",
+                "description": "The name of the hotel staff member who confirmed the booking or availability. Empty if not said.",
+                "dynamic_variable": "",
+                "enum": null,
+                "is_omitted": false,
+                "is_system_provided": false,
+                "llm": null,
+                "llm_billed": false,
+                "name": null,
+                "type": "string"
+            },
             "reservation_number": {
                 "allowed_values": null,
                 "allowed_values_dynamic_variable": "",
@@ -531,41 +578,6 @@
                 "description": "The check-in and check-out dates the hotel confirmed. Empty if not said.",
                 "dynamic_variable": "",
                 "enum": null,
-                "is_omitted": false,
-                "is_system_provided": false,
-                "llm": null,
-                "llm_billed": false,
-                "name": null,
-                "type": "string"
-            },
-            "receptionist_name": {
-                "allowed_values": null,
-                "allowed_values_dynamic_variable": "",
-                "analysis_schedule": null,
-                "constant_value": "",
-                "description": "The name of the hotel staff member who confirmed the booking or availability. Empty if not said.",
-                "dynamic_variable": "",
-                "enum": null,
-                "is_omitted": false,
-                "is_system_provided": false,
-                "llm": null,
-                "llm_billed": false,
-                "name": null,
-                "type": "string"
-            },
-            "confirmation_type": {
-                "allowed_values": null,
-                "allowed_values_dynamic_variable": "",
-                "analysis_schedule": null,
-                "constant_value": "",
-                "description": "How the booking was confirmed.",
-                "dynamic_variable": "",
-                "enum": [
-                    "reservation_id",
-                    "verbal_booking",
-                    "verbal_availability",
-                    "none"
-                ],
                 "is_omitted": false,
                 "is_system_provided": false,
                 "llm": null,
@@ -954,8 +966,8 @@
                 "edge_order": [],
                 "parent_subgraph_id": null,
                 "position": {
-                    "x": 0,
-                    "y": 0
+                    "x": 0.0,
+                    "y": 0.0
                 },
                 "type": "start"
             }
