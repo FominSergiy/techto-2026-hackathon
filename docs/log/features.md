@@ -19,6 +19,18 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Xotelo 500s: backoff and keep earlier pages
+tags: feature, search, xotelo, reliability
+- Feature: "xotelo failed: data.xotelo.com: Internal Server Error" is Xotelo's `/list` endpoint failing, which it does intermittently. `getJson` now waits 0.5s, 1s, 2s, ... between retries after a 5xx or 429 (client errors still retry at once), the list call gets 4 retries (the per-hotel rate lookups keep 2), and a later list page failing keeps the pages already listed instead of throwing them away.
+- Status: done, tested offline (`hotel_search/test/get-json.js`, stubbed fetch). Not re-run against the real Xotelo, so a real outage longer than about 7.5s still fails the source. The other sources keep running when Xotelo fails (the UI shows the failure above the table).
+- Notes: Before, the 2 retries were back to back, so all 3 attempts landed inside the same blip. If Xotelo is down for a run, untick it: the other sources carry the results.
+
+## 2026-10-17 — Backboard returned only 1 hotel: parsing and prompt fixes
+tags: feature, search, backboard, learnings
+- Feature: The Backboard box now keeps every hotel the model priced, and shows how many it returned, which it dropped and why, and the raw reply (collapsible). Prices answered as text ("$112", "139.00 CAD", "from $85/night") are read as numbers, "[1]" citation marks no longer break the JSON extraction, and an empty `[]` is a valid "found none". Hotels carry `priceType`: "quoted" (rate for the searched dates) or "from" (lowest nightly rate the page showed, labelled `backboard (from rate)` in the Source column).
+- Status: done, tested offline only (stubbed fetch: a reply with text prices and citations that kept 1 of 4 before keeps 3 of 4 now). Not re-run against the live API, so whether the real cause was the text prices, the strict "omit unless you saw a real price" prompt, or the model genuinely finding few prices is unconfirmed: the new "returned / dropped" line and raw reply answer that on the next run.
+- Notes: Before, `Number("$112")` was NaN and the hotel was silently dropped, and the system prompt told the model to omit any hotel without a confirmed price, which web search rarely gives for specific dates. The prompt now asks for several searches, a plain-number `nightlyPrice`, and prefers a "from" rate to leaving a hotel out. "From" rates are hints, not the rate for those dates, so re-quote on the call.
+
 ## 2026-10-17 — Review-then-run prompt flow (prompt_refine.js)
 tags: feature, ui, prompt
 - Feature: "Review prompt" on each box rewrites the rough text into the full prompt and shows it (editable) with a list of what was filled in from defaults and any warnings (e.g. no country for a non-default city). "Run search" / "Ask Backboard" then runs exactly that text. Cancel discards it.

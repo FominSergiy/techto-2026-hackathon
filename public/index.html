@@ -227,7 +227,9 @@ async function runBackboard(text) {
         $("bbOutput").innerHTML = `
             <div class="card">
                 ${data.hotels.length ? renderTable(data.hotels) : "<p>Backboard found no hotels with a price.</p>"}
-                <p class="muted">${data.hotels.length} hotels in ${data.seconds.toFixed(1)}s · ${esc(run.model)} · ${run.inputTokens ?? "?"} in / ${run.outputTokens ?? "?"} out tokens</p>
+                <p class="muted">${data.hotels.length} shown · the model returned ${run.returned} · ${data.seconds.toFixed(1)}s · ${esc(run.model)} · ${run.inputTokens ?? "?"} in / ${run.outputTokens ?? "?"} out tokens</p>
+                ${run.dropped.length ? `<p class="error">Dropped: ${run.dropped.map(entry => `${esc(entry.name ?? "?")} (${esc(entry.reason)})`).join(", ")}</p>` : ""}
+                <details><summary class="muted">What the model replied</summary><pre>${esc(run.reply)}</pre></details>
             </div>`;
         $("bbStatus").textContent = "Done";
     } catch (error) {

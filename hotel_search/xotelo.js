@@ -6,7 +6,10 @@ const { tripadvisorLocationKey } = require("./locations");
 const BASE_URL = "https://data.xotelo.com/api";
 const PAGE_SIZE = 100;
 const RATE_BATCH_SIZE = 10;
-const RETRIES = 2;  // Xotelo returns intermittent 500s
+// Xotelo returns intermittent 500s (getJson backs off between attempts). The list call decides whether the whole
+// source works, so it gets more attempts than the per-hotel rate lookups, which just count as "no rate" on failure.
+const LIST_RETRIES = 4;
+const RATE_RETRIES = 2;
 
 function toHotel(item, nightlyPrice) {
     return {
@@ -31,7 +34,7 @@ async function lowestRate(hotelKey) {
         adults: String(settings.adults),
         currency: settings.currency
     });
-    const { result } = await getJson(`${BASE_URL}/rates?${params}`, {}, RETRIES);
+    const { result } = await getJson(`${BASE_URL}/rates?${params}`, {}, RATE_RETRIES);
     const rates = result.rates.map(rate => rate.rate).filter(rate => rate != null);
     return rates.length ? Math.min(...rates) : null;
 }
@@ -47,7 +50,15 @@ async function search() {
             limit: String(PAGE_SIZE),
             sort: "best_value"
         });
-        const { result } = await getJson(`${BASE_URL}/list?${params}`, {}, RETRIES);
+        let result;
+        try {
+            ({ result } = await getJson(`${BASE_URL}/list?${params}`, {}, LIST_RETRIES));
+        } catch (error) {
+            // A later page failing must not throw away the pages already listed
+            if (!listed.length) throw error;
+            console.warn(`Xotelo list page ${page} failed (${error.message}), continuing with the ${listed.length} hotels already listed`);
+            break;
+        }
         listed.push(...result.list);
         console.log(`Xotelo list page ${page}: ${listed.length} of ${result.total_count} hotels`);
         if (listed.length >= result.total_count) break;

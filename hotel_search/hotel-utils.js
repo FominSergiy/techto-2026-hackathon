@@ -21,13 +21,20 @@ function requireEnv(...names) {
 }
 
 // Fetches JSON, throwing on HTTP or API errors after `retries` extra attempts
-async function getJson(url, options = {}, retries = 0) {
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+// `retries` = extra attempts after a failure. A server error (5xx) or rate limit (429) waits 0.5s, 1s, 2s, ...
+// first, since it is usually a short blip that instant retries land inside; other errors retry straight away.
+async function getJson(url, options = {}, retries = 0, attempt = 0) {
     const response = await fetch(url, options);
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok || data.error) {
         if (retries > 0) {
-            return getJson(url, options, retries - 1);
+            if (response.status >= 500 || response.status === 429) {
+                await sleep(500 * 2 ** attempt);
+            }
+            return getJson(url, options, retries - 1, attempt + 1);
         }
         const message = data.error?.message || data.error || data.message || response.status;
         throw new Error(`${new URL(url).hostname}: ${message}`);

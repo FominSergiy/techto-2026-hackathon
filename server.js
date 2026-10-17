@@ -125,7 +125,8 @@ async function handleBackboard(request, response) {
         }
 
         const started = Date.now();
-        const hotels = (await backboard.search({ prompt: prompt.trim() })).map(hotel => ({ ...hotel, source: "backboard" }));
+        // "from" rates are the lowest nightly rate a page showed, not the rate for the searched dates
+        const hotels = (await backboard.search({ prompt: prompt.trim() })).map(hotel => ({ ...hotel, source: hotel.priceType === "from" ? "backboard (from rate)" : "backboard" }));
         sendJson(response, 200, { hotels, run: backboard.search.lastRun, seconds: (Date.now() - started) / 1000 });
     } catch (error) {
         sendJson(response, 500, { error: error.message });

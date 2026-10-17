@@ -65,10 +65,11 @@ function buildRequest(settings) {
         content,
         system_prompt: [
             "You are a hotel price researcher. Use web search to find current room rates and phone numbers.",
+            "Search as many times as you need (Google Hotels, Booking.com, Expedia, the hotels' own sites) to list the requested number of hotels. Do not stop after the first result.",
             context,
             "Reply with ONLY a JSON array, no prose and no code fences. Each element:",
-            `{"name": string, "address": string|null, "phone": string|null (international format), "nightlyPrice": number (per night, taxes excluded unless only the taxed price is shown), "totalPrice": number|null, "currency": string (ISO code of the prices; ${settings.currency} unless the request asks for another), "rating": number|null (out of 5), "url": string|null (page where you saw the price)}.`,
-            "Sort by nightlyPrice ascending. Only hotels inside the named city. If you cannot find a real price, omit the hotel. Never invent prices or phone numbers; use null when unknown."
+            `{"name": string, "address": string|null, "phone": string|null (international format), "nightlyPrice": number (a plain JSON number, no currency symbol; per night, taxes excluded unless only the taxed price is shown), "priceType": "quoted"|"from" ("quoted" only if you saw the rate for these exact dates, otherwise "from" for the lowest nightly rate the page shows), "totalPrice": number|null, "currency": string (ISO code of the prices; ${settings.currency} unless the request asks for another), "rating": number|null (out of 5), "url": string|null (page where you saw the price)}.`,
+            "Sort by nightlyPrice ascending. Only hotels inside the named city. Prefer a \"from\" rate over leaving a hotel out; omit a hotel only if you found no price for it at all. Never invent prices or phone numbers; use null when unknown."
         ].filter(Boolean).join("\n"),
         llm_provider: settings.provider,
         model_name: settings.model,
@@ -79,28 +80,52 @@ function buildRequest(settings) {
     };
 }
 
-// The model sometimes wraps the array in prose or a ```json fence, so cut out the outermost [...]
+// The model sometimes wraps the array in prose, a ```json fence or citation marks like [1], so cut from the
+// first "[{" to the last "}]"
 function parseHotels(text) {
-    const start = text.indexOf("[");
-    const end = text.lastIndexOf("]");
-    if (start === -1 || end <= start) {
-        throw new Error(`Backboard returned no JSON array: ${text.slice(0, 200)}`);
+    const array = text.match(/\[\s*\{[\s\S]*\}\s*\]/);
+    if (array) {
+        try {
+            return JSON.parse(array[0]);
+        } catch (error) {
+            throw new Error(`Backboard reply was not valid JSON (${error.message}): ${text.slice(0, 200)}`);
+        }
     }
-    return JSON.parse(text.slice(start, end + 1));
+    if (/\[\s*\]/.test(text)) {
+        return [];
+    }
+    throw new Error(`Backboard returned no JSON array: ${text.slice(0, 200)}`);
+}
+
+// Models answer "$112", "112 CAD" or "1,234.50" as well as 112
+function toNumber(value) {
+    if (typeof value === "number") return value;
+    const match = String(value ?? "").replace(/,/g, "").match(/\d+(\.\d+)?/);
+    return match ? Number(match[0]) : NaN;
+}
+
+// Why a returned entry cannot be shown, or null when it can
+function dropReason(raw) {
+    if (!raw?.name) return "no name";
+    const price = toNumber(raw.nightlyPrice);
+    return Number.isFinite(price) && price > 0 ? null : `no usable price (${JSON.stringify(raw.nightlyPrice)})`;
 }
 
 function toHotel(raw, settings) {
-    const nightlyPrice = Number(raw.nightlyPrice);
-    if (!raw.name || !Number.isFinite(nightlyPrice) || nightlyPrice <= 0) {
+    if (dropReason(raw)) {
         return null;
     }
+    const nightlyPrice = toNumber(raw.nightlyPrice);
+    const total = toNumber(raw.totalPrice);
     return {
         name: String(raw.name).trim(),
         city: settings.city,
         nightlyPrice: Math.round(nightlyPrice),
+        // "quoted" = the rate for these dates, "from" = the lowest nightly rate the page showed
+        priceType: raw.priceType === "from" ? "from" : "quoted",
         // Free-text mode has no known night count, so only trust a total the model actually found
-        totalPrice: raw.totalPrice != null && Number.isFinite(Number(raw.totalPrice))
-            ? Math.round(Number(raw.totalPrice))
+        totalPrice: Number.isFinite(total) && total > 0
+            ? Math.round(total)
             : settings.prompt ? null : Math.round(nightlyPrice * settings.nights),
         currency: raw.currency || settings.currency,
         rating: raw.rating ?? null,
@@ -136,19 +161,25 @@ async function search(options = {}) {
         throw new Error(`Backboard run ${data.status}`);
     }
 
+    const returned = parseHotels(data.content || "");
+    const hotels = returned
+        .map(raw => toHotel(raw, settings))
+        .filter(Boolean)
+        .sort((a, b) => a.nightlyPrice - b.nightlyPrice)
+        .slice(0, settings.count);
+
+    // `returned` / `dropped` / `reply` say why a run gave few hotels: the model found few, or entries were unusable
     search.lastRun = {
         seconds: (Date.now() - started) / 1000,
         model: `${data.model_provider || settings.provider}/${data.model_name || settings.model}`,
         inputTokens: data.input_tokens ?? null,
         outputTokens: data.output_tokens ?? null,
-        threadId: data.thread_id
+        threadId: data.thread_id,
+        returned: returned.length,
+        dropped: returned.map(raw => ({ name: raw?.name ?? null, reason: dropReason(raw) })).filter(entry => entry.reason),
+        reply: String(data.content || "").slice(0, 6000)
     };
-
-    return parseHotels(data.content || "")
-        .map(raw => toHotel(raw, settings))
-        .filter(Boolean)
-        .sort((a, b) => a.nightlyPrice - b.nightlyPrice)
-        .slice(0, settings.count);
+    return hotels;
 }
 
 // --flag=value args, camelCased: --check-in=2026-11-20 -> checkIn
@@ -174,10 +205,11 @@ async function main() {
     const hotels = await search(options);
     console.table(hotels.map(({ name, nightlyPrice, totalPrice, currency, phone, rating }) => ({ name, nightlyPrice, totalPrice, currency, phone, rating })));
     const run = search.lastRun;
-    console.log(`Backboard: ${hotels.length} hotels in ${run.seconds.toFixed(1)}s, ${run.model}, tokens in/out ${run.inputTokens}/${run.outputTokens}`);
+    console.log(`Backboard: ${hotels.length} hotels (model returned ${run.returned}, dropped ${run.dropped.length}) in ${run.seconds.toFixed(1)}s, ${run.model}, tokens in/out ${run.inputTokens}/${run.outputTokens}`);
+    run.dropped.forEach(entry => console.log(`  dropped: ${entry.name ?? "?"} - ${entry.reason}`));
 }
 
-module.exports = { search, buildRequest, parseHotels, toHotel, resolve };
+module.exports = { search, buildRequest, parseHotels, toHotel, toNumber, dropReason, resolve };
 
 if (require.main === module) {
     main().catch(error => {
