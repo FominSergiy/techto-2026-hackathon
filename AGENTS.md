@@ -70,7 +70,7 @@ TBD. Record the choice in [decisions.md](docs/log/decisions.md), then summarize 
 
 ## Repo Structure
 
-- `settings.js`: city (City X), dates, guests, currency, filters and enabled sources. Any value can be overridden on the command line.
+- `settings.js`: city and region (City X), dates (default: next Saturday, 1 night), guests, currency, filters and enabled sources. Any value can be overridden on the command line.
 - `search.js`: the suite. Runs every enabled source in parallel, merges to one row per hotel (cheapest offer), adds phone/address from Google Places, prints a table and saves CSV + JSON to `output/`
 - `server.js`: web UI backend (plain `node:http`, no deps). Serves `public/index.html` and `POST /api/search {prompt}`, which parses the prompt and runs `search-json.js` in a child process
 - `prompt.js`: free-text prompt -> `search.js` CLI args. Claude (haiku) when `ANTHROPIC_API_KEY` is set, regex fallback otherwise; raw `--flags` in the prompt always win

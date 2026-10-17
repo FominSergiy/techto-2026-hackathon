@@ -3,7 +3,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const settings = require("./settings");
-const { requireEnv, getJson, hotelbedsHeaders } = require("./hotel-utils");
+const { requireEnv, getJson, hotelbedsHeaders, normalizeName: normalize } = require("./hotel-utils");
 
 const CACHE_FILE = path.join(__dirname, ".cache", "locations.json");
 
@@ -17,7 +17,7 @@ function readCache() {
 
 // Looks up `field` for the current city once, then serves it from the cache
 async function cached(field, lookup) {
-    const cityKey = `${settings.city}|${settings.countryCode}`.toLowerCase();
+    const cityKey = [settings.city, settings.region, settings.countryCode].filter(Boolean).join("|").toLowerCase();
     const cache = readCache();
     if (cache[cityKey]?.[field]) {
         return cache[cityKey][field];
@@ -43,24 +43,25 @@ async function tripadvisorLocationKey() {
         const [apiKey] = requireEnv("SEARCH_API_KEY");
         const params = new URLSearchParams({
             engine: "google",
-            q: `site:tripadvisor.com Hotels in ${settings.city}`,
+            q: `site:tripadvisor.com Hotels in ${[settings.city, settings.region].filter(Boolean).join(" ")}`,
             gl: settings.countryCode.toLowerCase(),
             hl: "en",
             api_key: apiKey
         });
         const data = await getJson(`https://www.searchapi.io/api/v1/search?${params}`);
 
+        // City pages look like /Hotels-g499250-Aurora_Ontario-Hotels.html. Several cities share a name
+        // (Aurora has pages for Ontario, Colorado, Illinois...), so the slug must name our city and region.
+        const wanted = [settings.city, settings.region].filter(Boolean).map(normalize).join(" ");
         for (const result of data.organic_results || []) {
-            const match = result.link?.match(/tripadvisor\.[a-z.]+\/Hotels-(g\d+)-/i);
-            if (match) {
+            const match = result.link?.match(/tripadvisor\.[a-z.]+\/Hotels-(g\d+)-([^/]+?)-Hotels\.html/i);
+            if (match && normalize(match[2].replace(/_/g, " ")) === wanted) {
                 return match[1];
             }
         }
-        throw new Error(`No TripAdvisor location found for ${settings.city} - pass --tripadvisor-location-key`);
+        throw new Error(`No TripAdvisor page named "${wanted}" in the search results - pass --tripadvisor-location-key`);
     });
 }
-
-const normalize = text => (text || "").toLowerCase().trim();
 
 // Hotelbeds destination code (e.g. YTO) from the Content API's destination list for the country.
 // Matches the destination name first, then the names of zones inside it (suburbs like Aurora are zones).

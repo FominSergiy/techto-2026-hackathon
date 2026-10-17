@@ -4,10 +4,13 @@ const settings = require("./settings");
 const { requireEnv, getJson, normalizeName } = require("./hotel-utils");
 
 const CONCURRENCY = 5;
+const MAX_DISTANCE_M = 750;   // a Places match further than this from the source's coordinates is a different hotel
 const FIELD_MASK = [
     "places.displayName",
     "places.formattedAddress",
+    "places.addressComponents",
     "places.internationalPhoneNumber",
+    "places.location",
     "places.websiteUri",
     "places.googleMapsUri"
 ].join(",");
@@ -19,15 +22,35 @@ function tokens(name) {
     return new Set(normalizeName(name).split(" ").filter(word => word.length > 2 && !GENERIC_WORDS.has(word)));
 }
 
-// True when at least half of the shorter name's words appear in the other, so a wrong
+// True when enough of the shorter name's words appear in the other, so a wrong
 // hotel isn't given someone else's phone number
-function sameHotel(a, b) {
+function sameHotel(a, b, minOverlap) {
     const [small, large] = [tokens(a), tokens(b)].sort((x, y) => x.size - y.size);
     if (!small.size) return false;
-    return [...small].filter(word => large.has(word)).length / small.size >= 0.5;
+    return [...small].filter(word => large.has(word)).length / small.size >= minOverlap;
 }
 
+function distanceMeters(a, b) {
+    const rad = degrees => degrees * Math.PI / 180;
+    const h = Math.sin(rad(b.latitude - a.latitude) / 2) ** 2
+        + Math.cos(rad(a.latitude)) * Math.cos(rad(b.latitude)) * Math.sin(rad(b.longitude - a.longitude) / 2) ** 2;
+    return 2 * 6371000 * Math.asin(Math.sqrt(h));
+}
+
+// Chain hotels share most of their name (every "Holiday Inn Express & Suites ..."), so when the source gave
+// coordinates the match must also be at that spot. Without coordinates the name has to match more closely.
 async function findPlace(apiKey, hotel) {
+    const spot = hotel.location;
+    const body = {
+        textQuery: spot ? hotel.name : [hotel.name, settings.city, settings.region].filter(Boolean).join(", "),
+        includedType: "lodging",
+        regionCode: settings.countryCode,
+        pageSize: 3
+    };
+    if (spot) {
+        body.locationBias = { circle: { center: { latitude: spot.latitude, longitude: spot.longitude }, radius: MAX_DISTANCE_M } };
+    }
+
     const data = await getJson("https://places.googleapis.com/v1/places:searchText", {
         method: "POST",
         headers: {
@@ -35,14 +58,30 @@ async function findPlace(apiKey, hotel) {
             "X-Goog-Api-Key": apiKey,
             "X-Goog-FieldMask": FIELD_MASK
         },
-        body: JSON.stringify({
-            textQuery: `${hotel.name} ${hotel.city}`,
-            includedType: "lodging",
-            regionCode: settings.countryCode,
-            pageSize: 3
-        })
+        body: JSON.stringify(body)
     });
-    return (data.places || []).find(place => sameHotel(hotel.name, place.displayName?.text));
+
+    return (data.places || []).find(place => {
+        if (!sameHotel(hotel.name, place.displayName?.text, spot ? 0.5 : 0.75)) return false;
+        return !spot || !place.location || distanceMeters(spot, place.location) <= MAX_DISTANCE_M;
+    });
+}
+
+const component = (place, type) => place?.addressComponents?.find(part => part.types.includes(type));
+
+// Where the place really is, from its structured address (not from the query we sent)
+function locationOf(place) {
+    const locality = component(place, "locality")
+        || component(place, "postal_town")
+        || component(place, "administrative_area_level_3")
+        || component(place, "sublocality");
+
+    return {
+        city: locality?.longText || null,
+        region: component(place, "administrative_area_level_1")?.longText || null,
+        regionCode: component(place, "administrative_area_level_1")?.shortText || null,
+        country: component(place, "country")?.shortText || null
+    };
 }
 
 // Runs fn over items with at most `limit` calls in flight
@@ -68,8 +107,13 @@ async function enrichWithPlaces(hotels) {
     const enriched = await mapLimit(hotels, CONCURRENCY, async hotel => {
         try {
             const place = await findPlace(apiKey, hotel);
+            const location = locationOf(place);
             return {
                 ...hotel,
+                city: location.city || hotel.city || null,
+                region: location.region,
+                regionCode: location.regionCode,
+                country: location.country,
                 address: place?.formattedAddress || hotel.address,
                 phone: place?.internationalPhoneNumber || null,
                 website: place?.websiteUri || null,

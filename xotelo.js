@@ -17,6 +17,7 @@ function toHotel(item, nightlyPrice) {
         rating: item.review_summary?.rating ?? null,
         reviews: item.review_summary?.count ?? null,
         address: null,  // Xotelo only has coordinates - the street address comes from Google Places
+        location: item.geo || null,
         url: item.url
     };
 }
@@ -52,9 +53,10 @@ async function search() {
         if (listed.length >= result.total_count) break;
     }
 
-    // 2. Pre-filter on the typical price, cheapest first
+    // 2. Pre-filter on the typical price, cheapest first. Listings without a price range
+    // (private rooms, rentals) drop out here; TripAdvisor types real hotels inconsistently
+    // ("Hotel", "Limited Service Property", ...), so the type isn't used.
     const candidates = listed
-        .filter(item => item.accommodation_type === "Hotel")
         .filter(item => passesFilters(toHotel(item, item.price_ranges?.minimum ?? null)))
         .sort((a, b) => a.price_ranges.minimum - b.price_ranges.minimum);
 
@@ -62,10 +64,14 @@ async function search() {
     const matches = [];
     for (let i = 0; i < candidates.length && matches.length < settings.targetCount; i += RATE_BATCH_SIZE) {
         const batch = candidates.slice(i, i + RATE_BATCH_SIZE);
-        const rates = await Promise.all(batch.map(item => lowestRate(item.key).catch(() => null)));
+        const rates = await Promise.all(batch.map(item => lowestRate(item.key).catch(error => {
+            console.warn(`Xotelo rate lookup failed for ${item.name}: ${error.message}`);
+            return null;
+        })));
 
         matches.push(...batch.map((item, index) => toHotel(item, rates[index])).filter(passesFilters));
-        console.log(`Xotelo rates checked for ${i + batch.length} hotels, ${matches.length} match filters`);
+        const noRates = rates.filter(rate => rate == null).length;
+        console.log(`Xotelo rates checked for ${i + batch.length} hotels (${noRates} with no live rates), ${matches.length} match filters`);
     }
 
     return cheapest(matches);

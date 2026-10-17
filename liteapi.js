@@ -47,6 +47,8 @@ async function search() {
 
                 return {
                     name: hotel.name || null,
+                    city: hotel.city_name || hotel.city || null,
+                    location: hotel.latitude != null ? { latitude: hotel.latitude, longitude: hotel.longitude } : null,
                     nightlyPrice: hasPrice ? perNight(total) : null,
                     totalPrice: hasPrice ? total : null,
                     currency: settings.currency,

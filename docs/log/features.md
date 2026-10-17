@@ -28,8 +28,8 @@ tags: feature, ui
 ## 2026-10-17 — Hotel search suite (single output format)
 tags: feature, search, output
 - Feature: `node search.js` runs all enabled sources in parallel, merges to one row per hotel (cheapest offer wins, other offers kept), looks up phone and address in Google Places, and outputs name, city, address, phone, price, source and url as a table plus `output/hotels-<city>-<checkIn>.csv/json`. Each source's timing is logged.
-- Status: wip. Written but not run yet.
-- Notes: A Places match is only accepted if at least half of the hotel's distinctive name words match, so a wrong hotel doesn't get someone else's phone number. `url` falls back to the Google Maps link for sources without hotel links (LiteAPI, Hotelbeds). Sources and Places are called live, so each run costs API quota (30 Places lookups).
+- Status: wip. Run for Aurora, ON with xotelo, searchapi and liteapi: 3 hotels, all in Aurora. Hotelbeds untested (no `HOTELBEDS_SECRET`).
+- Notes: Gotchas found debugging Aurora: (1) Google Hotels returns the surrounding region, so `region` is in the query and results are checked against the Places address. (2) Chains share names ("Holiday Inn Express & Suites ..."), so a name-only Places match gave a Richmond Hill hotel the Aurora hotel's address; matches are now checked against the source's coordinates. (3) Xotelo types real hotels as "Limited Service Property", so it no longer filters on type. (4) A failing later page used to discard earlier pages. (5) Aurora only has 3 real hotels, so default filters (min 50 reviews, 4.0 rating) can empty the list: relax them for small cities. A Places match is only accepted if at least half of the hotel's distinctive name words match, so a wrong hotel doesn't get someone else's phone number. `url` falls back to the Google Maps link for sources without hotel links (LiteAPI, Hotelbeds). Sources and Places are called live, so each run costs API quota (30 Places lookups).
 
 ## 2026-10-17 — Hotel price search scripts
 tags: feature, search, data-source

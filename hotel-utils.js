@@ -1,6 +1,7 @@
 // Helpers shared by the hotel source scripts.
 // Every source returns hotels shaped as:
-// { name, nightlyPrice, totalPrice, currency, rating (out of 5), reviews, address, url }
+// { name, nightlyPrice, totalPrice, currency, rating (out of 5), reviews, address, url,
+//   city (optional), location (optional { latitude, longitude }) }
 const crypto = require("node:crypto");
 const settings = require("./settings");
 
@@ -98,7 +99,17 @@ async function collectPages(label, fetchPage) {
     let cursor = null;
 
     for (let page = 1; page <= settings.maxPages; page++) {
-        const { hotels, next } = await fetchPage(cursor);
+        let result;
+        try {
+            result = await fetchPage(cursor);
+        } catch (error) {
+            // Running off the end of the results is often reported as an error - keep what we already have
+            if (page === 1) throw error;
+            console.warn(`${label} page ${page} failed (${error.message}) - using the ${matches.length} matches so far`);
+            break;
+        }
+
+        const { hotels, next } = result;
         matches.push(...hotels.filter(passesFilters));
         console.log(`${label} page ${page}: ${hotels.length} hotels, ${matches.length} match filters`);
 

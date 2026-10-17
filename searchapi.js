@@ -16,14 +16,15 @@ async function search() {
     return collectPages("SearchApi", async pageToken => {
         const params = new URLSearchParams({
             engine: "google_hotels",
-            q: `hotels in ${settings.city}`,
+            q: `hotels in ${[settings.city, settings.region, settings.countryCode].filter(Boolean).join(", ")}`,
             check_in_date: settings.checkIn,
             check_out_date: settings.checkOut,
             adults: String(settings.adults),
             currency: settings.currency,
             gl: settings.countryCode.toLowerCase(),
             hl: "en",
-            sort_by: "lowest_price",
+            // "lowest_price" re-ranks the whole surrounding region by price and buries the city's own hotels
+            sort_by: "relevance",
             api_key: apiKey
         });
         if (settings.maxNightlyPrice != null) {
@@ -42,6 +43,7 @@ async function search() {
             hotels: (data.properties || []).map(property => ({
                 name: property.name,
                 city: property.city || null,
+                location: property.gps_coordinates || null,
                 nightlyPrice: property.price_per_night?.extracted_price ?? null,
                 totalPrice: property.total_price?.extracted_price ?? null,
                 currency: settings.currency,

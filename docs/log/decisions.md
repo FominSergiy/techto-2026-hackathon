@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Verify each hotel's city via Google Places
+tags: decision, search, data-quality
+- Decision: `search.js` keeps only hotels whose Google Places address is in `settings.city`, `region` and `countryCode` (`strictCity`). Places matches use the source's coordinates (within 750 m). SearchApi sorts by relevance, not price.
+- Why: Searching "Aurora" returned Markham, Newmarket and even Aurora, IL. The city column had been filled with the search city, which hid it. Sorting by price made Google rank the whole region by price and buried the city's own hotels.
+- Alternatives: Distance from a city center (needs a radius guess, and Aurora borders Newmarket). Trusting source city fields (SearchApi has none).
+
 ## 2026-10-17 — UI backend spawns a child process per search
 tags: decision, ui, backend
 - Decision: `server.js` (plain `node:http`, no framework) runs each search as `node search-json.js <args>` and reads JSON from stdout. The prompt is turned into settings args by Claude Haiku when `ANTHROPIC_API_KEY` is set, otherwise a regex parser.

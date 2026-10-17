@@ -6,13 +6,16 @@ const defaults = {
     // City X is revealed at competition time
     city: "Aurora",
     countryCode: "CA",
+    region: "Ontario",      // province/state - tells apart cities sharing a name (Aurora, ON vs Aurora, IL); null to skip
+    strictCity: true,       // keep only hotels whose Google Places address is in city (needs enrichPhones)
     // Provider location codes - null looks them up from city (see locations.js)
     tripadvisorLocationKey: null,       // Xotelo, e.g. g155019 for Toronto
     hotelbedsDestinationCode: null,     // Hotelbeds, e.g. YTO for Toronto
 
     // Stay
-    checkIn: "2026-11-20",
-    checkOut: "2026-11-22",
+    checkIn: null,      // YYYY-MM-DD - null means next Saturday
+    nights: 1,
+    checkOut: null,     // YYYY-MM-DD - null means checkIn + nights
     adults: 1,
     currency: "CAD",
 
@@ -56,7 +59,21 @@ function parseArgs(argv) {
     return overrides;
 }
 
+const DAY_MS = 86400000;
+const isoDate = ms => new Date(ms).toISOString().slice(0, 10);
+
+// The Saturday after today (a full week ahead when today is a Saturday)
+function nextSaturday() {
+    const now = new Date();
+    const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    const daysAhead = 6 - new Date(today).getUTCDay() || 7;
+    return isoDate(today + daysAhead * DAY_MS);
+}
+
 const settings = { ...defaults, ...parseArgs(process.argv.slice(2)) };
-settings.nights = (Date.parse(settings.checkOut) - Date.parse(settings.checkIn)) / 86400000;
+settings.checkIn = settings.checkIn || nextSaturday();
+settings.checkOut = settings.checkOut || isoDate(Date.parse(settings.checkIn) + settings.nights * DAY_MS);
+// Derived from the dates so an explicit --check-out always wins over --nights
+settings.nights = (Date.parse(settings.checkOut) - Date.parse(settings.checkIn)) / DAY_MS;
 
 module.exports = settings;
