@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Rank Google Maps hotels by a Backboard model's expected price
+tags: decision, search, places, backboard, tokens
+- Decision: After the 5 Maps searches, one Backboard call (web search on, `gpt-4o` by default) estimates a typical nightly price, class and confidence for up to 20 hotels, and the table is ordered by that estimate, cheapest first. The 20 are picked by how many searches found the hotel, then by review count; the rest are listed last, unranked. It is a checkbox, on by default.
+- Why: Google Maps gives no prices for most hotels, so the card could not answer "which is cheapest" at all. A model that knows the brands and can look a hotel up is the cheapest way to get a call order. One call for all 20 (not one per hotel) keeps tokens and time down (judged on time and cost).
+- Alternatives: One call per hotel (20x the calls, slower); a cheap model with no web search (cannot look up unknown independents); sending all hotels (the model skips entries on long lists). Risk: estimates can be wrong, so the expected price only decides whom to ring first, never what to tell the hotel.
+
 ## 2026-10-17 — One shared city match that treats "Greater Sudbury" as Sudbury
 tags: decision, search, places, learnings
 - Decision: `sameCity` / `matchesCity` in `hotel-utils.js` compare city names with "Greater", "City of", "Town of" etc. removed, and `matchesCity` also accepts a hotel whose address has a comma-separated part naming the city. Used by the Places city filter (`filterToCity`), the no-Places filter (`dropKnownOtherCities`), the Google Maps card and Xotelo's TripAdvisor place lookup.

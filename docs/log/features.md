@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Expected-price ranking for the Google Maps card
+tags: feature, search, places, backboard
+- Feature: The Google Maps card has a "Rank by expected price" checkbox (on by default). When on, `backboard_search/classify.js` sends up to 20 hotels to a Backboard web-search model, which returns an expected nightly price, class (budget to luxury), confidence and a short reason for each. The table shows them and is ordered cheapest expected price first; unestimated hotels follow, with the reason. The page also shows the model, time and tokens used, and what the model replied.
+- Status: wip - code and offline tests done (stubbed fetch), never run against Backboard.
+- Notes: One extra Backboard call per search (web search makes it slow: allow a minute or two; timeout 180s). If it fails (no credits, bad reply) the Maps results still show, unranked, with the error. Expected prices are estimates, not rates for any dates. To judge it: compare the expected prices with what the price sources return for the same hotels.
+
 ## 2026-10-17 — Google Maps (Places only) search card
 tags: feature, search, places, ui
 - Feature: A card on the page that takes a prompt, reads the city from it and runs 5 fixed Places searches (`hotels in X`, `inns in X`, `motels in X`, `hotels at X`, `cheap hotels in X`). The table shows phone, address, price hint, rating, website, a Maps link and which searches found each hotel; chips show how many each search returned and added.

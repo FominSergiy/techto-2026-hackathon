@@ -8,6 +8,8 @@ const { parsePrompt, pinRegion, hasCity } = require("./prompt");
 const { refine } = require("./prompt_refine");
 const { SOURCES, describe } = require("./hotel_search/sources");
 const backboard = require("./backboard_search/backboard");
+const { classify } = require("./backboard_search/classify");
+const settings = require("./hotel_search/settings");
 const placesSearch = require("./hotel_search/places-search");
 const { withRawCapture } = require("./hotel_search/hotel-utils");
 
@@ -151,7 +153,7 @@ async function handleBackboard(request, response) {
 // Google Maps only: the prompt is reduced to a city, then a few fixed Places searches run for it ("hotels in X", "inns in X", ...)
 async function handlePlaces(request, response) {
     try {
-        const { prompt } = JSON.parse(await readBody(request));
+        const { prompt, rank } = JSON.parse(await readBody(request));
         if (!prompt?.trim()) {
             return sendJson(response, 400, { error: "Enter a prompt first" });
         }
@@ -169,7 +171,21 @@ async function handlePlaces(request, response) {
         const city = args.find(arg => arg.startsWith("--city=")).slice("--city=".length);
 
         const result = await withRawCapture("places-search", () => placesSearch.run(city));
-        sendJson(response, 200, { ...result, city, parser: parsed.parser, usage: parsed.usage, seconds: (Date.now() - started) / 1000 });
+
+        // Then a Backboard model estimates each hotel's typical price (from the name, the area and web search) and the table is
+        // ordered by it. If that fails the Maps results are still shown, unranked, with the reason.
+        let hotels = result.hotels;
+        let ranking = null;
+        if (rank !== false && hotels.length) {
+            try {
+                const ranked = await classify(hotels, { city, region: settings.region, countryCode: settings.countryCode, currency: settings.currency });
+                hotels = ranked.hotels;
+                ranking = ranked.run;
+            } catch (error) {
+                ranking = { error: error.message };
+            }
+        }
+        sendJson(response, 200, { ...result, hotels, ranking, city, parser: parsed.parser, usage: parsed.usage, seconds: (Date.now() - started) / 1000 });
     } catch (error) {
         sendJson(response, 500, { error: error.message });
     }
