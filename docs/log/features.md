@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Multi-night stays (date ranges in the prompt)
+tags: feature, workflow, telephony, elevenlabs
+- Feature: `Davide_test/main.py` `parse_prompt` reads a second date as the check-out ("Oct 1 to Oct 10", "Oct 1-10", "1-10 October", "1 October until 10 October", two ISO dates, "Dec 30 to Jan 2" rolls the year). It falls back to "N nights" (default 1). It returns `nights` and passes it to the call. The Alex prompt now asks for the whole stay and has a `nights` placeholder.
+- Status: wip. 18 offline cases pass (`python Davide_test/test_parse_prompt.py`). The prompt is not pushed to ElevenLabs yet, and no test call has been made.
+- Notes: the bug was that only the first date was read, so every range became 1 night (Oct 1 to Oct 2). The ElevenLabs prompt was never the cause. Month names are now matched as whole words, so "decide" no longer parses as December. Gotcha: `elevenlabs agents pull --branch` writes an extra `Alex.<branch>.json` plus a `branches` entry in `agents.json`. Delete both and keep the single `Alex.json`.
+
 ## 2026-10-17 — Call recording + team footer in the receipt email
 tags: feature, email, elevenlabs
 - Feature: `email_service.py` attaches the booked call's ElevenLabs recording (mp3) when the payload has `conversation_id`, and ends every email with the team footer (Team 4, each member with their email). `main.py` passes `conversation_id` through. The same branch fixes `main.py` after the `b68047a` merge: `send_email`, `TEST`, the `call_hotel` arity and `status` were missing.
