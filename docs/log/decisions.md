@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — One shared city match that treats "Greater Sudbury" as Sudbury
+tags: decision, search, places, learnings
+- Decision: `sameCity` / `matchesCity` in `hotel-utils.js` compare city names with "Greater", "City of", "Town of" etc. removed, and `matchesCity` also accepts a hotel whose address has a comma-separated part naming the city. Used by the Places city filter (`filterToCity`), the no-Places filter (`dropKnownOtherCities`), the Google Maps card and Xotelo's TripAdvisor place lookup.
+- Why: A live Sudbury run dropped all 36 Google Maps hotels because Google files them under "Greater Sudbury" and the old check needed an exact name. The main search had the same exact match in two places.
+- Alternatives: Only fixing the Google Maps card (left the main search dropping every hotel for amalgamated cities). Not changed: Hotelbeds destination lookup (already has an "includes" fallback). Not covered: suburbs Google files under their own name with no address mention of the city (e.g. a hotel in Lively with an address that says only "Lively, ON") are still dropped.
+
 ## 2026-10-17 — Google Maps search as its own card: fixed queries, not a source checkbox
 tags: decision, search, places, ui
 - Decision: A separate "Google Maps (Places only)" card (`POST /api/places`, `hotel_search/places-search.js`) reduces the prompt to a city (same parser as the main search) and runs 5 fixed Places text searches for it, merged by Places id. It is not one of the price-source checkboxes and not in `sources.js`.
