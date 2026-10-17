@@ -13,9 +13,10 @@ assert.strictEqual(input.check_in_date, "2026-10-24");
 assert.strictEqual(input.max_price, "300");
 assert.strictEqual(input.max_pages, 2);
 
-// Vacation rentals are dropped; hotels keep their price, rating and link
+// Hotels and vacation rentals are both kept, with their price, rating and link
 const hotels = toHotels(fixture);
-assert.strictEqual(hotels.length, 4);
+assert.strictEqual(hotels.length, 6);
+assert.ok(hotels.some(hotel => hotel.name.startsWith("Cozy basement apartment")), "vacation rentals are not dropped");
 assert.ok(hotels.every(hotel => hotel.nightlyPrice > 0 && hotel.name));
 const microtel = hotels.find(hotel => hotel.name.startsWith("Microtel"));
 assert.strictEqual(microtel.nightlyPrice, 235);

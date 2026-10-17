@@ -23,10 +23,9 @@ function buildInput() {
     return input;
 }
 
-// The actor returns one item per results page, each with a `properties` list. It mixes in vacation rentals
-// (type "vacation rental") even with vacation_rentals off, and we book hotels by phone, so those are dropped.
+// The actor returns one item per results page, each with a `properties` list (hotels and vacation rentals, see `type`)
 function toHotels(pages) {
-    return pages.flatMap(page => page.properties || []).filter(property => !property.type || property.type === "hotel").map(property => {
+    return pages.flatMap(page => page.properties || []).map(property => {
         const totalPrice = property.total_rate?.extracted_lowest ?? null;
         return {
             name: property.name,
