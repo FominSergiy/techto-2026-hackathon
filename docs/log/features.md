@@ -19,9 +19,9 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
-## 2026-10-17 — Call recording + team footer in the receipt email
+## 2026-10-17 — Call recording, transcript + team footer in the receipt email
 tags: feature, email, elevenlabs
-- Feature: `email_service.py` attaches the booked call's ElevenLabs recording (mp3) when the payload has `conversation_id`, and ends every email with the team footer (Team 4, each member with their email). `main.py` passes `conversation_id` through. The same branch fixes `main.py` after the `b68047a` merge: `send_email`, `TEST`, the `call_hotel` arity and `status` were missing.
+- Feature: `email_service.py` attaches the booked call's ElevenLabs recording (mp3) when the payload has `conversation_id` and adds its transcript to the end of the body (both fetched in parallel), and ends every email with the team footer (Team 4, each member with their email). `main.py` passes `conversation_id` through. The same branch fixes `main.py` after the `b68047a` merge: `send_email`, `TEST`, the `call_hotel` arity and `status` were missing.
 - Status: done. Checked with a stub sender: a real id attaches 887 KB in about 0.3 s, and a bogus id, a missing key or a rejected attachment still send the email without it. Real SMTP send not yet run.
 - Notes: `GET /v1/convai/conversations/{id}/audio` returns `audio/mpeg`. Audio can lag a moment behind status `done`, so the fetch retries, but for at most 10 s.
 

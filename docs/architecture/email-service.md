@@ -20,7 +20,7 @@ updated: 2026-10-17
 | `address` | Yes | Hotel street address. Fall back to the search result if the call didn't capture it |
 | `hotel`, `phone`, `check_out` | No | Shown in the email when present |
 | `receptionist`, `call_time` | No | Used only for verbal types |
-| `conversation_id` | No | ElevenLabs conversation id. Its recording is attached as an mp3 (see [Call Recording](#call-recording)) |
+| `conversation_id` | No | ElevenLabs conversation id. Its recording is attached as an mp3 and its transcript goes in the body (see [Call Recording and Transcript](#call-recording-and-transcript)) |
 | `to` | No | Overrides `RESULT_EMAIL` (CLI `--send` only; in Python pass `to=`) |
 
 A missing required field raises `ValueError` and nothing is sent. The caller should then ask the agent for that field.
@@ -30,11 +30,11 @@ A missing required field raises `ValueError` and nothing is sent. The caller sho
  "phone": "+19056600212", "number": "ABC123", "price": 128, "date": "2026-10-17", "check_out": "2026-10-18"}
 ```
 
-## Call Recording
+## Call Recording and Transcript
 
-When the payload has `conversation_id`, `send_confirmation` downloads `GET /v1/convai/conversations/{id}/audio` (`audio/mpeg`, about 0.9 MB for a 3-minute call) and attaches it as `call-<hotel>-<id>.mp3`. The body then says `Call recording: attached (...)`. `main.py` puts the id in every booked result, so `result.json` re-sends include it.
+When the payload has `conversation_id`, `send_confirmation` downloads `GET /v1/convai/conversations/{id}/audio` (`audio/mpeg`, about 0.9 MB for a 3-minute call) and attaches it as `call-<hotel>-<id>.mp3`. The body then says `Call recording: attached (...)`. At the same time, in parallel, it reads `GET /v1/convai/conversations/{id}` and adds a `Call transcript:` section after the team footer, one line per spoken turn (`[0:06] Hotel: ...`, `[0:13] Alex: ...`; tool-call turns are skipped). `main.py` puts the id in every booked result, so `result.json` re-sends include it.
 
-**It never blocks the receipt.** A missing `ELEVENLABS_API_KEY`, a network error, a 404 or an empty body means the email goes without the recording and says `Call recording: unavailable (ElevenLabs conversation <id>)`. If the send fails *with* the attachment, it is retried once without it. The fetch retries `AUDIO_ATTEMPTS` (3) times, 2 s apart, and is capped at `AUDIO_MAX_WAIT` (10 s). The result adds `audio` (filename or null) and `audio_ms`.
+**Neither blocks the receipt.** A missing `ELEVENLABS_API_KEY`, a network error, a 404 or an empty body means the email goes without the recording and says `Call recording: unavailable (ElevenLabs conversation <id>)`. A failed transcript fetch likewise gives `Call transcript: unavailable`. If the send fails *with* the attachment, it is retried once without it. The fetch retries `AUDIO_ATTEMPTS` (3) times, 2 s apart, and is capped at `AUDIO_MAX_WAIT` (10 s). The result adds `audio` (filename or null), `transcript` (true/false) and `extras_ms` (time spent fetching both).
 
 ## Team Footer
 
@@ -46,7 +46,7 @@ Every email ends with `Team members: Team <TEAM_NUMBER>` and one line per member
 
 ```python
 from email_service import send_confirmation
-result = send_confirmation(res)   # -> {"provider", "id", "to", "ms", "audio", "audio_ms"}; raises on failure
+result = send_confirmation(res)   # -> {"provider", "id", "to", "ms", "audio", "transcript", "extras_ms"}; raises on failure
 ```
 
 The `email sent` log line marks the race time. If the send raises, the booking is already logged on the line before it, so it can be re-sent by hand with `--send`.
