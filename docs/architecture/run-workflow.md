@@ -28,7 +28,7 @@ The end-to-end path of one run: a text prompt comes in, a confirmation email goe
 | **Backboard** | Cloud API (`app.backboard.io/api`) | Prompt parsing, hotel web search, optional transcript check, lessons memory | Called by our service only |
 | **ElevenLabs Agents** | Cloud | Agent config (`agent_id`: prompt, voice, tools, turn settings); runs every conversation; post-call data and usage | Called by our service (start calls, fetch usage). Calls our tool URLs during calls and our webhook after. |
 | **Twilio** | Cloud | Phone number and phone network; call price; hang-up control | Used by ElevenLabs to dial; our service uses it to hang up stragglers |
-| **Email provider** (Resend, SendGrid or SMTP; TBD) | Cloud | Delivering the receipt | Called by our service |
+| **Email provider** (Gmail SMTP via [email-service.md](email-service.md); Resend optional) | Cloud | Delivering the receipt | Called by our service |
 | **Tunnel** (cloudflared named tunnel) | Our machine + cloud edge | A stable public HTTPS URL that forwards to `localhost` | ElevenLabs reaches our service through it |
 
 Only our service holds run state. Every other service is stateless from our point of view, or keeps only its own records (call logs, usage).

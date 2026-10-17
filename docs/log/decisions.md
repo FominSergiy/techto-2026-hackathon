@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Email via Gmail SMTP (default), Resend as an option
+tags: decision, email, stack
+- Decision: `Davide_test/email_service.py` sends the receipt. It uses Gmail SMTP with an app password by default, or Resend when `RESEND_API_KEY` is set. It is Python because the backend now lives in `Davide_test/` (Python), which conflicts with the Node.js entry below. The team still has to settle that.
+- Why: The spec requires the receipt to reach an address the organizers provide. Gmail SMTP can send to any address with no domain setup, while Resend's free tier only sends to your own login until a domain is verified. Neither adds a dependency.
+- Alternatives: SendGrid (sender verification + more setup); Resend only (blocked on a domain).
+
 ## 2026-10-17 — Agent config lives in the repo; ElevenLabs CLI syncs it, branch first
 tags: decision, elevenlabs, telephony, process
 - Decision: `agent_configs/Alex.json` is the source of truth, synced with `elevenlabs agents pull/push`. Pushes go to Alex's `repo-sync` branch (0% live). Main is changed only by merging after test calls. Alex's 3-step workflow is removed in favour of one prompt. Coordinator webhook tools are written but not attached until the tunnel exists. A copy, "Alex (repo config)", carries the same config as a standalone agent.

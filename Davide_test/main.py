@@ -4,10 +4,10 @@ Usage:
   python main.py "Book the cheapest hotel in Toronto for tonight, 1 guest"
   python main.py --search-only "cheapest hotel in Toronto tonight"   # no calls, no email
 """
-import os, re, sys, json, time, smtplib, datetime as dt, requests
-from email.message import EmailMessage
+import os, re, sys, json, time, datetime as dt, requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
+from email_service import send_confirmation
 
 load_dotenv()
 E = os.environ
@@ -158,19 +158,7 @@ def call_hotel(h, q):
         raise RuntimeError(f"{h['name']}: no reservation ({c.get('status')})")
     return {"hotel": d.get("hotel_name") or h["name"], "address": d.get("hotel_address") or h["address"],
             "phone": h["phone"], "number": d["reservation_number"],
-            "price": d.get("price") or h["price"], "date": q["check_in"]}
-
-
-# ---------- 4. Email ----------
-def send_email(res):
-    m = EmailMessage()
-    m["Subject"] = f"Team # {E.get('TEAM_NUMBER', '?')} - Hotel Reservation Confirmed!"
-    m["From"], m["To"] = E["SMTP_USER"], E["RESULT_EMAIL"]
-    m.set_content(f"Hotel Name: {res['hotel']}\nAddress: {res['address']}\nPhone: {res['phone']}\n"
-                  f"Reservation #: {res['number']}\nReservation Date: {res['date']}\nPrice: {res['price']}\n")
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
-        s.login(E["SMTP_USER"], E["SMTP_APP_PASSWORD"])
-        s.send_message(m)
+            "price": d.get("price") or h["price"], "date": q["check_in"], "check_out": q["check_out"]}
 
 
 def main():
@@ -198,8 +186,7 @@ def main():
                 hang_up(sid)
             log("BOOKED", **res)
             try:
-                send_email(res)
-                log("email sent")
+                log("email sent", **send_confirmation(res))  # t of this line = race time
             except Exception as e:
                 log(f"EMAIL FAILED: {e}")  # booking data is in the log line above
             break

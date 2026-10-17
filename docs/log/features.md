@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Confirmation email service
+tags: feature, email
+- Feature: Standalone sender, `Davide_test/email_service.py`: `send_confirmation(payload)` in Python, or `--send payload.json` from any language. It checks the spec's 4 fields (confirmation, price, date, address) and fails if any is missing. With no reservation number it falls back to the verbal formats (`type: verbal_booking | verbal_availability`). It sends via Gmail SMTP or Resend, retries once, and returns `{provider, id, to, ms}`. `main.py` uses it, and its "email sent" log line marks the race time. Wiring guide: [email-service.md](../architecture/email-service.md).
+- Status: done. A real Gmail SMTP send worked on 2026-10-17 (~0.9 s).
+- Notes: Gmail needs 2-Step Verification on before it offers app passwords, which was the slowest part of setup. Resend's free tier is quicker to sign up for but only delivers to your own login address until a domain is verified, so it can't reach the organizers. Pre-flight: `--dry-run`, then `--test you@x.com`.
+
 ## 2026-10-17 — Alex: backchannels don't interrupt; read back once
 tags: feature, elevenlabs, call-handling
 - Feature: 16 backchannel terms ("yeah", "okay", "mm-hmm", "uh-huh", "sure"…) set as `turn.interruption_ignore_terms`, plus ElevenLabs' English defaults (`merge_with_default_ignore_terms`). Prompt now says: read back exactly once, never start over, repeat only a corrected item, never re-ask for a detail already given.
