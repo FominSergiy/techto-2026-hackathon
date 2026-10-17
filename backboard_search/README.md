@@ -17,15 +17,13 @@ In the web UI (`node server.js`) the "Backboard (web search)" card has its own t
 
 Each run records `search.lastRun` (seconds, model, input/output tokens) for the time and token logs.
 
-## Wiring into search.js
+## Wiring into hotel_search
 
-Prices come from pages the model reads, so they are hints: keep the API sources as ground truth. Not wired in yet. To enable it:
-
-1. Add a root adapter `backboard.js`:
+Prices come from pages the model reads, so they are hints: keep the API sources as ground truth. The UI's Backboard card already uses this module directly. To make it a checkbox in the main search, add an adapter `hotel_search/backboard.js`:
 
 ```js
 const settings = require("./settings");
-const backboard = require("./backboard_search/backboard");
+const backboard = require("../backboard_search/backboard");
 const { runIfMain } = require("./hotel-utils");
 
 const search = () => backboard.search({
@@ -38,4 +36,4 @@ module.exports = { search };
 runIfMain(module, "Backboard", search);
 ```
 
-2. Add `backboard: "./backboard"` to the `SOURCES` map in `search.js`, then run `node search.js --sources=xotelo,backboard`.
+and a `sources.js` entry: `backboard: { label: "Backboard", detail: "web search", module: "./backboard", env: ["BACKBOARD_API_KEY"], cost: { kind: "tier", label: "Token-based", note: "Billed by Backboard per model call." } }`.

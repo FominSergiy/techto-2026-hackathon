@@ -87,7 +87,9 @@ TBD. Record the choice in [decisions.md](docs/log/decisions.md), then summarize 
   - `test/`: offline Expedia parser and flow tests (fake pages, no network)
 - `server.js`: web UI backend (plain `node:http`, no deps). Serves `public/index.html`, `GET /api/sources` and `POST /api/search {prompt, sources, places}`, which parses the prompt and runs `search.js --json`
 - `prompt.js`: free-text prompt -> `search.js` CLI args. Claude (haiku) when `ANTHROPIC_API_KEY` is set, regex fallback otherwise; raw `--flags` in the prompt always win
-- `public/index.html`: prompt textarea, a checkbox per API (disabled when its `.env` key is missing), and the results table
+- `public/index.html`: prompt textarea, a checkbox per API (disabled when its `.env` key is missing), and the results table. A separate "Backboard (web search)" card has its own textarea and button (`POST /api/backboard`)
+- `backboard_search/`: Backboard (web-search model) as a hotel price source, self-contained. Prices are hints, not API rates. Needs `BACKBOARD_API_KEY`. Not yet a checkbox in the main search, see its README for the wiring. `node backboard_search/test.js` runs the offline tests
+- `pricing.js`: experiment, on-device price finder (Places photos + hotel sites via local Ollama models). Found no usable prices, see `docs/log/features.md`
 - Git-ignored at the repo root: `.env`, `output/`, `.cache/`, `.browser-profile/`, `expedia-dump*.html`
 
 ## How to Run
