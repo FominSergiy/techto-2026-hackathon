@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Search suite lives in hotel_search/, one root entry point
+tags: decision, structure
+- Decision: All search scripts moved to `hotel_search/` (the old `search.js` orchestrator is now `hotel_search/index.js`). The root `search.js` is the single entry point and also has a `--json` mode, which replaces `search-json.js`. `.cache/`, `output/` and `.browser-profile/` stay at the repo root. All six sources are on by default, so the UI starts with every box ticked (a source still shows disabled until its `.env` keys exist).
+- Why: One place for the search code and one command to run it. The UI child process just calls `search.js --json`.
+- Alternatives: Moving the UI into its own folder too (not asked for). Keeping cache and output inside `hotel_search/` (would orphan the saved TripAdvisor key cache).
+
 ## 2026-10-17 — Expedia source via Playwright, human solves the bot check
 tags: decision, search, data-source
 - Decision: `expedia.js` is a proper source (`search()`, UI checkbox `expedia`, off by default). It drives Chromium with a persistent local profile (`.browser-profile/`, git-ignored). When Expedia shows its "Bot or Not?" / 429 check it does not try to get around it: headless it fails with a message pointing at `HEADLESS=false`, headed it waits up to 3 minutes for the human to solve it in the window. All selectors and text patterns sit in two constant blocks at the top, and `--dump-html=<file>` saves the page for selector fixes.

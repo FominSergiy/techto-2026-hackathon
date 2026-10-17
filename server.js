@@ -5,16 +5,16 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { spawn } = require("node:child_process");
 const { parsePrompt } = require("./prompt");
-const { SOURCES, describe } = require("./sources");
+const { SOURCES, describe } = require("./hotel_search/sources");
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, "public");
 const RESULT_MARKER = "@@RESULT@@";
 
-// Runs search-json.js with the given settings args, resolves { hotels, log }
+// Runs `search.js --json` with the given settings args, resolves { hotels, log }
 function runSearch(args) {
     return new Promise((resolve, reject) => {
-        const child = spawn(process.execPath, [path.join(__dirname, "search-json.js"), ...args], { cwd: __dirname });
+        const child = spawn(process.execPath, [path.join(__dirname, "search.js"), "--json", ...args], { cwd: __dirname });
         let stdout = "";
         let stderr = "";
         child.stdout.on("data", chunk => (stdout += chunk));
@@ -57,9 +57,15 @@ function demoResult(picked) {
         throw new Error("DEMO mode needs a saved run in output/ - run node search.js once first");
     }
 
-    const newest = files.sort((a, b) => fs.statSync(path.join(dir, b)).mtimeMs - fs.statSync(path.join(dir, a)).mtimeMs)[0];
+    const newestFirst = files.sort((a, b) => fs.statSync(path.join(dir, b)).mtimeMs - fs.statSync(path.join(dir, a)).mtimeMs);
+    // Skip runs that found nothing so the demo isn't blank
+    const runs = newestFirst.map(name => ({ name, hotels: JSON.parse(fs.readFileSync(path.join(dir, name), "utf8")) }));
+    const { name: newest, hotels } = runs.find(run => run.hotels.length) || {};
+    if (!newest) {
+        throw new Error("DEMO mode needs a saved run with hotels in output/ - run node search.js once first");
+    }
     return {
-        hotels: JSON.parse(fs.readFileSync(path.join(dir, newest), "utf8")),
+        hotels,
         log: `DEMO mode: showing saved results from output/${newest}. No APIs were called; the ticked sources (${picked.join(" ")}) are not applied.`,
         args: [...picked, "demo mode"],
         parser: "demo (prompt ignored)",

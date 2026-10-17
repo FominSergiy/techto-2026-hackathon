@@ -49,6 +49,11 @@ function csvCell(value) {
 // Writes <outputDir>/hotels-<city>-<checkIn>.csv and .json, returns the paths
 function writeReport(hotels) {
     if (!settings.outputDir) return [];
+    if (!hotels.length) {
+        // An empty or failed run must not overwrite the last good results
+        console.log("No hotels found - not overwriting saved results");
+        return [];
+    }
 
     const records = hotels.map(toRecord);
     const base = path.join(settings.outputDir, `hotels-${settings.city.toLowerCase().replace(/\W+/g, "-")}-${settings.checkIn}`);

@@ -31,7 +31,7 @@ const defaults = {
     minReviews: 50,
 
     // Sources search.js runs: xotelo, searchapi, liteapi, hotelbeds, booking
-    sources: ["xotelo", "searchapi", "liteapi", "hotelbeds"]
+    sources: ["xotelo", "searchapi", "liteapi", "hotelbeds", "booking", "expedia"]
 };
 
 function parseValue(raw, current) {

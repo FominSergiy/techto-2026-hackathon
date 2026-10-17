@@ -1,7 +1,7 @@
 // Expedia hotel prices, read from the real search page with Playwright (no API key).
 //
-//   HEADLESS=false node expedia.js                          a visible window - needed when Expedia shows its bot check
-//   HEADLESS=false node expedia.js --dump-html=expedia-dump.html   also save the page HTML (for fixing selectors)
+//   HEADLESS=false node hotel_search/expedia.js                          a visible window - needed when Expedia shows its bot check
+//   HEADLESS=false node hotel_search/expedia.js --dump-html=expedia-dump.html   also save the page HTML (for fixing selectors)
 //
 // Expedia shows a "Bot or Not?" challenge to automated browsers. This script does not try to get around
 // it: headless it stops with a clear error, headed it waits for you to solve the challenge in the window.
@@ -55,7 +55,8 @@ const DOLLAR_CURRENCIES = ["USD", "CAD", "AUD", "NZD", "MXN", "SGD", "HKD"];  //
 // ---------------------------------------------------------------------------------------------
 
 const BASE_URL = process.env.EXPEDIA_BASE_URL || "https://www.expedia.com";
-const PROFILE_DIR = process.env.EXPEDIA_PROFILE_DIR || path.join(__dirname, ".browser-profile", "expedia");
+const ROOT_DIR = path.join(__dirname, "..");   // repo root: the profile lives next to output/ and .cache/
+const PROFILE_DIR = process.env.EXPEDIA_PROFILE_DIR || path.join(ROOT_DIR, ".browser-profile", "expedia");
 const PAGE_TIMEOUT_MS = 60000;
 const FIRST_CARDS_WAIT_MS = 60000;    // how long to wait for result cards when nothing blocks the page
 const CHALLENGE_WAIT_MS = 180000;     // how long a human gets to solve the bot check (headed only)
@@ -178,8 +179,8 @@ async function waitForCards(page, url, firstStatus, headless) {
         if (blocked) {
             if (headless) {
                 throw new Error("Expedia blocked the headless browser with its 'Bot or Not?' check. Run with HEADLESS=false "
-                    + "(HEADLESS=false node expedia.js, or HEADLESS=false node server.js) and solve the check in the browser window; "
-                    + `it is remembered in ${path.relative(__dirname, PROFILE_DIR)}/.`);
+                    + "(HEADLESS=false node hotel_search/expedia.js, or HEADLESS=false node server.js) and solve the check in the browser window; "
+                    + `it is remembered in ${path.relative(ROOT_DIR, PROFILE_DIR)}/.`);
             }
             if (announcedAt == null) {
                 announcedAt = Date.now();

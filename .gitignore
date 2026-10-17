@@ -4,3 +4,4 @@ node_modules/
 output/
 .browser-profile/
 expedia-dump*.html
+.claude/

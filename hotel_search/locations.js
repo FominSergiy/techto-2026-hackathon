@@ -5,7 +5,7 @@ const path = require("node:path");
 const settings = require("./settings");
 const { requireEnv, getJson, hotelbedsHeaders, normalizeName: normalize } = require("./hotel-utils");
 
-const CACHE_FILE = path.join(__dirname, ".cache", "locations.json");
+const CACHE_FILE = path.join(__dirname, "..", ".cache", "locations.json");
 
 function readCache() {
     try {

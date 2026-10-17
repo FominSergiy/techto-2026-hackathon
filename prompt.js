@@ -8,7 +8,7 @@ try {
     // No .env file - rely on the environment
 }
 
-const defaults = require("./settings");
+const defaults = require("./hotel_search/settings");
 
 const MODEL = "claude-haiku-5-5";
 const SETTING_KEYS = {
@@ -77,7 +77,7 @@ function parseWithRegex(prompt) {
     return settings;
 }
 
-// Returns { args, settings, usage, parser } - args are ready to pass to search-json.js
+// Returns { args, settings, usage, parser } - args are ready to pass to search.js
 async function parsePrompt(prompt) {
     // Explicit --key=value tokens are passed through as-is and win over anything parsed
     const flags = prompt.match(/--[\w-]+=\S*/g) || [];

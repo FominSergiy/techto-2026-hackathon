@@ -7,10 +7,10 @@
 <style>
     :root {
         --bg: #f6f7f9; --card: #fff; --text: #1c2430; --muted: #6b7686; --border: #dfe3ea;
-        --accent: #2457d6; --accent-text: #fff; --error: #b3261e; --row: #f0f3f9;
+        --accent: #2457d6; --accent-text: #fff; --error: #b3261e; --row: #f0f3f9; --ok: #1a7f37; --warn: #9a6700;
     }
     @media (prefers-color-scheme: dark) {
-        :root { --bg: #14171c; --card: #1c2027; --text: #e7eaf0; --muted: #8f9aab; --border: #2f3641; --accent: #6b93ff; --accent-text: #0b1020; --error: #ff8a80; --row: #232833; }
+        :root { --bg: #14171c; --card: #1c2027; --text: #e7eaf0; --muted: #8f9aab; --border: #2f3641; --accent: #6b93ff; --accent-text: #0b1020; --error: #ff8a80; --row: #232833; --ok: #56d364; --warn: #e3b341; }
     }
     * { box-sizing: border-box; }
     body { margin: 0; padding: 24px 16px; background: var(--bg); color: var(--text); font: 15px/1.45 system-ui, sans-serif; }
@@ -35,6 +35,9 @@
     .sources { display: flex; gap: 8px 20px; flex-wrap: wrap; margin-bottom: 12px; }
     .sources label { display: flex; gap: 6px; align-items: baseline; cursor: pointer; }
     .sources label.off { cursor: not-allowed; opacity: .65; }
+    .badge { font-size: 11px; font-weight: 600; padding: 1px 8px; border: 1px solid currentColor; border-radius: 999px; white-space: nowrap; }
+    .badge.free { color: var(--ok); }
+    .badge.tier { color: var(--warn); }
     .sources .places { border-left: 1px solid var(--border); padding-left: 20px; }
     details { margin-top: 12px; }
     pre { margin: 8px 0 0; padding: 10px; background: var(--bg); border-radius: 8px; overflow-x: auto; font-size: 12px; }
@@ -85,13 +88,22 @@ function renderTable(hotels) {
     return `<div class="scroll"><table><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
+// Source failures are logged as "<source> failed: <reason>" - show them instead of burying them in the run log
+function failuresIn(log) {
+    return (log || "").split("\n").filter(line => /^\w+ failed: /.test(line));
+}
+
 function render(result) {
+    const failures = failuresIn(result.log);
     const usage = result.usage ? ` · ${result.usage.input_tokens + result.usage.output_tokens} prompt-parsing tokens` : "";
     const chips = result.args.map(arg => `<span class="chip">${esc(arg)}</span>`).join("");
     $("output").innerHTML = `
         <div class="card">
             <div class="chips">${chips || '<span class="chip">default settings</span>'}</div>
-            ${result.hotels.length ? renderTable(result.hotels) : "<p>No hotels matched. Try loosening the filters.</p>"}
+            ${failures.map(line => `<p class="error">${esc(line)}</p>`).join("")}
+            ${result.hotels.length ? renderTable(result.hotels)
+                : failures.length ? "<p>No hotels came back because the source(s) above failed.</p>"
+                : "<p>No hotels matched. Try loosening the filters.</p>"}
             <p class="muted">${result.hotels.length} hotels in ${result.seconds.toFixed(1)}s · prompt parsed by ${esc(result.parser)}${usage}</p>
             <details><summary class="muted">Run log</summary><pre>${esc(result.log)}</pre></details>
         </div>`;
@@ -123,7 +135,7 @@ async function run() {
 }
 
 // Source checkboxes. A source whose .env keys are missing is shown but can't be ticked.
-const CHOICES_KEY = "hotel-search-choices";
+const CHOICES_KEY = "hotel-search-choices-v2";   // bumped so earlier unticked boxes reset to on
 
 function savedChoices() {
     try {
@@ -142,12 +154,16 @@ function saveChoices() {
     }
 }
 
-function checkbox({ value, label, detail, missing, checked, className = "" }) {
+function badge(cost) {
+    return cost ? `<span class="badge ${esc(cost.kind)}" title="${esc(cost.note)}">${esc(cost.label)}</span>` : "";
+}
+
+function checkbox({ value, label, detail, cost, missing, checked, className = "" }) {
     const off = missing.length > 0;
     const note = off ? `missing ${missing.join(", ")} in .env` : detail;
     return `<label class="${className} ${off ? "off" : ""}">
         <input type="checkbox" value="${esc(value)}" ${checked && !off ? "checked" : ""} ${off ? "disabled" : ""}>
-        <span>${esc(label)} <span class="muted">${esc(note)}</span></span>
+        <span>${esc(label)} ${badge(cost)} <span class="muted">${esc(note)}</span></span>
     </label>`;
 }
 
@@ -159,9 +175,9 @@ async function loadSources() {
 
         $("sources").classList.remove("muted");
         $("sources").innerHTML = sources
-            .map(source => checkbox({ value: source.name, label: source.label, detail: source.detail, missing: source.missing, checked: saved[source.name] ?? source.defaultOn }))
+            .map(source => checkbox({ value: source.name, label: source.label, detail: source.detail, cost: source.cost, missing: source.missing, checked: saved[source.name] ?? source.defaultOn }))
             .join("")
-            + checkbox({ value: "places", label: "Google Places", detail: "phones, addresses, city check", missing: places.missing, checked: saved.places ?? true, className: "places" });
+            + checkbox({ value: "places", label: "Google Places", detail: "phones, addresses, city check", cost: places.cost, missing: places.missing, checked: saved.places ?? true, className: "places" });
         $("sources").addEventListener("change", saveChoices);
     } catch (error) {
         $("sources").textContent = `Could not load the source list: ${error.message}`;

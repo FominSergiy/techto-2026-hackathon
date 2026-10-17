@@ -70,28 +70,32 @@ TBD. Record the choice in [decisions.md](docs/log/decisions.md), then summarize 
 
 ## Repo Structure
 
-- `settings.js`: city and region (City X), dates (default: next Saturday, 1 night), guests, currency, filters and enabled sources. Any value can be overridden on the command line.
-- `search.js`: the suite. Runs every enabled source in parallel, merges to one row per hotel (cheapest offer), adds phone/address from Google Places, prints a table and saves CSV + JSON to `output/`
-- `sources.js`: the list of price sources, the `.env` keys each needs and whether it starts ticked (`defaultOn`) - drives the UI checkboxes and `search.js`
-- `server.js`: web UI backend (plain `node:http`, no deps). Serves `public/index.html` and `POST /api/search {prompt}`, which parses the prompt and runs `search-json.js` in a child process
+- `search.js`: the single entry point. Calls `hotel_search/`, prints the results table and saves CSV + JSON to `output/`. `--json` prints the records as one JSON line instead (what `server.js` runs in a child process, because `settings.js` reads `process.argv` once)
+- `hotel_search/`: the search suite
+  - `index.js`: runs every enabled source in parallel, merges to one row per hotel (cheapest offer), adds phone/address from Google Places, keeps only hotels in the search city
+  - `settings.js`: city and region (City X), dates (default: next Saturday, 1 night), guests, currency, filters and enabled sources. Any value can be overridden on the command line (`--max-nightly-price=200`)
+  - `sources.js`: the price sources, the `.env` keys each needs and whether it starts ticked (`defaultOn`) - drives the UI checkboxes and `index.js`
+  - `xotelo.js`, `searchapi.js`, `liteapi.js`, `hotelbeds.js`, `apify-booking.js`, `expedia.js`: one price source each, also runnable on their own. `expedia.js` reads the real search page with Playwright (persistent profile in `.browser-profile/`, `HEADLESS=false` so a human can solve the bot check, `--dump-html=<file>` for selector fixes); its selectors are unverified
+  - `places.js`: Google Places lookup that supplies phone numbers, street addresses and each hotel's real city
+  - `locations.js`: looks up the TripAdvisor (Xotelo) and Hotelbeds location codes from the city, cached in `.cache/`
+  - `report.js`: the single output format (name, city, address, phone, price, source, url) as table, CSV and JSON
+  - `hotel-utils.js`: shared env loading, JSON fetching, paging, filtering and cheapest-first ranking
+  - `maps.js`: standalone Google Places search (phone numbers, rough price level)
+  - `test/`: offline Expedia parser and flow tests (fake pages, no network)
+- `server.js`: web UI backend (plain `node:http`, no deps). Serves `public/index.html`, `GET /api/sources` and `POST /api/search {prompt, sources, places}`, which parses the prompt and runs `search.js --json`
 - `prompt.js`: free-text prompt -> `search.js` CLI args. Claude (haiku) when `ANTHROPIC_API_KEY` is set, regex fallback otherwise; raw `--flags` in the prompt always win
-- `search-json.js`: child entry that runs the suite and prints the records as JSON (needed because `settings.js` reads `process.argv` once)
 - `public/index.html`: prompt textarea, a checkbox per API (disabled when its `.env` key is missing), and the results table
-- `places.js`: Google Places lookup that supplies phone numbers and street addresses
-- `report.js`: the single output format (name, city, address, phone, price, source, url) as table, CSV and JSON
-- `xotelo.js`, `searchapi.js`, `liteapi.js`, `hotelbeds.js`, `apify-booking.js`: one hotel price source each, also runnable on their own
-- `locations.js`: looks up the TripAdvisor (Xotelo) and Hotelbeds location codes from the city, cached in `.cache/`
-- `hotel-utils.js`: shared env loading, JSON fetching, paging, filtering and cheapest-first ranking
-- `maps.js`: Google Places search (phone numbers, rough price level)
-- `expedia.js`: Expedia source. Playwright reads the real search page (persistent profile in `.browser-profile/`, `HEADLESS=false` so a human can solve the bot check, `--dump-html=<file>` for selector fixes). Selectors unverified. Offline tests in `test/`
+- Git-ignored at the repo root: `.env`, `output/`, `.cache/`, `.browser-profile/`, `expedia-dump*.html`
 
 ## How to Run
 
 ```bash
-cp .env.example .env    # fill in the keys for the sources you use
-node search.js          # the suite: all sources in settings.sources -> table + output/*.csv/json
-node server.js          # web UI on http://localhost:3000 (prompt textarea -> results table)
-DEMO=1 node server.js   # same UI, but every search shows the newest saved output/*.json - no API calls
-node xotelo.js          # a single source (no key needed for Xotelo)
+cp .env.example .env              # fill in the keys for the sources you use
+node search.js                    # all sources in hotel_search/settings.js -> table + output/*.csv/json
 node search.js --city=Paris --country-code=FR --sources=xotelo,searchapi --max-nightly-price=200
+node server.js                    # web UI on http://localhost:3000 (prompt textarea -> results table)
+DEMO=1 node server.js             # same UI, but every search shows the newest saved output/*.json - no API calls
+node hotel_search/xotelo.js       # a single source (no key needed for Xotelo)
+HEADLESS=false node hotel_search/expedia.js --dump-html=expedia-dump.html
+node hotel_search/test/expedia-parse.js   # offline Expedia tests
 ```

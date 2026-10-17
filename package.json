@@ -2,7 +2,7 @@
   "name": "techto-2026-hackathon",
   "version": "1.0.0",
   "description": "",
-  "main": "expedia.js",
+  "main": "search.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
