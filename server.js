@@ -164,13 +164,17 @@ async function handlePlaces(request, response) {
 
         const started = Date.now();
         const parsed = await parsePrompt(prompt);
-        const args = pinRegion(parsed.args, prompt);
+        // This card covers all of Canada, so the region is not pinned to Ontario: a province the request names ("Hamilton,
+        // Ontario") goes into the Maps queries to tell same-named cities apart, and without one the queries name only the city
+        const args = parsed.args;
         if (!hasCity(args)) {
             return sendJson(response, 400, { error: 'No city found in your prompt, so nothing was searched. Name one, e.g. "hotels in Hamilton" (or add --city=Hamilton).' });
         }
-        const city = args.find(arg => arg.startsWith("--city=")).slice("--city=".length);
+        const flag = name => args.find(arg => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
+        const city = flag("city");
+        const region = [flag("region")].find(value => value && !/^(null|undefined)$/i.test(value)) || null;
 
-        const result = await withRawCapture("places-search", () => placesSearch.run(city));
+        const result = await withRawCapture("places-search", () => placesSearch.run(city, region));
 
         // Then a Backboard model estimates each hotel's typical price (from the name, the area and web search) and the table is
         // ordered by it. If that fails the Maps results are still shown, unranked, with the reason.
@@ -178,7 +182,7 @@ async function handlePlaces(request, response) {
         let ranking = null;
         if (rank !== false && hotels.length) {
             try {
-                const ranked = await classify(hotels, { city, region: settings.region, countryCode: settings.countryCode, currency: settings.currency });
+                const ranked = await classify(hotels, { city, region, countryCode: settings.countryCode, currency: settings.currency });
                 hotels = ranked.hotels;
                 ranking = ranked.run;
             } catch (error) {

@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Google Maps card covers all of Canada: no province filter, no Ontario pinning
+tags: decision, search, places, scope
+- Decision: The Google Maps card (`places-search.js`, `POST /api/places`) no longer filters by province or pins the region to Ontario. A hotel is kept when it is in the searched city and in Canada (the country check stays so "Sudbury, MA" is dropped). A province named in the request ("London, Ontario") goes into the Maps query text and into the ranking prompt to tell same-named cities apart; without one the queries name only the city.
+- Why: The brief now covers the whole country. The old queries ("hotels in Vancouver, Ontario") would have been wrong outside Ontario.
+- Not changed: the main search (`settings.js` region default Ontario, `pinRegion` in the server, `filterToCity`'s region check, `prompt_refine.js`) and the Backboard card's wording still assume Ontario. `--region=null` switches the region off for the main search, but the prompt pinning and the UI hints still say Ontario.
+
 ## 2026-10-17 — Rank Google Maps hotels by a Backboard model's expected price
 tags: decision, search, places, backboard, tokens
 - Decision: After the 5 Maps searches, one Backboard call (web search on, `gpt-4o` by default) estimates a typical nightly price, class and confidence for up to 20 hotels, and the table is ordered by that estimate, cheapest first. The 20 are picked by how many searches found the hotel, then by review count; the rest are listed last, unranked. It is a checkbox, on by default.

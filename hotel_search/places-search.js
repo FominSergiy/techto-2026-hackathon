@@ -3,10 +3,10 @@
 // for the few places that have one, Google's rough price range (a hint, not a rate for any dates).
 // Each search is one Places Text Search call (Enterprise SKU because of the phone and price fields), so a run costs QUERY_TEMPLATES.length calls.
 const settings = require("./settings");
-const { requireEnv, getJson, normalizeHotel, normalizeName, matchesCity, runIfMain } = require("./hotel-utils");
+const { requireEnv, getJson, normalizeHotel, matchesCity, runIfMain } = require("./hotel-utils");
 const { locationOf } = require("./places");
 
-// {place} becomes "Hamilton, Ontario"
+// {place} becomes "Hamilton", or "Hamilton, Ontario" when the request named a province
 const QUERY_TEMPLATES = ["hotels in {place}", "inns in {place}", "motels in {place}", "hotels at {place}", "cheap hotels in {place}"];
 const PAGE_SIZE = 20;   // Places' maximum per page; only the first page of each search is read
 const RETRIES = 2;
@@ -73,22 +73,24 @@ async function textSearch(apiKey, textQuery) {
     return data.places || [];
 }
 
-// True when the place is in the searched city (see matchesCity: "Greater Sudbury" counts as Sudbury) and, when both
-// are known, the searched region. A place Google gave no city for is kept.
+// True when the place is in the searched city (see matchesCity: "Greater Sudbury" counts as Sudbury) and in the searched
+// country, in any province: this search covers all of Canada, so a same-named city elsewhere in Canada is not told apart
+// (put the province in the request, "Hamilton, Ontario", and it goes into the Maps queries). A place Google gave no
+// city or country for is kept.
 function inCity(hotel, city) {
-    const same = (a, b) => normalizeName(a) === normalizeName(b);
     return (!hotel.city || matchesCity(hotel, city))
-        && (!settings.region || !hotel.region || [hotel.region, hotel.regionCode].some(name => same(name, settings.region)));
+        && (!hotel.country || hotel.country.toLowerCase() === settings.countryCode.toLowerCase());
 }
 
 // Runs every query, merges by Places id (a hotel found by three searches is one row that remembers all three),
 // drops closed places and places outside the city. Returns { hotels, queries, dropped }.
-async function run(city = settings.city) {
+// `region` (a province, only when the request named one) goes into the query text to tell same-named cities apart; it is not a filter.
+async function run(city = settings.city, region = null) {
     if (!city) {
         throw new Error("No city given");
     }
     const [apiKey] = requireEnv("GOOGLE_MAPS_API_KEY");
-    const queries = queriesFor(city, settings.region);
+    const queries = queriesFor(city, region);
     const outcomes = await Promise.allSettled(queries.map(query => textSearch(apiKey, query)));
 
     if (outcomes.every(outcome => outcome.status === "rejected")) {
