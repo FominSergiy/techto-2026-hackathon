@@ -3,7 +3,7 @@
 // and returns the hotels. The root search.js calls search() and prints / saves them.
 const settings = require("./settings");
 const path = require("node:path");
-const { normalizeName, withRawCapture } = require("./hotel-utils");
+const { normalizeName, matchesCity, withRawCapture } = require("./hotel-utils");
 const { enrichWithPlaces } = require("./places");
 
 const { SOURCES } = require("./sources");
@@ -69,7 +69,7 @@ function filterToCity(hotels, report = {}) {
             continue;
         }
 
-        const inCity = sameName(hotel.city, settings.city)
+        const inCity = matchesCity(hotel)
             && (!settings.region || !hotel.region || [hotel.region, hotel.regionCode].some(name => sameName(name, settings.region)))
             && (!hotel.country || hotel.country.toLowerCase() === settings.countryCode.toLowerCase());
         (inCity ? kept : elsewhere).push(hotel);
@@ -94,7 +94,7 @@ function filterToCity(hotels, report = {}) {
 // (the Google actor's "Markham, ON, Canada"). Drop hotels a source places in another city, keep the ones it says
 // nothing about. Weaker than the Places check, which also verifies the hotels that have no city.
 function dropKnownOtherCities(hotels, report = {}) {
-    const kept = hotels.filter(hotel => !hotel.city || normalizeName(hotel.city) === normalizeName(settings.city));
+    const kept = hotels.filter(hotel => !hotel.city || matchesCity(hotel));
     const dropped = hotels.filter(hotel => !kept.includes(hotel));
     console.log(`Source city check (${settings.city}): dropped ${dropped.length} hotels a source places in other cities, ${kept.filter(hotel => !hotel.city).length} have no city to check`);
     dropped.forEach(hotel => console.log(`  other place: ${hotel.name} (${hotel.city})`));
@@ -147,4 +147,4 @@ async function search() {
     return hotels;
 }
 
-module.exports = { search, dropKnownOtherCities };
+module.exports = { search, filterToCity, dropKnownOtherCities };

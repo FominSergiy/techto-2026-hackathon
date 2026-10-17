@@ -7,7 +7,8 @@ const path = require("node:path");
 
 process.env.APIFY_KEY = "test-key";
 const settings = require("../settings");
-const { search, dropKnownOtherCities } = require("../index");
+const { search, filterToCity, dropKnownOtherCities } = require("../index");
+const { sameCity } = require("../hotel-utils");
 const fixture = require("./fixtures/apify-google-hotels-toronto.json");
 const { toHotels } = require("../apify-google-hotels");
 
@@ -50,6 +51,24 @@ global.fetch = async url => {
     // Same city, different spelling/case, is not dropped
     settings.city = "markham";
     assert.strictEqual(dropKnownOtherCities(hotels).length, 6, "Markham search keeps the 2 Markham + 4 unknown, drops Richmond Hill");
+
+    // Google files Sudbury hotels under "Greater Sudbury": a Sudbury search must keep them (the Google Maps card once dropped all 36)
+    settings.city = "Sudbury";
+    const place = (name, city, address, region = "Ontario", regionCode = "ON", country = "CA") => ({ name, city, address, region, regionCode, country });
+    const sudbury = [
+        place("Radisson Hotel Sudbury", "Greater Sudbury", "85 Ste Anne Rd, Sudbury, ON P3C 5E5, Canada"),
+        place("Lively Inn", "Lively", "1 Main St, Sudbury, ON P3Y 1A1, Canada"),
+        place("Burlington Inn", "Burlington", "1 Main St, Burlington, ON, Canada"),
+        place("Sudbury MA Inn", "Sudbury", "1 Main St, Sudbury, MA 01776, USA", "Massachusetts", "MA", "US")
+    ];
+    console.log = () => {};
+    try {
+        assert.deepStrictEqual(filterToCity(sudbury).map(hotel => hotel.name), ["Radisson Hotel Sudbury", "Lively Inn"], "Places check: Greater Sudbury and a Sudbury address stay; another city and another country go");
+        assert.deepStrictEqual(dropKnownOtherCities(sudbury).map(hotel => hotel.name), ["Radisson Hotel Sudbury", "Lively Inn", "Sudbury MA Inn"], "source check: only the other city goes (it does not look at the region)");
+    } finally {
+        console.log = realLog;
+    }
+    assert.ok(sameCity("City of Kawartha Lakes", "Kawartha Lakes") && sameCity("Greater Napanee", "Napanee") && !sameCity("Aurora", "Auroral"));
 
     console.log("city-check: all tests passed");
 })();

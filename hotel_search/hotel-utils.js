@@ -177,6 +177,19 @@ function normalizeName(name) {
         .trim();
 }
 
+// Google (and TripAdvisor) file places under the amalgamated municipality ("Greater Sudbury", "City of Kawartha Lakes")
+// while people search "Sudbury". Compare city names with those words taken off.
+const MUNICIPALITY_WORDS = /\b(greater|city of|town of|township of|municipality of|regional municipality of|county of)\b/g;
+const bareCity = name => normalizeName(name).replace(MUNICIPALITY_WORDS, "").replace(/\s+/g, " ").trim();
+const sameCity = (a, b) => bareCity(a) === bareCity(b);
+
+// True when the hotel is in `city`: its city field names it, or one comma-separated part of its address does
+// ("85 Ste Anne Rd, Sudbury, ON P3C 5E5, Canada" for a hotel Google files under Greater Sudbury or a suburb).
+// A hotel with no city and no address match is false; callers decide what to do with hotels that have no city at all.
+function matchesCity(hotel, city = settings.city) {
+    return Boolean(hotel.city && sameCity(hotel.city, city)) || (hotel.address || "").split(",").some(part => sameCity(part, city));
+}
+
 // Dedupes by name and keeps the cheapest targetCount hotels
 function cheapest(hotels) {
     const byName = new Map();
@@ -238,4 +251,4 @@ function runIfMain(mod, label, search) {
         });
 }
 
-module.exports = { sleep, requireEnv, getJson, withRawCapture, addFetched, HOTEL_FIELDS, normalizeHotel, countryName, runApifyActor, hotelbedsHeaders, normalizeName, perNight, passesFilters, cheapest, collectPages, printHotels, runIfMain };
+module.exports = { sleep, requireEnv, getJson, withRawCapture, addFetched, HOTEL_FIELDS, normalizeHotel, countryName, runApifyActor, hotelbedsHeaders, normalizeName, sameCity, matchesCity, perNight, passesFilters, cheapest, collectPages, printHotels, runIfMain };

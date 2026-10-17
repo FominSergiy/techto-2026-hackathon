@@ -2,7 +2,7 @@
 // The whole flow lives here, through Xotelo's RapidAPI listing (/search is only offered there; needs RAPID_API_KEY):
 //   /search finds the city's location key, /list pages through its hotels, /rates gives each hotel's live price.
 const settings = require("./settings");
-const { sleep, getJson, requireEnv, normalizeName, normalizeHotel, addFetched, passesFilters, cheapest, runIfMain } = require("./hotel-utils");
+const { sleep, getJson, requireEnv, normalizeName, sameCity, normalizeHotel, addFetched, passesFilters, cheapest, runIfMain } = require("./hotel-utils");
 const { cached } = require("./locations");
 
 // RapidAPI hosts are "<api-slug>.p.rapidapi.com"; this one is a guess from the listing's slug, override it if the
@@ -33,7 +33,6 @@ function locationKey() {
 
     return cached("tripadvisorLocationKey", async () => {
         // Several cities share a name (Aurora, ON vs Aurora, IL), so the place must name our city and region
-        const city = normalizeName(settings.city);
         const region = settings.region ? normalizeName(settings.region) : "";
 
         // "Toronto Ontario" and "Etobicoke Ontario" both got HTTP 400 "No results found" live, so after the city +
@@ -50,7 +49,7 @@ function locationKey() {
                 failure = error;
                 continue;
             }
-            const named = (list || []).filter(item => item.location_key && normalizeName(item.name) === city);
+            const named = (list || []).filter(item => item.location_key && sameCity(item.name, settings.city));
             const match = named.find(item => normalizeName(item.place_name || "").includes(region)) || (region ? null : named[0]);
             if (match) return match.location_key;
         }

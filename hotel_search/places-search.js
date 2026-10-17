@@ -3,7 +3,7 @@
 // for the few places that have one, Google's rough price range (a hint, not a rate for any dates).
 // Each search is one Places Text Search call (Enterprise SKU because of the phone and price fields), so a run costs QUERY_TEMPLATES.length calls.
 const settings = require("./settings");
-const { requireEnv, getJson, normalizeHotel, normalizeName, runIfMain } = require("./hotel-utils");
+const { requireEnv, getJson, normalizeHotel, normalizeName, matchesCity, runIfMain } = require("./hotel-utils");
 const { locationOf } = require("./places");
 
 // {place} becomes "Hamilton, Ontario"
@@ -73,17 +73,11 @@ async function textSearch(apiKey, textQuery) {
     return data.places || [];
 }
 
-// Google files hotels under the amalgamated municipality ("Greater Sudbury", "City of Kawartha Lakes") while people search "Sudbury"
-const MUNICIPALITY_WORDS = /\b(greater|city of|town of|township of|municipality of|regional municipality of|county of)\b/g;
-const bare = name => normalizeName(name).replace(MUNICIPALITY_WORDS, "").replace(/\s+/g, " ").trim();
-
-// True when the place is in the searched city (and region, when both are known). The city matches when the structured
-// address's locality does (ignoring "Greater"/"City of"), or when the formatted address ("1 Main St, Sudbury, ON ...") names it.
+// True when the place is in the searched city (see matchesCity: "Greater Sudbury" counts as Sudbury) and, when both
+// are known, the searched region. A place Google gave no city for is kept.
 function inCity(hotel, city) {
-    const isCity = name => bare(name) === bare(city);
-    const cityMatches = !hotel.city || isCity(hotel.city) || (hotel.address || "").split(",").some(isCity);
     const same = (a, b) => normalizeName(a) === normalizeName(b);
-    return cityMatches
+    return (!hotel.city || matchesCity(hotel, city))
         && (!settings.region || !hotel.region || [hotel.region, hotel.regionCode].some(name => same(name, settings.region)));
 }
 

@@ -84,7 +84,7 @@ TBD. Record the choice in [decisions.md](docs/log/decisions.md), then summarize 
   - `places.js`: Google Places lookup that supplies phone numbers, street addresses and each hotel's real city
   - `locations.js`: looks up the Hotelbeds destination code from the city, cached in `.cache/` (Xotelo's own lookup is in `xotelo.js`)
   - `report.js`: the single output format (name, city, address, phone, price, source, url) as table, CSV and JSON
-  - `hotel-utils.js`: shared env loading, JSON fetching, paging, filtering and cheapest-first ranking, plus `normalizeHotel` / `HOTEL_FIELDS` (the single hotel shape: name, city, address, phone, nightlyPrice, totalPrice, currency, rating, reviews, url, location). Every source exports its own `normalize` that maps one raw item through it; `node hotel_search/test/normalize.js` checks them all
+  - `hotel-utils.js`: shared env loading, JSON fetching, paging, filtering and cheapest-first ranking, plus `sameCity` / `matchesCity` (city names compared without "Greater" / "City of"; every city check uses them) and `normalizeHotel` / `HOTEL_FIELDS` (the single hotel shape: name, city, address, phone, nightlyPrice, totalPrice, currency, rating, reviews, url, location). Every source exports its own `normalize` that maps one raw item through it; `node hotel_search/test/normalize.js` checks them all
   - `maps.js`: standalone Google Places search (phone numbers, rough price level)
   - `test/`: offline Expedia parser and flow tests (fake pages, no network)
 - `server.js`: web UI backend (plain `node:http`, no deps). Serves `public/index.html`, `GET /api/sources` and `POST /api/search {prompt, sources, places}`, which parses the prompt and runs `search.js --json`
