@@ -162,4 +162,4 @@ async function enrichWithPlaces(hotels) {
     return enriched;
 }
 
-module.exports = { enrichWithPlaces, cleanName };
+module.exports = { enrichWithPlaces, cleanName, locationOf };

@@ -73,6 +73,17 @@
 
     <div id="bbReview"></div>
     <div id="bbOutput"></div>
+
+    <div class="card">
+        <h2>Google Maps (Places only)</h2>
+        <textarea id="gmPrompt" placeholder="e.g. Hotels in Hamilton (only the city is used; the region is always Ontario)" style="min-height: 52px"></textarea>
+        <div class="bar">
+            <button id="gmRun">Search Google Maps</button>
+            <span id="gmStatus" class="muted">No price APIs: the city is pulled from your text and 5 fixed Maps searches run for it ("hotels in X", "inns in X", "motels in X", "hotels at X", "cheap hotels in X"). 5 Places calls per run. Ctrl/Cmd+Enter to run.</span>
+        </div>
+    </div>
+
+    <div id="gmOutput"></div>
 </main>
 
 <script>
@@ -94,10 +105,24 @@ function esc(value) {
     return String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
-function renderTable(hotels) {
-    const head = COLUMNS.map(([label]) => `<th>${label}</th>`).join("");
+// The Google Maps card has no price API behind it: Google's price range is a hint that few hotels have, and every
+// row remembers which of the fixed searches found it
+const PLACES_COLUMNS = [
+    ["Hotel", h => h.name],
+    ["City", h => h.city],
+    ["Address", h => h.address],
+    ["Phone", COLUMNS[3][1], true],
+    ["Price hint", h => h.priceRange || h.priceLevel?.replace("PRICE_LEVEL_", "").toLowerCase() || "none"],
+    ["Rating", COLUMNS[6][1], "num"],
+    ["Found by", h => `${h.foundBy.length} of 5: ${h.foundBy.map(query => query.split(" ")[0] + " " + query.split(" ")[1]).join(", ")}`],
+    ["Website", h => h.url && `<a href="${esc(h.url)}" target="_blank" rel="noopener">open</a>`, true],
+    ["Maps", h => h.mapsUrl && `<a href="${esc(h.mapsUrl)}" target="_blank" rel="noopener">map</a>`, true]
+];
+
+function renderTable(hotels, columns = COLUMNS) {
+    const head = columns.map(([label]) => `<th>${label}</th>`).join("");
     // Columns flagged true return ready-made (already escaped) HTML
-    const rows = hotels.map(hotel => "<tr>" + COLUMNS.map(([, get, kind]) => {
+    const rows = hotels.map(hotel => "<tr>" + columns.map(([, get, kind]) => {
         const value = get(hotel);
         return `<td${kind === "num" ? ' class="num"' : ""}>${kind === true ? value || "" : esc(value)}</td>`;
     }).join("") + "</tr>").join("");
@@ -289,6 +314,43 @@ async function runBackboard(text) {
         button.disabled = false;
     }
 }
+
+async function runPlaces() {
+    const button = $("gmRun");
+    const started = Date.now();
+    button.disabled = true;
+    $("gmOutput").innerHTML = "";
+    const timer = setInterval(() => $("gmStatus").textContent = `Searching Google Maps… ${Math.round((Date.now() - started) / 1000)}s`, 500);
+
+    try {
+        const response = await fetch("/api/places", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt: $("gmPrompt").value })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error);
+        const usage = data.usage ? ` · ${data.usage.input_tokens + data.usage.output_tokens} prompt-parsing tokens` : "";
+        $("gmOutput").innerHTML = `
+            <div class="card">
+                <div class="chips">${data.queries.map(q => `<span class="chip">${esc(q.query)}: ${q.error ? `<span class="error">failed (${esc(q.error)})</span>` : `${q.returned} found, ${q.added} new`}</span>`).join("")}</div>
+                ${data.hotels.length ? renderTable(data.hotels, PLACES_COLUMNS) : "<p>Google Maps found no hotels.</p>"}
+                <p class="muted">${data.hotels.length} hotels in ${esc(data.city)} · ${data.seconds.toFixed(1)}s · city read by ${esc(data.parser)}${usage}</p>
+                ${data.dropped.length ? `<p class="muted">Dropped: ${data.dropped.map(entry => `${esc(entry.name ?? "?")} (${esc(entry.reason)})`).join(", ")}</p>` : ""}
+            </div>`;
+        $("gmStatus").textContent = "Done";
+    } catch (error) {
+        $("gmStatus").innerHTML = `<span class="error">${esc(error.message)}</span>`;
+    } finally {
+        clearInterval(timer);
+        button.disabled = false;
+    }
+}
+
+$("gmRun").addEventListener("click", runPlaces);
+$("gmPrompt").addEventListener("keydown", event => {
+    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) runPlaces();
+});
 
 // REVIEW_STEP true: two steps per box. "Review prompt" shows the full prompt that will run (nothing is searched yet)
 // and the "Run" button in the review panel then runs exactly that text. false (now): the button runs what you typed.

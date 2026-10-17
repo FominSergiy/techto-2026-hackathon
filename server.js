@@ -8,6 +8,8 @@ const { parsePrompt, pinRegion, hasCity } = require("./prompt");
 const { refine } = require("./prompt_refine");
 const { SOURCES, describe } = require("./hotel_search/sources");
 const backboard = require("./backboard_search/backboard");
+const placesSearch = require("./hotel_search/places-search");
+const { withRawCapture } = require("./hotel_search/hotel-utils");
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -146,6 +148,33 @@ async function handleBackboard(request, response) {
     }
 }
 
+// Google Maps only: the prompt is reduced to a city, then a few fixed Places searches run for it ("hotels in X", "inns in X", ...)
+async function handlePlaces(request, response) {
+    try {
+        const { prompt } = JSON.parse(await readBody(request));
+        if (!prompt?.trim()) {
+            return sendJson(response, 400, { error: "Enter a prompt first" });
+        }
+
+        if (process.env.DEMO) {
+            return sendJson(response, 400, { error: "DEMO mode makes no API calls, so the Google Maps search is off" });
+        }
+
+        const started = Date.now();
+        const parsed = await parsePrompt(prompt);
+        const args = pinRegion(parsed.args, prompt);
+        if (!hasCity(args)) {
+            return sendJson(response, 400, { error: 'No city found in your prompt, so nothing was searched. Name one, e.g. "hotels in Hamilton" (or add --city=Hamilton).' });
+        }
+        const city = args.find(arg => arg.startsWith("--city=")).slice("--city=".length);
+
+        const result = await withRawCapture("places-search", () => placesSearch.run(city));
+        sendJson(response, 200, { ...result, city, parser: parsed.parser, usage: parsed.usage, seconds: (Date.now() - started) / 1000 });
+    } catch (error) {
+        sendJson(response, 500, { error: error.message });
+    }
+}
+
 function serveStatic(request, response) {
     const name = request.url === "/" ? "index.html" : path.basename(request.url.split("?")[0]);
     const file = path.join(PUBLIC_DIR, name);
@@ -172,6 +201,9 @@ http.createServer((request, response) => {
     }
     if (request.method === "POST" && request.url === "/api/backboard") {
         return handleBackboard(request, response);
+    }
+    if (request.method === "POST" && request.url === "/api/places") {
+        return handlePlaces(request, response);
     }
     serveStatic(request, response);
 }).listen(PORT, () => console.log(`Hotel search UI on http://localhost:${PORT}${process.env.DEMO ? " (DEMO mode: saved results, no API calls)" : ""}`));

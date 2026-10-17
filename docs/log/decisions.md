@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Google Maps search as its own card: fixed queries, not a source checkbox
+tags: decision, search, places, ui
+- Decision: A separate "Google Maps (Places only)" card (`POST /api/places`, `hotel_search/places-search.js`) reduces the prompt to a city (same parser as the main search) and runs 5 fixed Places text searches for it, merged by Places id. It is not one of the price-source checkboxes and not in `sources.js`.
+- Why: It finds candidates with phones from Google Maps alone, which is a way to test how good Places is as a hotel finder with no price API behind it. Fixed queries keep the cost known (5 calls) and the results comparable run to run.
+- Alternatives: One free-text Places query (misses "inns", "motels"); more pages per query (Places paginates, 20 per page: costs more calls, not tried yet).
+
 ## 2026-10-17 — Each source normalizes its own output into one shared shape
 tags: decision, search, architecture
 - Decision: Every source script owns a `normalize(rawItem)` built on the shared `normalizeHotel()`, instead of each building its hotel object inline. The rest of the suite (merge, Places, report, UI) only knows the one shape.
