@@ -32,4 +32,17 @@ assert.strictEqual(microtel.reviews, 509);
 assert.match(microtel.url, /wyndhamhotels\.com/);
 assert.ok(microtel.location.latitude);
 
+// A manual run that returned phones gives one flat item per hotel (no `properties` wrapper): real data, trimmed
+const withPhones = toHotels(require("./fixtures/apify-google-hotels-with-phones.json"));
+assert.strictEqual(withPhones.length, 3, "flat items are read, not skipped");
+assert.deepStrictEqual(withPhones.map(hotel => [hotel.name, hotel.phone, hotel.nightlyPrice]), [
+    ["Days Inn by Wyndham Fallsview", "+1 905-356-1722", 57],
+    ["McMaster Accommodations", "+1 905-920-5178", 64],
+    ["Ritz Inn Niagara", "+1 905-356-4490", 57]
+]);
+assert.strictEqual(withPhones[0].address, "Niagara Falls, ON, Canada");
+assert.strictEqual(withPhones[2].url, null, "a hotel with no link stays null");
+// The plain search shape still has no phones
+assert.ok(toHotels(fixture).every(hotel => hotel.phone === null));
+
 console.log("apify-google-hotels: all tests passed");

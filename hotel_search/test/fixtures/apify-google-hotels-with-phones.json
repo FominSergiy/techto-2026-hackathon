@@ -1,0 +1,43 @@
+[
+  {
+    "type": "hotel",
+    "name": "Days Inn by Wyndham Fallsview",
+    "link": "https://www.wyndhamhotels.com/en-ca/days-inn/niagara-falls-ontario/days-inn-fallsview/overview?CID=LC:iqv0j1dklijly45:19671&iata=00093796",
+    "property_token": "ChcIndHe_fS2764oGgsvZy8xdGp5dmw4OBAB",
+    "address": "Niagara Falls, ON, Canada",
+    "phone": "+1 905-356-1722",
+    "phone_link": "tel:+19053561722",
+    "gps_coordinates": { "latitude": 43.0802195, "longitude": -79.0852914 },
+    "rate_per_night": { "lowest": "CA$57", "extracted_lowest": 57, "before_taxes_fees": "CA$43", "extracted_before_taxes_fees": 43 },
+    "total_rate": { "lowest": "CA$57", "extracted_lowest": 57, "before_taxes_fees": "CA$43", "extracted_before_taxes_fees": 43 },
+    "overall_rating": 3.1,
+    "reviews": 1948
+  },
+  {
+    "type": "hotel",
+    "name": "McMaster Accommodations",
+    "link": "http://www.mcmasteraccommodations.ca/",
+    "property_token": "ChgIyeLy_ZXD1MFjGgwvZy8xMTNnbmI4eDQQAQ",
+    "address": "Hamilton, ON, Canada",
+    "phone": "+1 905-920-5178",
+    "phone_link": "tel:+19059205178",
+    "gps_coordinates": { "latitude": 43.252814199999996, "longitude": -79.9216446 },
+    "rate_per_night": { "lowest": "CA$64", "extracted_lowest": 64, "before_taxes_fees": "CA$60", "extracted_before_taxes_fees": 60 },
+    "total_rate": { "lowest": "CA$64", "extracted_lowest": 64, "before_taxes_fees": "CA$60", "extracted_before_taxes_fees": 60 },
+    "overall_rating": 4,
+    "reviews": 43
+  },
+  {
+    "type": "hotel",
+    "name": "Ritz Inn Niagara",
+    "property_token": "ChcIt7ypwq3u-5UEGgsvZy8xdGN4N19kbRAB",
+    "address": "Niagara Falls, ON, Canada",
+    "phone": "+1 905-356-4490",
+    "phone_link": "tel:+19053564490",
+    "gps_coordinates": { "latitude": 43.078959999999995, "longitude": -79.0857312 },
+    "rate_per_night": { "lowest": "CA$57", "extracted_lowest": 57, "before_taxes_fees": "CA$48", "extracted_before_taxes_fees": 48 },
+    "total_rate": { "lowest": "CA$57", "extracted_lowest": 57, "before_taxes_fees": "CA$48", "extracted_before_taxes_fees": 48 },
+    "overall_rating": 3,
+    "reviews": 495
+  }
+]

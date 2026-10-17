@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Google Hotels actor CAN return phones (correction), flat output shape handled
+tags: feature, search, apify, learnings
+- Feature: A manual Apify run of `johnvc/google-hotels-search-scraper` returned `address`, `phone` and `phone_link` for every hotel, as one flat item per hotel (no `properties` page wrapper). `apify-google-hotels.js` now reads both shapes (page items and flat items) and logs how many hotels came back with a phone; real data is in `test/fixtures/apify-google-hotels-with-phones.json`.
+- Status: parsing done and tested offline. Which INPUT makes the actor return phones is NOT known yet: our run (Aurora, `search_type: "search"`, `max_pages`, no extras) returned page items with no phone or address in all 20 properties, and the actor's README and input schema list no "enrich" option (only a `property_token` details mode). So the earlier note "the actor has no phone in search output" was only true for our input.
+- Notes: Next step is to read the exact input of the manual run (Apify console, run, Input tab) and put it in `buildInput()`. Until then phones come from Google Places, which keeps a source phone when it finds no match.
+
 ## 2026-10-17 — One hotel shape from every source (per-source normalizers)
 tags: feature, search, architecture
 - Feature: `normalizeHotel()` in `hotel-utils.js` defines the single output (name, city, address, phone, nightlyPrice, totalPrice, currency, rating out of 5, reviews, url, location), always with every field (null when unknown, numbers as numbers). Each source (Xotelo, SearchApi, LiteAPI, Hotelbeds, Apify Booking / Google Hotels / Hotels.com, Expedia) now has its own exported `normalize` that maps one raw API item through it; Backboard's `toHotel` has the same fields. `test/normalize.js` runs all of them and checks the shape. Also: Places keeps a phone the source already had, and the Booking actor now gets "City, Region, Country" instead of just the city.

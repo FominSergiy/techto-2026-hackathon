@@ -24,8 +24,8 @@ function buildInput() {
     return input;
 }
 
-// One property from a results page -> the common hotel shape. Search results have no phone or address
-// (only the actor's property-details mode does), so those stay null and come from Google Places.
+// One property -> the common hotel shape. The phone and address are only there when the run returned them (a plain
+// search run does not, a manual run with phone numbers did); when missing they stay null and come from Google Places.
 function normalize(property) {
     const totalPrice = property.total_rate?.extracted_lowest;
     return normalizeHotel({
@@ -42,13 +42,15 @@ function normalize(property) {
     });
 }
 
-// The actor returns one item per results page, each with a `properties` list (hotels and vacation rentals, see `type`)
-const toHotels = pages => pages.flatMap(page => page.properties || []).map(normalize);
+// Two output shapes are seen: one item per results page with a `properties` list (a plain search run), or one flat
+// item per hotel (a manual run that included phone numbers). Both give hotels and vacation rentals (see `type`).
+const propertiesOf = item => item.properties || (item.name && item.property_token ? [item] : []);
+const toHotels = items => items.flatMap(propertiesOf).map(normalize);
 
 async function search() {
-    const pages = await runApifyActor(ACTOR, buildInput());
-    const hotels = toHotels(pages);
-    console.log(`Apify Google Hotels: ${pages.length} pages, ${hotels.length} hotels`);
+    const items = await runApifyActor(ACTOR, buildInput());
+    const hotels = toHotels(items);
+    console.log(`Apify Google Hotels: ${items.length} dataset items, ${hotels.length} hotels, ${hotels.filter(hotel => hotel.phone).length} with a phone`);
     return cheapest(hotels.filter(passesFilters));
 }
 
