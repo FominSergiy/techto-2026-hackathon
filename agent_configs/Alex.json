@@ -8,7 +8,12 @@
                     "check_out_date": "October 18",
                     "contact_email": "galluzzodavide01@gmail.com",
                     "guest_name": "Davide",
-                    "number_of_guests": "1"
+                    "number_of_guests": "1",
+                    "run_id": "test-run",
+                    "candidate_id": "h1",
+                    "hotel_name": "the hotel",
+                    "listed_price": "",
+                    "hotel_notes": ""
                 }
             },
             "first_message": "Hi, I'd like to book your cheapest room, {{check_in_date}} to {{check_out_date}}, under the name {{guest_name}}. What's the rate?",
@@ -58,18 +63,70 @@
                         "type": "system"
                     },
                     "memory_entry_search": null,
-                    "play_keypad_touch_tone": null,
+                    "play_keypad_touch_tone": {
+                        "assignments": [],
+                        "description": "Press keypad digits to navigate an automated phone menu.",
+                        "disable_interruptions": false,
+                        "force_pre_tool_speech": false,
+                        "interruption_mode": "allow",
+                        "name": "play_keypad_touch_tone",
+                        "params": {
+                            "system_tool_type": "play_keypad_touch_tone",
+                            "suppress_turn_after_dtmf": true,
+                            "use_out_of_band_dtmf": false
+                        },
+                        "pre_tool_speech": "auto",
+                        "response_timeout_secs": 20,
+                        "tool_call_sound": null,
+                        "tool_call_sound_behavior": "auto",
+                        "tool_error_handling_mode": "auto",
+                        "type": "system"
+                    },
                     "run_subagent": null,
-                    "skip_turn": null,
+                    "skip_turn": {
+                        "assignments": [],
+                        "description": "Stay silent while on hold, while hold music plays, or when asked to wait.",
+                        "disable_interruptions": false,
+                        "force_pre_tool_speech": false,
+                        "interruption_mode": "allow",
+                        "name": "skip_turn",
+                        "params": {
+                            "system_tool_type": "skip_turn",
+                            "wait_timeout_secs": -1
+                        },
+                        "pre_tool_speech": "auto",
+                        "response_timeout_secs": 20,
+                        "tool_call_sound": null,
+                        "tool_call_sound_behavior": "auto",
+                        "tool_error_handling_mode": "auto",
+                        "type": "system"
+                    },
                     "transfer_to_agent": null,
                     "transfer_to_genesys": null,
                     "transfer_to_genesys_bot": null,
                     "transfer_to_genesys_chat": null,
                     "transfer_to_number": null,
                     "update_state": null,
-                    "voicemail_detection": null
+                    "voicemail_detection": {
+                        "assignments": [],
+                        "description": "End the call when a voicemail or answering machine picks up.",
+                        "disable_interruptions": false,
+                        "force_pre_tool_speech": false,
+                        "interruption_mode": "allow",
+                        "name": "voicemail_detection",
+                        "params": {
+                            "system_tool_type": "voicemail_detection",
+                            "voicemail_message": ""
+                        },
+                        "pre_tool_speech": "auto",
+                        "response_timeout_secs": 20,
+                        "tool_call_sound": null,
+                        "tool_call_sound_behavior": "auto",
+                        "tool_error_handling_mode": "auto",
+                        "type": "system"
+                    }
                 },
-                "cascade_timeout_seconds": 4.0,
+                "cascade_timeout_seconds": 4,
                 "custom_llm": null,
                 "enable_parallel_tool_calls": true,
                 "enable_reasoning_summary": false,
@@ -80,7 +137,7 @@
                 "mcp_server_ids": [],
                 "native_mcp_server_ids": [],
                 "opener": null,
-                "prompt": "You are Alex, an AI assistant calling a hotel front desk to book its cheapest room. You are the caller. Guest: {{guest_name}}, {{number_of_guests}} guest(s), check-in {{check_in_date}}, check-out {{check_out_date}}.\nStyle: max 2 short sentences per turn, one question at a time, natural spoken English.\nRules:\n- Take the first and cheapest price offered. Never ask about other rooms, upgrades, occupancy or amenities. Right after hearing a price, say \"I'll take it.\"\n- If a card is requested, say you can't give one and ask to pay at check-in. If they insist, thank them and call end_call.\n- Collect: total price, full hotel address, confirmation number. Ask for any that is missing.\n- Ask them to email the confirmation to {{contact_email}}.\n- Read back once: hotel name, address, price, dates, confirmation number digit by digit. Then thank them and call end_call.\n- IVR: press the digit for reservations (else front desk/operator). If asked to speak, say \"reservations\". On hold or music, stay silent.\n- Voicemail, no availability, or refusal: call end_call.\n- Never invent numbers. If unclear, ask to repeat. If sincerely asked, say you are an AI assistant booking for the guest.",
+                "prompt": "You are Alex, an AI assistant calling {{hotel_name}} to book its cheapest room. You are the caller, not the hotel. Guest: {{guest_name}}, {{number_of_guests}} guest(s), check-in {{check_in_date}}, check-out {{check_out_date}}.\nNotes from past calls to this hotel (may be empty): {{hotel_notes}}\n\nStyle: at most 2 short sentences per turn, one question at a time, natural spoken English.\n\nPhone menus and holds:\n- Automated menu: use play_keypad_touch_tone to press the option for reservations (else front desk or operator, else 0). If asked to speak, say \"reservations\".\n- On hold, music, silence or \"please wait\": call skip_turn and stay silent. Never talk over hold audio.\n- If transferred to a new person, restate the request in one sentence.\n- Voicemail or answering machine: end the call without leaving a message.\n\nBooking:\n- Take the first and cheapest rate offered and say \"I'll take it.\" Don't ask about upgrades, amenities or other rooms.\n- If they offer a different room or date, ask once whether it is their cheapest option for the requested dates, then accept it if it is.\n- Collect all of these, asking for any that is missing: total price including taxes and the currency, the dates booked, the hotel's full street address, and a reservation or confirmation number.\n- Always ask once for a reservation number. If they have none, ask for the name of the person you are speaking with.\n\nPayment (strict):\n- Never ask for, accept or give card or payment details, not even partly.\n- If they ask for a card, say you can't provide one by phone and ask to book with payment at the hotel.\n- If they still won't book without a card, ask them to confirm the room is available on {{check_in_date}} at the quoted price, and ask for their name. That is enough; then wrap up.\n\nBefore ending:\n- Read back once: hotel name, address, total price, dates, and the confirmation number digit by digit (or the person's name if there is no number). Fix anything they correct.\n- If they offer to email a confirmation, give {{contact_email}}.\n- Thank them and call end_call.\n- No availability or a refusal: thank them and call end_call.\n\nNever invent numbers, prices or names. If something is unclear, ask them to repeat it. If sincerely asked, say you are an AI assistant booking on behalf of the guest.",
                 "rag": {
                     "embedding_model": "e5_mistral_7b_instruct",
                     "enabled": false,
@@ -102,7 +159,7 @@
                 },
                 "service_tier": "standard",
                 "speech_engine": null,
-                "temperature": 0.0,
+                "temperature": 0,
                 "thinking_budget": null,
                 "timezone": null,
                 "tool_ids": [],
@@ -135,6 +192,61 @@
                         "params": {
                             "only_at_conversation_start": false,
                             "system_tool_type": "language_detection"
+                        },
+                        "pre_tool_speech": "auto",
+                        "response_timeout_secs": 20,
+                        "tool_call_sound": null,
+                        "tool_call_sound_behavior": "auto",
+                        "tool_error_handling_mode": "auto",
+                        "type": "system"
+                    },
+                    {
+                        "assignments": [],
+                        "description": "Stay silent while on hold, while hold music plays, or when asked to wait.",
+                        "disable_interruptions": false,
+                        "force_pre_tool_speech": false,
+                        "interruption_mode": "allow",
+                        "name": "skip_turn",
+                        "params": {
+                            "system_tool_type": "skip_turn",
+                            "wait_timeout_secs": -1
+                        },
+                        "pre_tool_speech": "auto",
+                        "response_timeout_secs": 20,
+                        "tool_call_sound": null,
+                        "tool_call_sound_behavior": "auto",
+                        "tool_error_handling_mode": "auto",
+                        "type": "system"
+                    },
+                    {
+                        "assignments": [],
+                        "description": "Press keypad digits to navigate an automated phone menu.",
+                        "disable_interruptions": false,
+                        "force_pre_tool_speech": false,
+                        "interruption_mode": "allow",
+                        "name": "play_keypad_touch_tone",
+                        "params": {
+                            "system_tool_type": "play_keypad_touch_tone",
+                            "suppress_turn_after_dtmf": true,
+                            "use_out_of_band_dtmf": false
+                        },
+                        "pre_tool_speech": "auto",
+                        "response_timeout_secs": 20,
+                        "tool_call_sound": null,
+                        "tool_call_sound_behavior": "auto",
+                        "tool_error_handling_mode": "auto",
+                        "type": "system"
+                    },
+                    {
+                        "assignments": [],
+                        "description": "End the call when a voicemail or answering machine picks up.",
+                        "disable_interruptions": false,
+                        "force_pre_tool_speech": false,
+                        "interruption_mode": "allow",
+                        "name": "voicemail_detection",
+                        "params": {
+                            "system_tool_type": "voicemail_detection",
+                            "voicemail_message": ""
                         },
                         "pre_tool_speech": "auto",
                         "response_timeout_secs": 20,
@@ -190,7 +302,7 @@
                 "max_files_in_memory": 10,
                 "max_files_per_conversation": 10
             },
-            "max_duration_seconds": 600,
+            "max_duration_seconds": 900,
             "max_duration_seconds_after_last_agent_message": null,
             "monitoring_enabled": false,
             "monitoring_events": [
@@ -211,9 +323,9 @@
             "model_id": "eleven_v3_conversational",
             "optimize_streaming_latency": 3,
             "pronunciation_dictionary_locators": [],
-            "pvc_strength": 0.0,
+            "pvc_strength": 0,
             "similarity_boost": 0.8,
-            "speed": 1.0,
+            "speed": 1,
             "stability": 0.5,
             "suggested_audio_tags": [],
             "supported_voices": [],
@@ -227,15 +339,15 @@
             "merge_with_default_ignore_terms": false,
             "mode": "turn",
             "retranscribe_on_turn_timeout": false,
-            "silence_end_call_timeout": -1.0,
+            "silence_end_call_timeout": -1,
             "soft_timeout_config": {
                 "additional_soft_timeout_messages": [],
                 "disable_until_first_user_message": false,
                 "llm_generated_message_prompt_override": null,
                 "max_soft_timeouts_per_generation": 1,
-                "message": "Hhmmmm...yeah.",
+                "message": "One sec.",
                 "randomize_fillers": false,
-                "timeout_seconds": -1.0,
+                "timeout_seconds": 3,
                 "use_llm_generated_message": false
             },
             "speculative_turn": true,
@@ -243,7 +355,7 @@
             "transcribe_on_disabled_interruptions": false,
             "turn_eagerness": "normal",
             "turn_model": "turn_v3",
-            "turn_timeout": 7.0
+            "turn_timeout": 20
         },
         "vad": {
             "background_voice_detection": false
@@ -391,6 +503,56 @@
                 "llm_billed": false,
                 "name": null,
                 "type": "string"
+            },
+            "stay_dates": {
+                "allowed_values": null,
+                "allowed_values_dynamic_variable": "",
+                "analysis_schedule": null,
+                "constant_value": "",
+                "description": "The check-in and check-out dates the hotel confirmed. Empty if not said.",
+                "dynamic_variable": "",
+                "enum": null,
+                "is_omitted": false,
+                "is_system_provided": false,
+                "llm": null,
+                "llm_billed": false,
+                "name": null,
+                "type": "string"
+            },
+            "receptionist_name": {
+                "allowed_values": null,
+                "allowed_values_dynamic_variable": "",
+                "analysis_schedule": null,
+                "constant_value": "",
+                "description": "The name of the hotel staff member who confirmed the booking or availability. Empty if not said.",
+                "dynamic_variable": "",
+                "enum": null,
+                "is_omitted": false,
+                "is_system_provided": false,
+                "llm": null,
+                "llm_billed": false,
+                "name": null,
+                "type": "string"
+            },
+            "confirmation_type": {
+                "allowed_values": null,
+                "allowed_values_dynamic_variable": "",
+                "analysis_schedule": null,
+                "constant_value": "",
+                "description": "How the booking was confirmed.",
+                "dynamic_variable": "",
+                "enum": [
+                    "reservation_id",
+                    "verbal_booking",
+                    "verbal_availability",
+                    "none"
+                ],
+                "is_omitted": false,
+                "is_system_provided": false,
+                "llm": null,
+                "llm_billed": false,
+                "name": null,
+                "type": "string"
             }
         },
         "data_collection_scopes": {},
@@ -426,26 +588,12 @@
                 },
                 {
                     "analysis_schedule": null,
-                    "conversation_goal_prompt": "Did the agent provide all necessary and correct booking details to the hotel staff?",
-                    "id": "correct_details_provided",
+                    "conversation_goal_prompt": "Did the agent avoid asking for, accepting or giving any card or payment details during the call?",
+                    "id": "no_payment_details",
                     "llm": null,
                     "llm_billed": false,
                     "max_score": 100,
-                    "name": "Correct Details Provided",
-                    "scope": "conversation",
-                    "score_instructions": null,
-                    "scoring_mode": "binary",
-                    "type": "prompt",
-                    "use_knowledge_base": false
-                },
-                {
-                    "analysis_schedule": null,
-                    "conversation_goal_prompt": "Was the agent's interaction with the hotel staff efficient and to the point?",
-                    "id": "efficient_interaction",
-                    "llm": null,
-                    "llm_billed": false,
-                    "max_score": 100,
-                    "name": "Efficient Interaction",
+                    "name": "No Payment Details",
                     "scope": "conversation",
                     "score_instructions": null,
                     "scoring_mode": "binary",
@@ -781,129 +929,8 @@
     },
     "tags": [],
     "workflow": {
-        "edges": {
-            "edge_2701m552v226etavsmb52v3ycmtw": {
-                "backward_condition": null,
-                "forward_condition": {
-                    "condition": "The agent has successfully navigated the IVR (if any) and is connected to a hotel representative or automated booking system.",
-                    "exit_slot": {
-                        "type": "any"
-                    },
-                    "label": null,
-                    "type": "llm"
-                },
-                "source": "node_3601m552v222ee2bxpcks727t4n6",
-                "target": "node_7701m552v223f0bvrt6rsn9mkta8"
-            },
-            "edge_3001m552v225fypst87ajqd0d5qs": {
-                "backward_condition": null,
-                "forward_condition": {
-                    "exit_slot": {
-                        "type": "any"
-                    },
-                    "label": null,
-                    "type": "unconditional"
-                },
-                "source": "start_node",
-                "target": "node_3601m552v222ee2bxpcks727t4n6"
-            },
-            "edge_9401m552v227fcqagg97zk7hsh3s": {
-                "backward_condition": null,
-                "forward_condition": {
-                    "condition": "The agent has provided all necessary booking details and received confirmation or a clear status regarding the booking.",
-                    "exit_slot": {
-                        "type": "any"
-                    },
-                    "label": null,
-                    "type": "llm"
-                },
-                "source": "node_7701m552v223f0bvrt6rsn9mkta8",
-                "target": "node_6701m552v224fxd8cxsrq1432v0j"
-            }
-        },
-        "nodes": {
-            "node_3601m552v222ee2bxpcks727t4n6": {
-                "additional_knowledge_base": [],
-                "additional_prompt": "You are calling a hotel to book a room. State your purpose clearly and politely. You will need to navigate any IVR systems using the keypad tool. Be prepared to provide booking details such as dates, room type, and guest information. Maintain a calm, professional, and efficient tone with a neutral North American accent.",
-                "additional_tool_ids": [],
-                "conversation_config": {
-                    "agent": {
-                        "prompt": {
-                            "built_in_tools": {}
-                        }
-                    }
-                },
-                "edge_order": [
-                    "edge_2701m552v226etavsmb52v3ycmtw"
-                ],
-                "entry_behavior": "auto",
-                "forced_tool_name": null,
-                "label": "Initiate Booking Call",
-                "parent_subgraph_id": null,
-                "position": {
-                    "x": 0.0,
-                    "y": 178.0
-                },
-                "type": "override_agent"
-            },
-            "node_6701m552v224fxd8cxsrq1432v0j": {
-                "additional_knowledge_base": [],
-                "additional_prompt": "Confirm all booking details with the hotel representative, including the confirmation number, total cost, and cancellation policy. Thank the representative for their assistance. If the booking is successful, use the 'end_call' tool. If the booking cannot be completed, politely explain the situation and use the 'end_call' tool.",
-                "additional_tool_ids": [],
-                "conversation_config": {
-                    "agent": {
-                        "prompt": {
-                            "built_in_tools": {}
-                        }
-                    }
-                },
-                "edge_order": [],
-                "entry_behavior": "auto",
-                "forced_tool_name": null,
-                "label": "Confirm and Conclude",
-                "parent_subgraph_id": null,
-                "position": {
-                    "x": 0.0,
-                    "y": 534.0
-                },
-                "type": "override_agent"
-            },
-            "node_7701m552v223f0bvrt6rsn9mkta8": {
-                "additional_knowledge_base": [],
-                "additional_prompt": "Once connected to a hotel representative, clearly state the booking details: desired check-in date {{check_in_date}}, check-out date {{check_out_date}}, room type {{room_type}}, number of guests {{number_of_guests}}, and any special requests {{special_requests}}. Confirm the availability and pricing. Be ready to spell out names or numbers if requested. Use the keypad tool if prompted for information.",
-                "additional_tool_ids": [],
-                "conversation_config": {
-                    "agent": {
-                        "prompt": {
-                            "built_in_tools": {}
-                        }
-                    }
-                },
-                "edge_order": [
-                    "edge_9401m552v227fcqagg97zk7hsh3s"
-                ],
-                "entry_behavior": "auto",
-                "forced_tool_name": null,
-                "label": "Provide Booking Details",
-                "parent_subgraph_id": null,
-                "position": {
-                    "x": 0.0,
-                    "y": 356.0
-                },
-                "type": "override_agent"
-            },
-            "start_node": {
-                "edge_order": [
-                    "edge_3001m552v225fypst87ajqd0d5qs"
-                ],
-                "parent_subgraph_id": null,
-                "position": {
-                    "x": 0.0,
-                    "y": 0.0
-                },
-                "type": "start"
-            }
-        },
+        "edges": {},
+        "nodes": {},
         "prevent_subagent_loops": false,
         "subgraphs": {}
     }

@@ -1,0 +1,80 @@
+{
+    "type": "webhook",
+    "name": "report_confirmation",
+    "description": "Call once the hotel confirms the booking or availability. Follow the reply: it may ask you to get a missing detail.",
+    "response_timeout_secs": 10,
+    "force_pre_tool_speech": false,
+    "disable_interruptions": false,
+    "api_schema": {
+        "url": "https://REPLACE_WITH_TUNNEL_HOST/tools/report_confirmation",
+        "method": "POST",
+        "request_headers": {
+            "X-Agent-Secret": {
+                "secret_id": "REPLACE_WITH_ELEVENLABS_SECRET_ID"
+            }
+        },
+        "request_body_schema": {
+            "type": "object",
+            "description": "Body for report_confirmation",
+            "properties": {
+                "run_id": {
+                    "type": "string",
+                    "description": "Run ID",
+                    "dynamic_variable": "run_id"
+                },
+                "candidate_id": {
+                    "type": "string",
+                    "description": "Hotel candidate ID",
+                    "dynamic_variable": "candidate_id"
+                },
+                "conversation_id": {
+                    "type": "string",
+                    "description": "ElevenLabs conversation ID",
+                    "dynamic_variable": "system__conversation_id"
+                },
+                "type": {
+                    "type": "string",
+                    "description": "How it was confirmed",
+                    "enum": [
+                        "reservation_id",
+                        "verbal_booking",
+                        "verbal_availability"
+                    ]
+                },
+                "reservation_id": {
+                    "type": "string",
+                    "description": "Reservation number, digits exactly as read back; empty if none"
+                },
+                "receptionist_name": {
+                    "type": "string",
+                    "description": "Name of the person who confirmed; empty if not given"
+                },
+                "price": {
+                    "type": "number",
+                    "description": "Total price for the stay"
+                },
+                "currency": {
+                    "type": "string",
+                    "description": "3-letter currency code"
+                },
+                "dates": {
+                    "type": "string",
+                    "description": "Check-in and check-out dates confirmed"
+                },
+                "address": {
+                    "type": "string",
+                    "description": "Hotel's full street address"
+                }
+            },
+            "required": [
+                "run_id",
+                "candidate_id",
+                "conversation_id",
+                "type",
+                "price",
+                "dates",
+                "address"
+            ]
+        }
+    }
+}
