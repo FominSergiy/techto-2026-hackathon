@@ -42,6 +42,9 @@ function parseValue(raw, current) {
     return raw;
 }
 
+// Flags a source reads from process.argv itself (expedia.js --dump-html=<file>), not settings
+const PASSTHROUGH_FLAGS = ["dump-html"];
+
 // --max-nightly-price=200 -> { maxNightlyPrice: 200 }
 function parseArgs(argv) {
     const overrides = {};
@@ -50,6 +53,7 @@ function parseArgs(argv) {
         if (!match) continue;
 
         const key = match[1].replace(/-(\w)/g, (_, letter) => letter.toUpperCase());
+        if (PASSTHROUGH_FLAGS.includes(match[1])) continue;
         if (!(key in defaults)) {
             console.error(`Unknown setting --${match[1]}`);
             process.exit(1);

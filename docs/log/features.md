@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Expedia hotel source (Playwright)
+tags: feature, search, data-source
+- Feature: `node expedia.js` (or the "Expedia" checkbox in the UI) opens Expedia's hotel search for `settings` (city, region, country, dates, adults, currency, price sort), clicks "Show more" until `targetCount` hotels pass the filters or `maxPages` is hit, and returns the cheapest ones in the shared hotel shape (rating halved to out of 5; per-night/total converted with `nights`). Prints a warning with counts when a field can't be parsed.
+- Status: wip. Parser, pagination, dump and headless bot-check error are tested offline against synthetic pages (`test/expedia-parse.js`, `test/expedia-local-flow.js`). NOT yet run against the real site: selectors, the `sort`/`currency` URL params and the "Show more" flow are guesses.
+- Notes: Run `HEADLESS=false node expedia.js --dump-html=expedia-dump.html` once and share the dump to fix selectors. Headless runs (the default, and what `server.js` child processes use unless started as `HEADLESS=false node server.js`) hit the bot check and fail with a clear message in the run log. Cards give no coordinates and only a neighbourhood, so address/city come from Google Places; with `strictCity` an Expedia hotel Places can't place is dropped. One run per browser profile at a time. Prices are not currency-converted (a mismatch is warned about).
+
 ## 2026-10-17 — Web UI for hotel search
 tags: feature, ui
 - Feature: `node server.js` serves a page with a prompt textarea. The prompt becomes settings overrides, the suite runs, and the merged hotels (name, city, address, phone, price, rating, source, other offers, link) show in a table, with the run log and prompt-parsing token usage underneath.

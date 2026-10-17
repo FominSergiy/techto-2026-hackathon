@@ -19,6 +19,12 @@ Entry format:
 
 <!-- Add new entries below this line -->
 
+## 2026-10-17 — Expedia source via Playwright, human solves the bot check
+tags: decision, search, data-source
+- Decision: `expedia.js` is a proper source (`search()`, UI checkbox `expedia`, off by default). It drives Chromium with a persistent local profile (`.browser-profile/`, git-ignored). When Expedia shows its "Bot or Not?" / 429 check it does not try to get around it: headless it fails with a message pointing at `HEADLESS=false`, headed it waits up to 3 minutes for the human to solve it in the window. All selectors and text patterns sit in two constant blocks at the top, and `--dump-html=<file>` saves the page for selector fixes.
+- Why: Expedia is the one major OTA with no API we can reach (Rapid needs weeks of approval). Reading its page gives real prices. A visible window plus a remembered challenge keeps a human in the loop instead of fighting detection.
+- Alternatives: stealth plugins, spoofed fingerprints, proxies, CAPTCHA services or ScrapingBee (rejected: evasion). The Apify Booking actor (already a source, different site).
+
 ## 2026-10-17 — Verify each hotel's city via Google Places
 tags: decision, search, data-quality
 - Decision: `search.js` keeps only hotels whose Google Places address is in `settings.city`, `region` and `countryCode` (`strictCity`). Places matches use the source's coordinates (within 750 m). SearchApi sorts by relevance, not price.

@@ -72,7 +72,7 @@ TBD. Record the choice in [decisions.md](docs/log/decisions.md), then summarize 
 
 - `settings.js`: city and region (City X), dates (default: next Saturday, 1 night), guests, currency, filters and enabled sources. Any value can be overridden on the command line.
 - `search.js`: the suite. Runs every enabled source in parallel, merges to one row per hotel (cheapest offer), adds phone/address from Google Places, prints a table and saves CSV + JSON to `output/`
-- `sources.js`: the list of price sources and the `.env` keys each needs (drives the UI checkboxes and `search.js`)
+- `sources.js`: the list of price sources, the `.env` keys each needs and whether it starts ticked (`defaultOn`) - drives the UI checkboxes and `search.js`
 - `server.js`: web UI backend (plain `node:http`, no deps). Serves `public/index.html` and `POST /api/search {prompt}`, which parses the prompt and runs `search-json.js` in a child process
 - `prompt.js`: free-text prompt -> `search.js` CLI args. Claude (haiku) when `ANTHROPIC_API_KEY` is set, regex fallback otherwise; raw `--flags` in the prompt always win
 - `search-json.js`: child entry that runs the suite and prints the records as JSON (needed because `settings.js` reads `process.argv` once)
@@ -83,7 +83,7 @@ TBD. Record the choice in [decisions.md](docs/log/decisions.md), then summarize 
 - `locations.js`: looks up the TripAdvisor (Xotelo) and Hotelbeds location codes from the city, cached in `.cache/`
 - `hotel-utils.js`: shared env loading, JSON fetching, paging, filtering and cheapest-first ranking
 - `maps.js`: Google Places search (phone numbers, rough price level)
-- `expedia.js`: Playwright scraper. Against the no-browser-automation rule, reference only.
+- `expedia.js`: Expedia source. Playwright reads the real search page (persistent profile in `.browser-profile/`, `HEADLESS=false` so a human can solve the bot check, `--dump-html=<file>` for selector fixes). Selectors unverified. Offline tests in `test/`
 
 ## How to Run
 

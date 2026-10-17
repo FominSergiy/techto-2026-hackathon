@@ -159,7 +159,7 @@ async function loadSources() {
 
         $("sources").classList.remove("muted");
         $("sources").innerHTML = sources
-            .map(source => checkbox({ value: source.name, label: source.label, detail: source.detail, missing: source.missing, checked: saved[source.name] ?? true }))
+            .map(source => checkbox({ value: source.name, label: source.label, detail: source.detail, missing: source.missing, checked: saved[source.name] ?? source.defaultOn }))
             .join("")
             + checkbox({ value: "places", label: "Google Places", detail: "phones, addresses, city check", missing: places.missing, checked: saved.places ?? true, className: "places" });
         $("sources").addEventListener("change", saveChoices);
